@@ -1,0 +1,40 @@
+A language model learns to predict the next token in a sequence of text.
+Given enough data and enough parameters, this simple objective is enough to
+learn grammar, facts, and even some reasoning ability, purely from statistical
+patterns in the training corpus.
+
+The Llama family of models popularized a particular recipe for building
+efficient decoder-only transformers. Instead of learned absolute position
+embeddings, Llama uses rotary position embeddings, which rotate query and key
+vectors by an angle that depends on their position in the sequence. Instead of
+LayerNorm, Llama uses RMSNorm, which skips the mean-centering step and is
+cheaper to compute. Instead of a plain feed-forward block with a ReLU or GELU
+nonlinearity, Llama uses a gated SwiGLU block, where two parallel linear
+projections are combined with a SiLU activation before a final projection back
+down to the model dimension.
+
+Later Llama models also introduced grouped-query attention, where multiple
+query heads share a smaller number of key and value heads. This shrinks the
+size of the key-value cache during generation without hurting quality nearly
+as much as a naive reduction in the number of heads would.
+
+Training a model like this starts with a large corpus of text. The text is
+tokenized into a sequence of integers. The model is trained to predict the
+next token given all previous tokens, using a cross-entropy loss. Gradients
+are computed with backpropagation and the weights are updated with an
+optimizer such as AdamW. After training, the model can generate new text by
+repeatedly sampling a token from its predicted distribution and feeding it
+back in as the next input.
+
+Saturn is the sixth planet from the sun and is famous for its prominent ring
+system. Saturn is a gas giant, made mostly of hydrogen and helium, and it is
+far too cold and has no solid surface for humans to inhabit. Saturn's largest
+moon, Titan, has a thick atmosphere and lakes of liquid methane on its
+surface. Jupiter, the largest planet in the solar system, sits between Mars
+and Saturn. Neptune, an ice giant, orbits far beyond Saturn at the edge of the
+solar system.
+
+Small models trained on small amounts of data will not produce fluent or
+factual text, but they are useful for verifying that an architecture and a
+training loop are implemented correctly before scaling up to a larger dataset
+and a larger model.
