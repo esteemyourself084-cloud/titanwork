@@ -41,6 +41,32 @@ def _each_arabic(u):
         yield l, 'ar'
 
 
+# In connected speech the first ا of a word like اغْفِرْ or امْرَأَةٌ is silent.
+TR_WASL = {
+    "ʿindahu ibnun": "ʿindahu bnun",
+    "hiya imraʾatun laṭīfatun": "hiya mraʾatun laṭīfatun",
+    "jumlatun ismiyyatun": "jumlatuni smiyyatun",
+    "kāna hunāka izdiḥāmun": "kāna hunāka zdiḥāmun",
+    "hiya imraʾatun dhātu ʿilmin": "hiya mraʾatun dhātu ʿilmin",
+    "hiya aktharu ijtihādan min ukhtihā": "hiya aktharu jtihādan min ukhtihā",
+    "yā rabbi ighfir lī": "yā rabbi ghfir lī",
+    "allāhumma ighfir lī": "allāhumma ghfir lī",
+    "allāhumma iftaḥ lī abwāba raḥmatika": "allāhumma ftaḥ lī abwāba raḥmatika",
+    "rabbi ishraḥ lī ṣadrī": "rabbi shraḥ lī ṣadrī",
+    "allāhumma isqinā": "allāhumma sqinā",
+    "allāhumma irzuqnā tilāwatahu": "allāhumma rzuqnā tilāwatahu",
+    "mā ismuka": "mā smuka",
+    "mā ismuki": "mā smuki",
+    "mā ismuhu": "mā smuhu",
+    "mā ismuhā": "mā smuhā",
+    "hādhā izdiḥāmun": "hādhā zdiḥāmun",
+    "hādhā imtiḥānun": "hādhā mtiḥānun",
+    "baʿda fī yaʾtī ismun majrūrun": "baʿda fī yaʾtī smun majrūrun",
+    "as-sanatu fīhā ithnā ʿashara shahran": "as-sanatu fīhā thnā ʿashara shahran",
+    "at-tiqniyyatu niʿmatun idhā istakhdamnāhā fi l-khayri": "at-tiqniyyatu niʿmatun idhā stakhdamnāhā fi l-khayri",
+}
+
+
 def POST(units):
     for u in units.values():
         for obj, key in _each_text(u):
@@ -53,4 +79,4 @@ def POST(units):
         for r in u['rules']:
             for e in r['ex']:
                 # Transliterations are lower case throughout, names included.
-                e['tr'] = e['tr'].lower()
+                e['tr'] = TR_WASL.get(e['tr'].lower(), e['tr'].lower())

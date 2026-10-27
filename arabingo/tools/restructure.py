@@ -28,9 +28,8 @@ PLAN = [
     (6, [[1, 2, 3, 4, 5], [6, 7, 8, 9]]),
     (7, [[1, 2, 3, 4, 5], [6, 7, 8, 9]]),
 ]
-# Original levels 1-3 are beginner work; 4-7 open with the passive, verbal
-# nouns and participles, which is intermediate grammar.
-STAGE_OF = {1: 1, 2: 1, 3: 1, 4: 2, 5: 2, 6: 2, 7: 2}
+# All the original lessons are in Stage 1; Stages 2 and 3 are left empty for the author.
+STAGE_OF = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1}
 REVIEW_UNIT = 10  # in original levels 3-7, unit 10 is the level review
 
 # Lessons are paired in order unless a better pairing is given here.
@@ -177,7 +176,9 @@ EN_RENAME = {
     ('1-5-2', 1): 'The dual: two of them',
 }
 ORD_AR = ['الأَوَّلِ', 'الثَّانِي', 'الثَّالِثِ', 'الرَّابِعِ', 'الخَامِسِ', 'السَّادِسِ',
-          'السَّابِعِ', 'الثَّامِنِ', 'التَّاسِعِ', 'العَاشِرِ']
+          'السَّابِعِ', 'الثَّامِنِ', 'التَّاسِعِ', 'العَاشِرِ', 'الحَادِيَ عَشَرَ',
+          'الثَّانِيَ عَشَرَ', 'الثَّالِثَ عَشَرَ', 'الرَّابِعَ عَشَرَ', 'الخَامِسَ عَشَرَ',
+          'السَّادِسَ عَشَرَ', 'السَّابِعَ عَشَرَ', 'الثَّامِنَ عَشَرَ', 'التَّاسِعَ عَشَرَ', 'العِشْرِينَ']
 
 # ---------------------------------------------------------------- matching
 HARAKAT = re.compile('[ً-ٰٟـۖ-ۭ]')

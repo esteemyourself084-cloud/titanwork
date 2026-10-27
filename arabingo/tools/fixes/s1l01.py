@@ -27,6 +27,13 @@ FIXES = [
         - جَمْعٌ (plural) means three or more. Some plurals only add an ending, like مُعَلِّمُونَ (teachers). Many others change the whole shape of the word, like كُتُبٌ (books), so learn each plural together with its singular.
     """)}},
 
+    # The ا of اسْمُ is silent after مَا; say so before learners meet it.
+    {"u": "1-1-6", "r": 2, "was": "What is your name?", "set": {"body": B("""
+        اِسْمٌ means "name". Add ـكَ or ـكِ to say "your name", and add ـِي to say "my name". Use مَا (what) to ask the question and اِسْمِي to answer.
+        The first ا of اِسْمٌ is only said at the start of a sentence. After مَا it is silent, so مَا اسْمُكَ؟ sounds like "mā smuka".
+        When you meet someone new, you can say تَشَرَّفْنَا or فُرْصَةٌ سَعِيدَةٌ.
+    """)}},
+
     # Masculine, feminine and "the": feminine words without ـة, the dropped tanween, and silent lam.
     {"u": "1-1-4", "r": 2, "was": "Masculine, feminine", "set": {"body": B("""
         Every اِسْمٌ is either masculine (مُذَكَّرٌ) or feminine (مُؤَنَّثٌ). Most feminine words end in ـَةٌ, a round letter called تَاءٌ مَرْبُوطَةٌ. A few feminine words have no ending at all, like أُمٌّ (mother) and شَمْسٌ (sun).
