@@ -36,7 +36,7 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   async function doUnit(id, wrongAt) {
     await p.evaluate(h => { location.hash = h; }, '#unit-' + id);
     await p.waitForTimeout(250);
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 60; i++) {
       const quiz = await p.$('.qbody, .cvwrap');
       if (quiz) break;
       const qc = await p.$('.qcb:not([disabled])');
@@ -44,7 +44,7 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
       await p.click('[data-act=next]'); await p.waitForTimeout(150);
     }
     let n = 0, unknown = 0;
-    for (let guard = 0; guard < 40; guard++) {
+    for (let guard = 0; guard < 80; guard++) {
       if (await p.$('.result')) break;
       if (await p.$('.cvwrap')) {
         const qs = await p.$$eval('.cvq', cs => cs.map(c => ({ q: c.querySelector('h3').textContent, o: [...c.querySelectorAll('.opt .t')].map(t => t.textContent) })));
@@ -132,20 +132,21 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   check('arena fight can be won', /Victory/.test(won), won.slice(0, 50));
   check('beating an enemy is remembered', pr.shop && pr.shop.beat && pr.shop.beat[0] === 1);
 
-  // 6a. progress saved while Levels 10-17 were shown as Stage 2 moves to Stage 1
-  await p.evaluate(() => { localStorage.setItem('arabingo.progress.v3', JSON.stringify({ v: 3, xp: 5, streak: 0, last: '', done: { '2-3-4': { score: 90, stars: 2 }, 'lt-2-1': { score: 80 }, 'st-2': { score: 1 } }, miss: [], read: { '2-1-2': { score: 3, total: 4 } } })); location.reload(); });
+  // 6. progress saved on the small units (versions 3 and 4) moves onto the original units
+  await p.evaluate(() => { localStorage.setItem('arabingo.progress.v3', JSON.stringify({ v: 4, xp: 5, streak: 0, last: '', done: { '1-1-5': { score: 90 }, '1-1-6': { score: 80 }, '1-1-7': { score: 100 }, '1-1-8': { score: 95 }, '1-1-1': { score: 100 }, 'lt-1-5': { score: 85 } }, miss: [], read: { '1-5-3': { score: 3, total: 4 } } })); location.reload(); });
   await p.waitForTimeout(1200);
   pr = await prog();
-  check('stage 2 progress moved to stage 1', pr && pr.v === 4 && pr.done['1-12-4'] && pr.done['lt-1-10'] && !pr.done['st-2'] && pr.read['1-10-2'], pr ? Object.keys(pr.done).join(',') : 'none');
-
-  // 6. old progress (before the split) moves onto the new units
-  await p.evaluate(() => { localStorage.removeItem('arabingo.progress.v3'); localStorage.setItem('arabingo.progress.v2', JSON.stringify({ xp: 77, streak: 1, last: '', done: { '1-1-4': { score: 92, stars: 2 }, '1-3-10': { score: 88, stars: 1 }, 'lt-1-2': { score: 90, stars: 2 } } })); location.reload(); });
-  await p.waitForTimeout(600);
-  await p.evaluate(() => { location.hash = '#home'; }); await p.waitForTimeout(200);
-  await p.evaluate(() => { location.hash = '#words'; }); await p.waitForTimeout(200);
+  check('small-unit progress moves to the original units', pr && pr.v === 5 && pr.done['1-1-2'] && pr.done['1-1-2'].score === 80 && !pr.done['1-1-1'] && pr.done['lt-1-2'] && pr.read['1-2-1'], pr ? Object.keys(pr.done).join(',') + ' read=' + Object.keys(pr.read) : 'none');
+  await p.evaluate(() => { localStorage.setItem('arabingo.progress.v3', JSON.stringify({ v: 3, xp: 5, streak: 0, last: '', done: { 'lt-2-1': { score: 80 }, 'st-2': { score: 1 } }, miss: [], read: {} })); location.reload(); });
+  await p.waitForTimeout(1200);
   pr = await prog();
-  const want = ['1-2-5', '1-2-6', '1-2-7', '1-8-11', '1-9-11', 'lt-1-5', 'lt-1-6', 'lt-1-7'];
-  check('old progress migrated', pr && pr.v === 4 && want.every(k => pr.done[k]) && !pr.done['1-1-4'] && pr.xp === 77, pr ? Object.keys(pr.done).join(',') : 'none');
+  check('progress from the Stage 2 layout moves to Stage 1', pr && pr.done['lt-1-4'] && !pr.done['st-2'], pr ? Object.keys(pr.done).join(',') : 'none');
+
+  // 6b. progress from the first version of the app keeps its unit ids
+  await p.evaluate(() => { localStorage.removeItem('arabingo.progress.v3'); localStorage.setItem('arabingo.progress.v2', JSON.stringify({ xp: 77, streak: 1, last: '', done: { '1-1-4': { score: 92, stars: 2 }, '1-3-10': { score: 88, stars: 1 }, 'lt-1-2': { score: 90, stars: 2 } } })); location.reload(); });
+  await p.waitForTimeout(1200);
+  pr = await prog();
+  check('first-version progress kept', pr && pr.v === 5 && ['1-1-4', '1-3-10', 'lt-1-2'].every(k => pr.done[k]) && pr.xp === 77, pr ? Object.keys(pr.done).join(',') : 'none');
 
   // 7. every unit page and the main pages render without errors
   const ids = SEED.map(u => u.id);
