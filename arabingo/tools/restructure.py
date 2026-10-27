@@ -317,6 +317,14 @@ def join_names(names):
     return ', '.join(names[:-1]) + ' and ' + names[-1]
 
 
+def plain_theme(name):
+    """Drop the "Introduction: " prefix the old levels used for their grammar theme."""
+    for pre in ('Introduction: ', 'المُقَدِّمَةُ: '):
+        if name.startswith(pre):
+            return name[len(pre):]
+    return name
+
+
 def best(scores):
     """Index of the highest score, earliest on ties; None if all zero."""
     top = max(scores)
@@ -419,7 +427,7 @@ def build(old):
                         'titleAr': ' · '.join(r['_ar'] for r in rs),
                         'titleEn': ' · '.join(r['_en'] for r in rs),
                         'about': u['about'],
-                        'theme': {'ar': u['titleAr'], 'en': u['titleEn'], 'part': gi + 1, 'parts': len(gs)},
+                        'theme': {'ar': plain_theme(u['titleAr']), 'en': plain_theme(u['titleEn']), 'part': gi + 1, 'parts': len(gs)},
                         'rules': [{k2: v for k2, v in r.items() if not k2.startswith('_')} for r in rs],
                         'words': words[gi],
                         'qs': qs[gi],
@@ -438,12 +446,12 @@ def build(old):
                 part = review_parts[k]
                 order += 1
                 last = k == len(new_levels) - 1
-                theme_names = [byid['1-%d-%d' % (old_lv, t)]['titleEn'] for t in themes]
+                theme_names = [plain_theme(byid['1-%d-%d' % (old_lv, t)]['titleEn']) for t in themes]
                 nu = {
                     'stage': stage, 'level': lv, 'order': order,
                     'titleAr': 'مُرَاجَعَةُ المُسْتَوَى ' + ORD_AR[lv - 1],
                     'titleEn': 'Level %d Review' % lv,
-                    'about': 'A review of Level %d. Read the reminders, then practise: %s.' % (lv, join_names(theme_names)),
+                    'about': 'A review of Level %d. Read the reminders, then practise the themes of this level: %s.' % (lv, ' · '.join(theme_names)),
                     'review': True,
                     'theme': {'ar': 'المُرَاجَعَةُ', 'en': 'Review', 'part': 1, 'parts': 1},
                     'rules': part['rules'], 'words': [], 'qs': part['qs'],
