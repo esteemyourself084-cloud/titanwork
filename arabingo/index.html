@@ -183,45 +183,19 @@ button,select,textarea,input{font:inherit;color:inherit}
 .lvn{font:700 16px var(--f-display);color:var(--brand)}
 .lvs{font-size:13px;color:var(--ink2)}
 .lvb{width:70px;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden}.lvb i{display:block;height:100%;background:var(--good)}
-.lvl .tiles{padding:6px 22px 24px;gap:12px;grid-template-columns:repeat(auto-fill,minmax(176px,1fr))}
-.lvl summary{flex-wrap:wrap;gap:6px 14px}
-.lvt{flex:1 1 200px;min-width:0;font-weight:600;font-size:14px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lvc{font-weight:700;font-size:13px;color:var(--ink2);min-width:40px;text-align:end;font-variant-numeric:tabular-nums}
-.lvl.full .lvn::after{content:" \2713";color:var(--good)}
-.thms{padding:0 22px 22px}
-.thms{display:flex;flex-wrap:wrap;gap:6px 30px}
-.thm{flex:0 1 auto;min-width:0;max-width:100%}
-.lvl .thm .tiles{grid-template-columns:repeat(var(--n,3),minmax(150px,178px))}
-@media (max-width:900px){.thm{flex:1 1 100%}.lvl .thm .tiles{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
-.thh{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;padding:14px 0 10px}
-.thh b{font:700 16px var(--f-display);order:1}
-.thh .ar{order:2;font-size:21px;line-height:1.5;color:var(--brand);margin:0}
-.thh>span{order:3;font-size:13px;color:var(--ink2)}
-.thh .thd,.thh .thp{order:4;margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px}
-.thh .thd{color:var(--good)}.thh .thd svg{width:18px;height:18px}.thh .thd circle{fill:var(--good)}.thh .thd path{fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.thm.rv .thh b{color:var(--brand)}
-.lvl .thm .tiles{padding:0}
-.lvl .tile{padding:12px 14px 10px;gap:4px;border-radius:16px;min-height:158px;justify-content:flex-start;transition:transform .12s,box-shadow .12s}
-.lvl a.tile:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(15,30,58,.08)}
-.lvl .tile .no{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
-.lvl .tile .no .cv{font-style:normal;font-size:13px;letter-spacing:0}
-.lvl .tile .ar{font-size:19px;line-height:1.7;padding:4px 0 2px;text-align:center;margin:0;overflow-wrap:anywhere}
-.lvl .tile .ar span{display:block}
-.lvl .tile .ar span+span{border-top:1px dotted var(--line);margin-top:2px;padding-top:2px}
-.lvl .tile .en{font-size:13px;line-height:1.35;text-align:center;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.lvl .tile .foot{margin-top:auto;padding-top:8px;border-top:1px solid var(--line);font-size:12px;justify-content:space-between;gap:6px}
-.lvl .tile .go{background:var(--gold);color:var(--gold-ink);padding:2px 10px;border-radius:99px;font-weight:800;white-space:nowrap}
-.lvl .tile .go2{color:var(--brand);font-weight:700}
-.lvl .tile .tick b{font-size:12px}
-.lvl .tile.cur{border:2px solid var(--gold);box-shadow:0 0 0 4px rgba(217,162,27,.18)}
-.lvl .tile.done{border-color:var(--good);background:linear-gradient(180deg,var(--good-bg),var(--surface) 42%)}
-.lvl .tile.rev{border-style:dashed;border-color:var(--brand);background:var(--soft)}
-.lvl.soonlv{opacity:.7}
-@media (max-width:640px){.lvl .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.thms{padding:0 12px 16px}.lvl .tile{min-height:150px;padding:10px 10px 8px}.lvl .tile .ar{font-size:17px}.lvl summary{gap:6px 10px}.lvl summary::after{order:2}.lvt{order:3;flex-basis:100%;white-space:normal;font-size:13px;color:var(--ink2)}.lvs{order:4}.lvb{order:5;flex:1 1 40px;width:auto}.lvc{order:6}}
-.hero-go{gap:12px 16px;margin-top:4px}
-.nxt{display:flex;flex-direction:column;line-height:1.35;min-width:0;max-width:100%}
-.nxt small{font-size:12px;opacity:.78}
-.nxt b{font-size:15px;color:#fff}
+.lvl .tiles{padding:6px 22px 24px;gap:14px;grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:640px){.lvl .tiles{grid-template-columns:repeat(2,minmax(0,1fr));padding:4px 14px 18px;gap:12px}.lvl summary{padding:18px}.lvl .tile{min-height:116px}}
+.lvl .tile{padding:14px 14px 12px;gap:6px;border-radius:16px;min-height:124px;justify-content:space-between}
+.lvl .tile .no{font-size:12px}
+.lvl .tile .ar{font-size:22px;line-height:2;padding:6px 0 4px;overflow:visible;white-space:normal;text-align:center;margin:0}
+.lvl .tile .en{font-size:13px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lvl .tile .en{display:block;-webkit-line-clamp:unset;overflow:visible;background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:12px 10px;text-align:center;transition:border-color .15s,transform .15s}
+.lvl a.tile .en:hover{border-color:var(--brand);transform:translateY(-2px)}
+.lvl .tile .foot{margin-top:4px;font-size:12px}
+.lvl .tile:not(.slot) .foot>span:first-child{display:none}
+.lvl .tile:not(.slot) .foot{justify-content:flex-end}
+.lvl .tile.slot{min-height:124px}
+.lvl .tile.slot .en{font-size:13px}
 .steps2{list-style:none;display:flex;margin:0 0 16px;padding:0}
 .steps2 li{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;font-size:12px;font-weight:600;color:var(--ink2);text-align:center}
 .steps2 li i{width:16px;height:16px;border-radius:50%;background:var(--surface);border:3px solid var(--line);position:relative;z-index:1;box-sizing:border-box}
@@ -969,32 +943,19 @@ function render(scroll){
 
 /* ---------- home ---------- */
 var TICK='<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10"/><path d="M5.5 10.5l3 3 6-7"/></svg>';
-function tileHtml(u,next){
-  var d=S.prog.done[u.id],open=unlocked(u),n=topicsOf(u),w=u.words.length,rv=!!u.review,cur=next===u;
-  var meta=rv?(u.rules.length?'Recap and test':'Test'):(n+(n===1?' topic':' topics')+(w?' · '+w+' words':''));
-  var inner='<span class="no">'+(rv?'Review':'Unit '+u.order)+(u.conv?'<i class="cv" title="Ends with a conversation">💬</i>':'')+'</span>'+
-    (u.titleAr?'<p class="ar">'+u.titleAr.split(' · ').map(function(x){return '<span>'+esc(x)+'</span>'}).join('')+'</p>':'')+'<span class="en">'+esc(u.titleEn||'')+'</span>'+
-    '<div class="foot"><span>'+meta+'</span>'+(d?'<span class="tick">'+TICK+'<b>'+d.score+'%</b></span>':cur?'<span class="go">Start →</span>':open?'<span class="go2">Open</span>':'<span>🔒</span>')+'</div>';
-  var cls='tile'+(d?' done':'')+(open?'':' locked')+(rv?' rev':'')+(cur?' cur':'');
+function tileHtml(u){
+  var d=S.prog.done[u.id],open=unlocked(u),n=u.rules.length,w=u.words.length;
+  var inner='<span class="no">Unit '+u.order+'</span>'+(u.titleAr?'<p class="ar">'+esc(u.titleAr)+'</p>':'')+
+    '<span class="en">'+esc(u.titleEn||'')+'</span><div class="foot"><span>'+n+(n===1?' lesson':' lessons')+(w?' · '+w+' words':'')+'</span>'+
+    (d?'<span class="tick"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10"/><path d="M5.5 10.5l3 3 6-7"/></svg>Done</span>':(open?'<span>Start →</span>':'<span>Locked</span>'))+'</div>';
+  var cls='tile'+(d?' done':'')+(open?'':' locked');
   return open?'<a class="'+cls+'" href="#unit-'+u.id+'">'+inner+'</a>':'<div class="'+cls+'" title="Finish the previous unit to open this one" aria-disabled="true">'+inner+'</div>';
 }
-/* A level's units in theme groups: each original topic area keeps its small units together. */
-function themeGroups(us){
-  var gs=[];
-  us.forEach(function(u){var t=u.theme||{ar:'',en:''},g=gs[gs.length-1];if(!g||g.key!==t.en)gs.push(g={key:t.en,ar:t.ar,en:t.en,rv:!!u.review,us:[]});g.us.push(u)});
-  return gs;
+function slotHtml(sg,l,k){
+  var inner='<span class="no">Unit '+k+'</span><span class="en muted">'+(k===1?'<b>Introduction</b> · ':'')+(S.canTeach?'Empty':'Coming soon')+'</span><div class="foot"><span>'+(S.canTeach?'+ Add content':'')+'</span></div>';
+  return S.canTeach?'<a class="tile slot add" href="#teacher" data-act="addslot" data-s="'+sg+'" data-l="'+l+'" data-u="'+k+'">'+inner+'</a>':'<div class="tile slot" aria-disabled="true">'+inner+'</div>';
 }
-function levelHtml(s,lv,us,open,next){
-  var dn=us.filter(function(u){return S.prog.done[u.id]}).length,tp=us.reduce(function(a,u){return a+topicsOf(u)},0),gs=themeGroups(us);
-  var names=gs.filter(function(g){return !g.rv}).map(function(g){return g.en.replace(/^Introduction:\s*/,'')}),lt=S.prog.done['lt-'+s+'-'+lv];
-  var h='<details class="lvl'+(dn===us.length?' full':'')+'"'+(open?' open':'')+'><summary><span class="lvn">Level '+lv+'</span><span class="lvt">'+esc(names.join(' · '))+'</span>'+
-    '<span class="lvs">'+tp+' topics · '+us.length+' units'+(lt?' · test ✓':'')+'</span><span class="lvb" aria-label="'+dn+' of '+us.length+' units done"><i style="width:'+Math.round(dn/us.length*100)+'%"></i></span><span class="lvc">'+dn+'/'+us.length+'</span></summary><div class="thms">';
-  gs.forEach(function(g){
-    var gd=g.us.filter(function(u){return S.prog.done[u.id]}).length,gt=g.us.reduce(function(a,u){return a+topicsOf(u)},0);
-    h+='<div class="thm'+(g.rv?' rv':'')+'" style="--n:'+Math.min(g.us.length,5)+'"><div class="thh">'+(g.ar?'<p class="ar">'+esc(g.ar)+'</p>':'')+'<b>'+esc(g.en)+'</b><span>'+(g.rv?'End-of-level review':(gt+' topics in '+g.us.length+(g.us.length===1?' unit':' units')))+'</span>'+(gd===g.us.length?'<span class="thd">'+TICK+'Done</span>':gd?'<span class="thp">'+gd+'/'+g.us.length+'</span>':'')+'</div><div class="tiles">'+g.us.map(function(u){return tileHtml(u,next)}).join('')+'</div></div>';
-  });
-  return h+'</div></details>';
-}
+ACT.addslot=function(b){var st=S.studio;st.sg=+b.dataset.s;st.lv=+b.dataset.l;st.un=+b.dataset.u;st.text='';st.prev=null;location.hash='#teacher'};
 function nextUnit(a){return a.filter(function(u){return !S.prog.done[u.id]&&unlocked(u)})[0]}
 function stageTabs(q){
   var c=(S.teacher||q)?null:curUnit();
@@ -1011,23 +972,22 @@ ACT.stage=function(b){
 function viewHome(){
   var a=allUnits(),doneN=a.filter(function(u){return S.prog.done[u.id]}).length,next=nextUnit(a),ps=S.teacher?0:pendingStage();
   if(!S.stage||(!S.teacher&&next&&!S.stagePicked))S.stage=next?next.stage:(S.stage||1);
-  var G=stageOf(S.stage),tTot=0,tDone=0;
-  a.forEach(function(u){tTot+=topicsOf(u);if(S.prog.done[u.id])tDone+=topicsOf(u)});
-  var nx=next?'<a class="btn" href="#unit-'+next.id+'">'+(doneN?'Continue':'Start')+' →</a><span class="nxt"><small>'+(next.review?'Review':'Next up · Stage '+next.stage+' · Level '+next.level+' · Unit '+next.order)+'</small><b>'+esc(next.titleEn||next.titleAr)+'</b></span>':'';
-  var h='<section class="hero"><p class="ar">تَعَلَّمِ العَرَبِيَّةَ</p><h1>Learn Arabic, one small step at a time.</h1>'+
-    '<p>Each unit teaches one or two topics, and each level gathers 15 to 20 topics into short themes. Read the lesson, try the quick check, then pass the unit test.</p>'+
-    '<div class="row hero-go">'+(ps?'<a class="btn" href="#quiz">Take the Stage '+ps+' test →</a>':next?nx:(a.length?'<span class="btn">Every unit complete</span>':(S.canTeach?'<a class="btn" href="#teacher">Add your first unit →</a>':'<span class="btn">Units are coming soon</span>')))+'</div>'+
-    '<div class="stats"><div class="stat"><b>'+doneN+'/'+a.length+'</b><span>Units done</span></div><div class="stat"><b>'+tDone+'/'+tTot+'</b><span>Topics learnt</span></div><div class="stat"><b>'+S.prog.xp+'</b><span>XP</span></div><div class="stat"><b>'+S.prog.streak+'</b><span>Day streak</span></div></div></section>'+stageTabs()+(ps?'<div class="note" style="margin-top:14px">Stage '+ps+' complete! Pass the Stage '+ps+' test in the Quiz tab to unlock Stage '+(ps+1)+'.</div>':'');
-  var inStage=a.filter(function(u){return u.stage===S.stage}),sd=inStage.filter(function(u){return S.prog.done[u.id]}).length,lvs=stageLevels(S.stage);
-  h+='<div class="level-head" style="margin-top:6px"><span class="level-n">Stage '+G.n+'</span><div><p class="ar">'+G.ar+'</p><h2 style="font-size:17px">'+G.en+(lvs.length?' · '+lvs.length+(lvs.length===1?' level':' levels'):'')+'</h2></div><div class="lvbar"><small>'+sd+' of '+inStage.length+' units</small><div class="bar"><i style="width:'+(inStage.length?Math.round(sd/inStage.length*100):0)+'%"></i></div></div></div>';
+  var G=stageOf(S.stage);
+  var h='<section class="hero"><p class="ar">تَعَلَّمِ العَرَبِيَّةَ</p><h1>Learn Arabic, one lesson at a time.</h1>'+
+    '<p>Three stages, up to ten levels in each stage, and one or two topics in each unit. Read the lesson, see it in real examples, then practise until it sticks.</p>'+
+    (ps?'<a class="btn" href="#quiz">Take the Stage '+ps+' test →</a>':next?'<a class="btn" href="#unit-'+next.id+'">'+(doneN?'Continue':'Start')+' · '+esc(next.titleEn||next.titleAr)+' →</a>':(a.length?'<span class="btn">Every unit complete</span>':(S.canTeach?'<a class="btn" href="#teacher">Add your first unit →</a>':'<span class="btn">Units are coming soon</span>')))+
+    '<div class="stats"><div class="stat"><b>'+doneN+'/'+a.length+'</b><span>Units done</span></div><div class="stat"><b>'+S.prog.xp+'</b><span>XP</span></div><div class="stat"><b>'+S.prog.streak+'</b><span>Day streak</span></div></div></section>'+stageTabs()+(ps?'<div class="note" style="margin-top:14px">Stage '+ps+' complete! Pass the Stage '+ps+' test in the Quiz tab to unlock Stage '+(ps+1)+'.</div>':'');
+  var inStage=a.filter(function(u){return u.stage===S.stage}),sd=inStage.filter(function(u){return S.prog.done[u.id]}).length,sn=inStage.length;
+  h+='<div class="level-head" style="margin-top:6px"><span class="level-n">Stage '+G.n+'</span><div><p class="ar">'+G.ar+'</p><h2 style="font-size:17px">'+G.en+'</h2></div><div class="lvbar"><small>'+sd+' of '+sn+' units</small><div class="bar"><i style="width:'+(sn?Math.round(sd/sn*100):0)+'%"></i></div></div></div>';
   var openLv=next&&next.stage===S.stage?next.level:0;
-  if(!openLv&&lvs.length)openLv=lvs[0];
-  var soon=0;
+  if(!openLv)for(var q=1;q<=LV_N&&!openLv;q++)if(inStage.some(function(u){return u.level===q}))openLv=q;
   for(var lv=1;lv<=LV_N;lv++){
-    var us=inStage.filter(function(u){return u.level===lv});
-    if(!us.length){if(!soon++)h+='<div class="lvl lockedlv soonlv" aria-disabled="true"><span class="lvn">Level '+lv+(lv<LV_N?'–'+LV_N:'')+'</span><span class="lvs">'+(S.canTeach?'Empty — add units in the Studio':'Coming soon')+'</span></div>';continue}
-    if(!levelOpen(S.stage,lv)){h+='<div class="lvl lockedlv" aria-disabled="true"><span class="lvn">🔒 Level '+lv+'</span><span class="lvs">'+us.reduce(function(t,u){return t+topicsOf(u)},0)+' topics · locked until you reach it</span></div>';continue}
-    h+=levelHtml(S.stage,lv,us,lv===openLv,next);
+    var us=inStage.filter(function(u){return u.level===lv}),dn=us.filter(function(u){return S.prog.done[u.id]}).length,tl='';
+    if(us.length)us.forEach(function(u){tl+=tileHtml(u)});
+    else for(var k=1;k<=10;k++)tl+=slotHtml(S.stage,lv,k);
+    var open=lv===openLv;
+    if(!levelOpen(S.stage,lv)){h+='<div class="lvl lockedlv" aria-disabled="true"><span class="lvn">🔒 Level '+lv+'</span><span class="lvs">'+(us.length?'Locked until you reach it':'Coming soon')+'</span></div>';continue}
+    h+='<details class="lvl"'+(open?' open':'')+'><summary><span class="lvn">Level '+lv+'</span><span class="lvs">'+(us.length?dn+' of '+us.length+' units':(S.canTeach?'Empty':'Coming soon'))+'</span><span class="lvb"><i style="width:'+(us.length?Math.round(dn/us.length*100):0)+'%"></i></span></summary><div class="tiles">'+tl+'</div></details>';
   }
   V.innerHTML=h;
 }
