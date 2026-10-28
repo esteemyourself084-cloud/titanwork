@@ -118,19 +118,22 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   // 5. arena: win against the scorpion with the right answers
   await p.evaluate(() => { location.hash = '#arena'; }); await p.waitForTimeout(250);
   await p.click('[data-act=arenastart][data-t="0"]'); await p.waitForTimeout(300);
-  for (let i = 0; i < 30; i++) {
+  // a right answer opens the attack picker: choose the first attack, then the next question comes
+  for (let i = 0; i < 60; i++) {
     if (await p.$('.aend')) break;
-    const q = await p.$eval('.aq .qq', e => e.textContent).catch(() => null);
-    if (!q) { await p.waitForTimeout(300); continue; }
-    const o = await p.$$eval('.aq .opt .t', ts => ts.map(t => t.textContent));
+    const atk = await p.$('[data-act=arenaatk]');
+    if (atk) { await atk.click().catch(() => {}); await p.waitForTimeout(1600); continue; }
+    const q = await p.$eval('.qov .qq', e => e.textContent).catch(() => null);
+    const o = await p.$$eval('.qov .opt:not([disabled]) .t', ts => ts.map(t => t.textContent)).catch(() => []);
+    if (!q || !o.length) { await p.waitForTimeout(300); continue; }
     const a = answerFor(q, o);
-    await p.click(`[data-act=arenapick][data-i="${a ? o.indexOf(a) : 0}"]`);
-    await p.waitForTimeout(1550);
+    await p.click(`[data-act=arenapick][data-i="${a ? o.indexOf(a) : 0}"]`).catch(() => {});
+    await p.waitForTimeout(700);
   }
   const won = await p.$eval('.aend', e => e.textContent).catch(() => '');
   pr = await prog();
   check('arena fight can be won', /Victory/.test(won), won.slice(0, 50));
-  check('beating an enemy is remembered', pr.shop && pr.shop.beat && pr.shop.beat[0] === 1);
+  check('beating an enemy is remembered', pr.shop && pr.shop.beatK && pr.shop.beatK.scorpion === 1);
 
   // 6. progress saved on the small units (versions 3 and 4) moves onto the original units
   await p.evaluate(() => { localStorage.setItem('arabingo.progress.v3', JSON.stringify({ v: 4, xp: 5, streak: 0, last: '', done: { '1-1-5': { score: 90 }, '1-1-6': { score: 80 }, '1-1-7': { score: 100 }, '1-1-8': { score: 95 }, '1-1-1': { score: 100 }, 'lt-1-5': { score: 85 } }, miss: [], read: { '1-5-3': { score: 3, total: 4 } } })); location.reload(); });

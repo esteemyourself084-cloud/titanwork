@@ -20,14 +20,13 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
 - **Reading**: the conversations as reading passages. Tap any word to look it up in the word bank, turn the
   vowel marks on or off, listen, and answer questions for XP.
 - **Quiz**: "Practise your mistakes", "Quick review", and the level road with level and stage tests.
-- **Shop**: a game-style item shop with rarity-coloured tiles (Common to Legendary), a featured item that
-  changes every day, and a locker that shows the equipped champion. The items are named after historical Arab
-  gear: weapons such as the khanjar, the Yamani and Mashrafi swords, the Rudayni spear and the nabʿ bow; armour
-  such as the yalab, zarad mail, the jawshan and Sabiri mail; mounts such as the Saqlawi stallion, the Mahri
-  camel and the Kuhaylan mare; and characters such as the horsewoman, the faris, the scholar and the tracker.
-- **Arena**: answer questions to attack. Armour gives a shield (10 points per point of defence) that takes
-  hits before health, and blocks half its defence from each hit. Damage numbers, combos, and Eliminated and
-  Victory banners.
+- **Shop** and **Arena**: a 3D game-lobby look on a night-blue stage: rarity-coloured tiles (Common to
+  Legendary) that tilt towards the pointer, light beams, a glowing turntable under the champion, a perspective
+  floor and extruded headline type. All the art is SVG, so it stays sharp at any screen resolution.
+- The gear is named after historical Arab arms: weapons such as the khanjar, the Yamani, Hinduwani, Mashrafi and
+  Damascus swords, the Khatti spear and the nabʿ bow; armour such as the yalab, zarad, jawshan, qarqal and Sabiri
+  mail; mounts such as the Saqlawi stallion, the Mahri camel, the Kuhaylan mare and the Rukh; and characters such
+  as the horsewoman, the faris, the hakim and the tracker.
 
 `REVIEW = true` in the script unlocks every unit and stage and shows the "+1000 XP" button for testing.
 
