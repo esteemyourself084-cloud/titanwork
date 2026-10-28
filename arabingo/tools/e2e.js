@@ -117,18 +117,15 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
 
   // 5. arena: win against the scorpion with the right answers
   await p.evaluate(() => { location.hash = '#arena'; }); await p.waitForTimeout(250);
-  await p.click('[data-act=arenastart][data-t="0"]'); await p.waitForTimeout(300);
-  // a right answer opens the attack picker: choose the first attack, then the next question comes
-  for (let i = 0; i < 60; i++) {
+  await p.click('[data-act=arenastart][data-t="0"]'); await p.waitForTimeout(2200);
+  // a real-time fight: dodge late in each wind-up, attack the rest of the time
+  for (let i = 0; i < 900; i++) {
     if (await p.$('.aend')) break;
-    const atk = await p.$('[data-act=arenaatk]');
-    if (atk) { await atk.click().catch(() => {}); await p.waitForTimeout(1600); continue; }
-    const q = await p.$eval('.qov .qq', e => e.textContent).catch(() => null);
-    const o = await p.$$eval('.qov .opt:not([disabled]) .t', ts => ts.map(t => t.textContent)).catch(() => []);
-    if (!q || !o.length) { await p.waitForTimeout(300); continue; }
-    const a = answerFor(q, o);
-    await p.click(`[data-act=arenapick][data-i="${a ? o.indexOf(a) : 0}"]`).catch(() => {});
-    await p.waitForTimeout(700);
+    const st = await p.evaluate(() => { const f = document.getElementById('foeW'); return f ? [f.dataset.s, +f.dataset.left] : null });
+    if (!st) { await p.waitForTimeout(100); continue; }
+    if (st[0] === 'tele' && st[1] < 230) { await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(450); continue; }
+    if (st[0] !== 'tele') await p.keyboard.press(i % 5 ? 'j' : 'k');
+    await p.waitForTimeout(90);
   }
   const won = await p.$eval('.aend', e => e.textContent).catch(() => '');
   pr = await prog();

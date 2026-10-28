@@ -20,13 +20,21 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
 - **Reading**: the conversations as reading passages. Tap any word to look it up in the word bank, turn the
   vowel marks on or off, listen, and answer questions for XP.
 - **Quiz**: "Practise your mistakes", "Quick review", and the level road with level and stage tests.
-- **Shop** and **Arena**: a 3D game-lobby look on a night-blue stage: rarity-coloured tiles (Common to
-  Legendary) that tilt towards the pointer, light beams, a glowing turntable under the champion, a perspective
-  floor and extruded headline type. All the art is SVG, so it stays sharp at any screen resolution.
-- The gear is named after historical Arab arms: weapons such as the khanjar, the Yamani, Hinduwani, Mashrafi and
-  Damascus swords, the Khatti spear and the nabʿ bow; armour such as the yalab, zarad, jawshan, qarqal and Sabiri
-  mail; mounts such as the Saqlawi stallion, the Mahri camel, the Kuhaylan mare and the Rukh; and characters such
-  as the horsewoman, the faris, the hakim and the tracker.
+- **Shop** (the Armory) and **Arena**: a fighting-game look with a dark ember stage, gold metal frames and
+  rarity-coloured fighter-select tiles that tilt towards the pointer. All the art is SVG, so it stays sharp at
+  any screen resolution.
+- **Weapons**: 40, among them the classical sword names, each drawn from its meaning (Dadan, Mishmal, Sadhij,
+  Qashib, Dhaliq, Safiha, ʿAdb, Matin, Arqab, Barraq, Lahdham, Batir, Dhakar, Samsam, Rasub, Bariqa, Mufaqqar,
+  Daʾir, Dimashqi, Bilarak, Qirdab, Mudharrab, Islit, Husam, Mudajjal and Dhu al-Fiqar), plus the khanjar,
+  janbiya, Khatti spear, nabʿ bow, mace, axe and hammer. Some blades have a special effect: fire, poison,
+  lightning, gold or a twin strike.
+- **Armour** (17), **mounts** (22, including the classic Arabian horse strains and camel breeds) and
+  **characters** (25).
+- **Arena fight**: real time, best of three rounds of 60 seconds. The creature winds up before it strikes
+  (a yellow "!" is a swipe you can block, a red "!!" is a slam you must dodge). Dodge at the last moment and it
+  is left open for a counter. Light attacks are quick, heavy attacks break a guard and stop a wind-up, and the
+  special fills as you land hits and dodges. Keys: ← → or A D dodge, ↓ or S block, J light, K heavy, L or Space
+  special; on a phone, the buttons under the fight.
 
 `REVIEW = true` in the script unlocks every unit and stage and shows the "+1000 XP" button for testing.
 
