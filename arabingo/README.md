@@ -23,13 +23,13 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
 - **Shop** (the Armory) and **Arena**: a fighting-game look with a dark ember stage, gold metal frames and
   rarity-coloured fighter-select tiles that tilt towards the pointer. All the art is SVG, so it stays sharp at
   any screen resolution.
-- **Weapons**: 40, among them the classical sword names, each drawn from its meaning (Dadan, Mishmal, Sadhij,
+- **Weapons**: 41, among them the classical sword names, each drawn from its meaning (Dadan, Mishmal, Sadhij,
   Qashib, Dhaliq, Safiha, ʿAdb, Matin, Arqab, Barraq, Lahdham, Batir, Dhakar, Samsam, Rasub, Bariqa, Mufaqqar,
   Daʾir, Dimashqi, Bilarak, Qirdab, Mudharrab, Islit, Husam, Mudajjal and Dhu al-Fiqar), plus the khanjar,
   janbiya, Khatti spear, nabʿ bow, mace, axe and hammer. Some blades have a special effect: fire, poison,
   lightning, gold or a twin strike.
-- **Armour** (17), **mounts** (22, including the classic Arabian horse strains and camel breeds) and
-  **characters** (25).
+- **Armour** (18), **mounts** (27, including the classic Arabian horse strains and camel breeds) and
+  **characters** (26).
 - **Arena fight**: real time, best of three rounds of 60 seconds. The creature winds up before it strikes
   (a yellow "!" is a swipe you can block, a red "!!" is a slam you must dodge). Dodge at the last moment and it
   is left open for a counter. Light attacks are quick, heavy attacks break a guard and stop a wind-up, and the

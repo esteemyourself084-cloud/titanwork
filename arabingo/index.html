@@ -780,6 +780,7 @@ body:has(#cele.bad) .qfoot .mascot{visibility:hidden}
 .astage .fxp{z-index:1}.astage .fxp~.foew{z-index:2}
 @media (prefers-reduced-motion:reduce){.fxp i{animation:none!important;opacity:.35}}
 
+
 /* shop and arena skin: a fighting game. A dark ember stage in both themes, gold metal frames, angled panels,
    rarity-coloured tiles that tilt towards the pointer, and a battle HUD with long health bars, a special meter,
    a round clock and an announcer. Every picture is SVG, so it stays sharp at any screen resolution. */
@@ -1006,6 +1007,10 @@ kbd{display:inline-block;min-width:22px;padding:1px 6px;margin:0 2px;border-radi
 @media (max-width:640px){.shop,.arena{padding:14px 12px 22px;border-radius:14px}.shoptabs{margin-left:-12px;margin-right:-12px;padding:6px 12px}.itm .pic{height:124px}.itm b{font-size:19px}.shoptabs .cn{font-size:16px}
   .fight .fhud{grid-template-columns:1fr auto 1fr;gap:6px}.fside .pp{width:40px;height:40px}.fside .pips{display:none}.fbars b{font-size:16px}.fbars b .ar{display:none}.fhp{height:14px}.ftime{min-width:54px;padding:2px 6px 0}.ftime b{font-size:32px}.ftime small{font-size:10px}
   .fpad{gap:6px}.fgrp{gap:5px}.fpad button{width:52px;height:58px;font-size:20px}.fpad button small{font-size:12px}.frow .muted{display:none}}
+/* arena vignette + grade */
+.astage::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;background:radial-gradient(ellipse at 50% 46%,transparent 54%,rgba(2,4,12,.5) 100%)}
+.astage .abg{filter:saturate(1.1) contrast(1.08)}
+
 @media (max-width:520px){.nav{gap:2px}.nav a{padding:6px 9px;font-size:13px}}
 </style>
 
@@ -2620,6 +2625,7 @@ var ITEMS={
     {id:'w14',ar:'البَارِقَةُ',en:'Bariqa',price:1650,pow:36,k:'isword',fx:'ice',d:'A sword that flashes like lightning.'},
     {id:'w33',ar:'المُفَقَّرُ',en:'Mufaqqar',price:1800,pow:37,k:'sw_mufaqqar',d:'A sword with notches cut along its blade.'},
     {id:'w34',ar:'الدَّائِرُ',en:'Daʾir',price:1900,pow:37,k:'sw_dair',d:'An old sword that has seen many battles.'},
+    {id:'w15',ar:'سَيْفُ اللَّيْلِ',en:'Night Blade',price:2400,pow:42,k:'katana',d:'A black blade with a glowing edge, as sharp as the dark.'},
     {id:'w9',ar:'الدِّمَشْقِيُّ',en:'Dimashqi',price:2000,pow:38,k:'sw_dimashqi',d:'The fine sword of Damascus steel, famous across the world.'},
     {id:'w35',ar:'البِيلَارَكُ',en:'Bilarak',price:2200,pow:39,k:'sw_bilarak',d:'One of the precious swords of India.'},
     {id:'w36',ar:'القِرْضَابُ',en:'Qirdab',price:2400,pow:40,k:'sw_qirdab',d:'A sword that cuts through bone.'},
@@ -2639,13 +2645,14 @@ var ITEMS={
     {id:'a8',ar:'اللَّأْمَةُ',en:'Laʾma',price:750,def:11,col:'#2FB872',edge:'#0E5434',g:'gEmerald',pat:'gem',gem:'#B8FFD8',hi:'#D8FFEA',trim:'#B8FFD8',sp:'#D8FFEA',d:'The full war kit of a knight: mail, helmet and weapons.'},
     {id:'a4',ar:'الدِّرْعُ المَسْرُودَةُ',en:'Masruda Mail',price:1000,def:12,col:'#E3B53C',edge:'#8F6410',g:'gGold',d:'Mail with every ring riveted shut, light and strong.'},
     {id:'a9',ar:'الدِّرْعُ السَّلُوقِيَّةُ',en:'Saluqi Mail',price:1200,def:14,col:'#D6313F',edge:'#6A0C18',g:'gRuby',pat:'gem',gem:'#FFC4C4',hi:'#FFD6D6',trim:'#FFC4C4',sp:'#FFD6D6',d:'Double-woven mail from Salūq, praised by the poet al-Nābigha.'},
-    {id:'a10',ar:'الدِّلَاصُ',en:'Dilas',price:1500,def:16,col:'#2A2240',edge:'#0A0714',g:'gObsid',pat:'crack',trim:'#B66BFF',full:1,glow:'#9A4DFF',sp:'#D6A8FF',d:'Smooth, shining mail that glints like water.'},
+    {id:'a10',ar:'السَّابِغَةُ',en:'Sabigha',price:1500,def:16,col:'#3F73B5',edge:'#142A4E',g:'gSteel2',pat:'mail',trim:'#F4CB4C',skirt:1,full:1,belt:'#2A1E10',sp:'#DCEBFF',d:'The full-length coat of mail. The Quran tells David to make “sābighāt”.'},
     {id:'a11',ar:'اللَّبُوسُ',en:'Labus',price:1800,def:18,col:'#B9A468',edge:'#5E5232',g:'gLaboos',pat:'ring',trim:'#F4CB4C',skirt:1,full:1,belt:'#5A3416',d:'Armour to wear in battle, a word from the Quran.'},
     {id:'a12',ar:'الدِّرْعُ المُضَاعَفَةُ',en:'Mudaʿafa Mail',price:2200,def:20,col:'#C8362B',edge:'#4E0C08',g:'gDscale',pat:'scale',trim:'#FFB347',spk:1,full:1,glow:'#FF7A1A',d:'Mail woven twice over, so no arrow passes through.'},
     {id:'a13',ar:'القَرْقَلُ',en:'Qarqal',price:2600,def:22,col:'#33449F',edge:'#121A52',g:'gRoyal',pat:'royal',trim:'#F4CB4C',cape:'#8E1F2A',full:1,sp:'#FFF3B0',d:'Royal armour of mail and plates, worn by the Mamluk sultans’ guard.'},
+    {id:'a15',ar:'دِرْعُ الظِّلِّ',en:'Shadow Mail',price:4200,def:30,col:'#1C1F2E',edge:'#07080E',g:'gObsid',pat:'crack',trim:'#37E6FF',full:1,glow:'#2FD8FF',sp:'#9FF3FF',d:'Dark mail that melts into the night.'},
     {id:'a14',ar:'الدِّرْعُ السَّابِرِيَّةُ',en:'Sabiri Mail',price:3500,def:26,col:'#5FD3EA',edge:'#126C8C',g:'gDiamond',pat:'facet',trim:'#E8FFFF',full:1,glow:'#7FF0FF',sp:'#E8FFFF',d:'Fine, close-woven mail, the most prized armour of the Arabs.'},
-    {id:'a15',ar:'الدِّرْعُ التُّبَّعِيَّةُ',en:'Tubbaʿi Mail',price:1650,def:17,col:'#C9A15A',edge:'#6A4A1E',g:'gLaboos',pat:'ring',trim:'#F4CB4C',skirt:1,full:1,belt:'#5A3416',d:'Mail of the Tubbaʿ, the old kings of Yemen.'},
-    {id:'a16',ar:'الدِّرْعُ الحُطَمِيَّةُ',en:'Hutamiyya Mail',price:2400,def:21,col:'#5A636E',edge:'#1E2229',g:'gSteel2',pat:'plate',trim:'#C9D0D8',full:1,d:'Heavy mail so strong that swords break on it.'}],
+    {id:'a16',ar:'الدِّرْعُ التُّبَّعِيَّةُ',en:'Tubbaʿi Mail',price:1650,def:17,col:'#C9A15A',edge:'#6A4A1E',g:'gLaboos',pat:'ring',trim:'#F4CB4C',skirt:1,full:1,belt:'#5A3416',d:'Mail of the Tubbaʿ, the old kings of Yemen.'},
+    {id:'a17',ar:'الدِّرْعُ الحُطَمِيَّةُ',en:'Hutamiyya Mail',price:2400,def:21,col:'#5A636E',edge:'#1E2229',g:'gSteel2',pat:'plate',trim:'#C9D0D8',full:1,d:'Heavy mail so strong that swords break on it.'}],
   mount:[
     {id:'m0',ar:'عَلَى القَدَمَيْنِ',en:'On Foot',price:0,time:0,xp:1,d:'No mount yet. Earn XP to ride.'},
     {id:'m1',ar:'الحِمَارُ الحَسَاوِيُّ',en:'Hasawi Donkey',price:100,time:1,xp:1.1,kind:'donkey',col:'#8F9298',dk:'#5F6268',mane:'#4A4C52',d:'The tall, pale donkey of al-Ahsa, strong and steady.'},
@@ -2661,14 +2668,19 @@ var ITEMS={
     {id:'m8',ar:'بِسَاطُ الرِّيحِ',en:'Carpet of the Wind',price:2000,time:6,xp:2.6,kind:'carpet',d:'The flying carpet of the tales of the Thousand and One Nights.'},
     {id:'m13',ar:'فَرَسُ الأَبَنُوسِ',en:'Ebony Flying Horse',price:2400,time:6,xp:2.8,kind:'pegasus',col:'#F7F7FB',dk:'#B7BCD0',mane:'#9FB6FF',blanket:'#4B63C8',gold:1,d:'The flying horse from the Thousand and One Nights.'},
     {id:'m9',ar:'الرُّخُّ',en:'Rukh',price:2800,time:7,xp:3,kind:'falcon',d:'The giant bird that carried Sindbad over the sea.'},
+    {id:'m15',ar:'الحِصَانُ الأَدْهَمُ',en:'Adham Stallion',price:650,time:3,xp:1.7,kind:'horse',col:'#262932',dk:'#0E0F14',mane:'#B3283A',blanket:'#1F2A55',d:'“Adham” means jet-black: the black horse of the old poems.'},
+    {id:'m16',ar:'النَّمِرُ',en:'Namir Tiger',price:1250,time:4,xp:2.2,kind:'tiger',col:'#D9822B',dk:'#B3601E',mane:'#2A1608',blanket:'#1F2A55',gold:1,d:'The striped tiger, hunter of the jungles of India.'},
+    {id:'m17',ar:'كَلْبُ الجَحِيمِ',en:'Hellhound',price:1950,time:6,xp:2.7,kind:'hound',col:'#3A1C1E',dk:'#2A1416',mane:'#FF7A1A',blanket:'#3A0D14',gold:1,d:'A burning hound from the old tales of the underworld.'},
+    {id:'m18',ar:'الفَهْدُ الأَسْوَدُ',en:'Black Fahd',price:2600,time:7,xp:3.1,kind:'panther',col:'#232733',dk:'#14171F',mane:'#232733',blanket:'#0E3A3A',d:'The black panther: silent, fast and hard to see.'},
+    {id:'m19',ar:'تِنِّينُ الجَلِيدِ',en:'Ice Tinnin',price:3800,time:9,xp:3.7,kind:'icedrake',d:'A frost dragon from the wonder books of the far north.'},
     {id:'m14',ar:'التِّنِّينُ',en:'Tinnin Dragon',price:3200,time:8,xp:3.4,kind:'dragon',d:'The fire-breathing dragon of the old wonder books.'},
-    {id:'m15',ar:'الحِصَانُ العُبَيَّانُ',en:'ʿUbayyan Stallion',price:380,time:2,xp:1.3,kind:'horse',col:'#6B4A2E',dk:'#3E2814',mane:'#1A0E06',blanket:'#C9A227',d:'A dark bay of the ʿUbayyan, one of the five classic Arabian strains.'},
-    {id:'m16',ar:'النَّاقَةُ العُمَانِيَّةُ',en:'Omani Camel',price:560,time:3,xp:1.55,kind:'camel',col:'#E0C49A',dk:'#A88A5E',mane:'#8A6434',blanket:'#2F6FB0',d:'The light, fast racing camel of Oman.'},
-    {id:'m17',ar:'الحِصَانُ الحَمْدَانِيُّ',en:'Hamdani Grey',price:750,time:3,xp:1.7,kind:'horse',col:'#B9BCC2',dk:'#7D8189',mane:'#4A4C52',blanket:'#7A1F3D',d:'A grey of the Hamdani strain, strong and tireless.'},
-    {id:'m18',ar:'نَاقَةُ المَجَاهِيمِ',en:'Majahim Camel',price:850,time:4,xp:1.8,kind:'camel',col:'#3A2E28',dk:'#1E1712',mane:'#120C08',blanket:'#C9A227',d:'The great black camels of Najd, prized for their size.'},
-    {id:'m19',ar:'الفَرَسُ الهَدْبَاءُ',en:'Hadban Mare',price:1000,time:4,xp:2,kind:'mare',col:'#C46A3A',dk:'#7A3A18',mane:'#F3E3C0',blanket:'#1F5E8C',gold:1,d:'A chestnut mare of the Hadban strain with a pale mane.'},
-    {id:'m20',ar:'نَاقَةُ المَغَاتِيرِ',en:'Maghatir Camel',price:1250,time:4,xp:2.2,kind:'camel',col:'#F4EEE2',dk:'#C8BDA8',mane:'#B8AA90',blanket:'#7A1F3D',d:'The famous white camels of the Arabian Peninsula.'},
-    {id:'m21',ar:'الحِصَانُ المُعَنَّقِيُّ',en:'Muniqi Racer',price:1550,time:5,xp:2.4,kind:'horse',col:'#2A1C14',dk:'#120B07',mane:'#050302',blanket:'#D9A21B',d:'A black Muniqi, the fastest racing strain of the desert.'}],
+    {id:'m20',ar:'الحِصَانُ العُبَيَّانُ',en:'ʿUbayyan Stallion',price:380,time:2,xp:1.3,kind:'horse',col:'#6B4A2E',dk:'#3E2814',mane:'#1A0E06',blanket:'#C9A227',d:'A dark bay of the ʿUbayyan, one of the five classic Arabian strains.'},
+    {id:'m21',ar:'النَّاقَةُ العُمَانِيَّةُ',en:'Omani Camel',price:560,time:3,xp:1.55,kind:'camel',col:'#E0C49A',dk:'#A88A5E',mane:'#8A6434',blanket:'#2F6FB0',d:'The light, fast racing camel of Oman.'},
+    {id:'m22',ar:'الحِصَانُ الحَمْدَانِيُّ',en:'Hamdani Grey',price:750,time:3,xp:1.7,kind:'horse',col:'#B9BCC2',dk:'#7D8189',mane:'#4A4C52',blanket:'#7A1F3D',d:'A grey of the Hamdani strain, strong and tireless.'},
+    {id:'m23',ar:'نَاقَةُ المَجَاهِيمِ',en:'Majahim Camel',price:850,time:4,xp:1.8,kind:'camel',col:'#3A2E28',dk:'#1E1712',mane:'#120C08',blanket:'#C9A227',d:'The great black camels of Najd, prized for their size.'},
+    {id:'m24',ar:'الفَرَسُ الهَدْبَاءُ',en:'Hadban Mare',price:1000,time:4,xp:2,kind:'mare',col:'#C46A3A',dk:'#7A3A18',mane:'#F3E3C0',blanket:'#1F5E8C',gold:1,d:'A chestnut mare of the Hadban strain with a pale mane.'},
+    {id:'m25',ar:'نَاقَةُ المَغَاتِيرِ',en:'Maghatir Camel',price:1250,time:4,xp:2.2,kind:'camel',col:'#F4EEE2',dk:'#C8BDA8',mane:'#B8AA90',blanket:'#7A1F3D',d:'The famous white camels of the Arabian Peninsula.'},
+    {id:'m26',ar:'الحِصَانُ المُعَنَّقِيُّ',en:'Muniqi Racer',price:1550,time:5,xp:2.4,kind:'horse',col:'#2A1C14',dk:'#120B07',mane:'#050302',blanket:'#D9A21B',d:'A black Muniqi, the fastest racing strain of the desert.'}],
   char:[
     {id:'c0',ar:'الدَّلِيلُ',en:'The Desert Guide',price:0,t:'ghutra',d:'Knows every track across the sands, and the way to every lesson.',wear:'url(#gCloth)'},
     {id:'c1',ar:'الفَارِسَةُ',en:'The Horsewoman',price:150,t:'hijab',girl:1,d:'Rides and fights like the heroine Khawla bint al-Azwar.',wear:'#6C4A8A'},
@@ -2684,6 +2696,7 @@ var ITEMS={
     {id:'c13',ar:'الصَّقَّارُ',en:'The Falconer',price:900,t:'falconer',d:'Hunts with his falcon across the dunes.',wear:'#3E6B4A',acc:'falcon'},
     {id:'c5',ar:'الأَمِيرُ',en:'The Emir',price:1000,t:'prince',d:'Leads his people with courage and kindness.',wear:'url(#gCloth)'},
     {id:'c9',ar:'الأَمِيرَةُ',en:'The Emira',price:1200,t:'princess',girl:1,d:'Rules with wisdom and grace.',wear:'#7B4FA8',cape:'#7B4FA8'},
+    {id:'c15',ar:'الظِّلُّ',en:'The Shadow',price:1800,t:'shadow',d:'Moves unseen and strikes from the dark.',wear:'#1C1F2E'},
     {id:'c14',ar:'السُّلْطَانُ',en:'The Sultan',price:1500,t:'sultan',d:'The mightiest of all rulers.',wear:'#B88A12',cape:'#8E1F2A'},
     {id:'c16',ar:'الصُّعْلُوكُ',en:'The Suʿluk',price:650,t:'nomad',d:'A wandering desert warrior-poet, like al-Shanfarā.',wear:'#4A3A2A'},
     {id:'c19',ar:'الطَّبِيبَةُ',en:'The Physician',price:500,t:'khimar',girl:1,d:'Heals the wounded after every battle.',wear:'#3D7A9E'},
@@ -2693,7 +2706,7 @@ var ITEMS={
     {id:'c17',ar:'المَمْلُوكُ',en:'The Mamluk',price:1100,t:'helmet',d:'A heavy cavalryman of the Mamluk army.',wear:'#8E1F2A',cape:'#5A0E14'},
     {id:'c22',ar:'شَيْخُ القَبِيلَةِ',en:'The Shaykh',price:1300,t:'ghutra',d:'The wise leader of his tribe, in his cloak.',wear:'#5A3416',cape:'#3A2410'},
     {id:'c23',ar:'القَائِدَةُ',en:'The Commander',price:1700,t:'warrg',girl:1,d:'Leads the riders into battle.',wear:'#2F4A8A',cape:'#1E2E5A'},
-    {id:'c15',ar:'عَنْتَرَةُ',en:'ʿAntara',price:1800,t:'helmet',d:'The legendary knight-poet ʿAntara ibn Shaddād.',wear:'#2A2A2E',cape:'#7A1F3D'},
+    {id:'c25',ar:'عَنْتَرَةُ',en:'ʿAntara',price:1800,t:'helmet',d:'The legendary knight-poet ʿAntara ibn Shaddād.',wear:'#2A2A2E',cape:'#7A1F3D'},
     {id:'c24',ar:'الخَلِيفَةُ',en:'The Caliph',price:2000,t:'sultan',d:'Rules a great empire from his palace.',wear:'#1E5E3A',cape:'#0E3A22'}],
   field:[
     {id:'f0',ar:'سَاحَةُ الرِّمَالِ',en:'Sand Arena',price:0,k:'sand',d:'The classic arena'},
@@ -2710,10 +2723,11 @@ var ITEMS={
     {id:'f11',ar:'وَادِي الشَّلَّالَاتِ',en:'Waterfall Valley',price:1350,k:'falls',d:'Mist, rainbows and rushing water'},
     {id:'f12',ar:'ظَهْرُ السَّفِينَةِ',en:'Ship Deck',price:1700,k:'ship',d:'Fight on the open sea'},
     {id:'f13',ar:'الشِّعَابُ المَرْجَانِيَّةُ',en:'Coral Reef',price:2400,k:'coral',d:'A glowing world under the waves'},
+    {id:'f15',ar:'سَطْحُ المَدِينَةِ',en:'Neon Rooftop',price:3600,k:'neon',d:'A city at night, lit in neon'},
     {id:'f14',ar:'سَطْحُ القَمَرِ',en:'Moon Base',price:3000,k:'lunar',d:'Low gravity and starry space'}]
 };
-/* every category: sorted by price, then exactly three items per rarity (common, uncommon, rare, epic, legendary) */
-Object.keys(ITEMS).forEach(function(k){ITEMS[k].sort(function(a,b){return a.price-b.price});ITEMS[k].forEach(function(it,i,a){it.rar=Math.floor(i*5/a.length)})});
+/* every category: sorted by price, then five equal-sized rarity tiers (common, uncommon, rare, epic, legendary) */
+Object.keys(ITEMS).forEach(function(k){ITEMS[k].sort(function(a,b){return a.price-b.price});ITEMS[k].forEach(function(it,i){it.rar=Math.min(4,Math.floor(i*5/ITEMS[k].length))})});
 var CATS=[['weapon','Weapons','الأَسْلِحَةُ'],['armour','Armour','الدُّرُوعُ'],['mount','Mounts','المَطَايَا'],['char','Characters','الشَّخْصِيَّاتُ'],['field','Battlefields','المَيَادِينُ']];
 var ENEMIES=[
   {k:'scorpion',ar:'عَقْرَبٌ',en:'Scorpion',hp:70,hit:9,fx:'sting',bg:'dunes'},
@@ -2730,7 +2744,8 @@ var ENEMIES=[
   {k:'gorilla',ar:'غُورِيلَا',en:'Gorilla',hp:380,hit:25,fx:'stomp',bg:'jungle'},
   {k:'rhino',ar:'وَحِيدُ القَرْنِ',en:'Rhino',hp:420,hit:27,fx:'stomp',bg:'savanna'},
   {k:'elephant',ar:'فِيلٌ',en:'Elephant',hp:470,hit:29,fx:'stomp',bg:'dunes'},
-  {k:'dragon',ar:'تِنِّينٌ',en:'Dragon',hp:520,hit:32,fx:'fire',bg:'volcano'}];
+  {k:'dragon',ar:'تِنِّينٌ',en:'Dragon',hp:520,hit:32,fx:'fire',bg:'volcano'},
+  {k:'spider',ar:'عَنْكَبُوتٌ',en:'Giant Spider',hp:570,hit:34,fx:'bite',bg:'night'}];
 var RARITY=[{n:'Common',c:'#7D879A'},{n:'Uncommon',c:'#2F9E6E'},{n:'Rare',c:'#2F7FD1'},{n:'Epic',c:'#8E44C9'},{n:'Legendary',c:'#D9A21B'}];
 
 function rarityOf(it){return RARITY[it.rar||0]}
@@ -3304,9 +3319,9 @@ function mountIcon(m){
 /* Heads: drawn around (80,52) in the 170 x 170 fighter box. */
 function faceSvg(t){
   var h='<ellipse cx="67.4" cy="53" rx="2.3" ry="3.5" fill="'+SKIN2+'"/><ellipse cx="92.6" cy="53" rx="2.3" ry="3.5" fill="'+SKIN2+'"/><ellipse cx="80" cy="52" rx="12.6" ry="13.6" fill="url(#gSkin)"/>';
-  h+='<ellipse cx="75.2" cy="51.6" rx="2.2" ry="2.6" fill="#fff"/><ellipse cx="84.8" cy="51.6" rx="2.2" ry="2.6" fill="#fff"/><circle cx="75.7" cy="52" r="1.55" fill="#2B1B10"/><circle cx="85.3" cy="52" r="1.55" fill="#2B1B10"/><circle cx="76.2" cy="51.4" r=".55" fill="#fff"/><circle cx="85.8" cy="51.4" r=".55" fill="#fff"/>';
-  h+='<path d="M72.3 47.8 Q75 46.3 77.6 47.5 M82.4 47.5 Q85 46.3 87.7 47.8" stroke="'+(t==='turban'?'#9A9A9A':'#2A1E14')+'" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
-  h+='<path d="M80 52.6 Q81.8 56 80 57.2" stroke="'+SKIN2+'" stroke-width="1.2" fill="none" stroke-linecap="round"/><circle cx="72.4" cy="57" r="2" fill="#E88A7A" opacity=".3"/><circle cx="87.6" cy="57" r="2" fill="#E88A7A" opacity=".3"/>';
+  h+='<ellipse cx="75.2" cy="51.6" rx="2.3" ry="1.8" fill="#fff"/><ellipse cx="84.8" cy="51.6" rx="2.3" ry="1.8" fill="#fff"/><circle cx="75.7" cy="52" r="1.55" fill="#2B1B10"/><circle cx="85.3" cy="52" r="1.55" fill="#2B1B10"/><circle cx="76.2" cy="51.4" r=".55" fill="#fff"/><circle cx="85.8" cy="51.4" r=".55" fill="#fff"/>';
+  h+='<path d="M71.8 46.6 L77.8 48.4 M82.2 48.4 L88.2 46.6" stroke="'+(t==='turban'?'#9A9A9A':'#2A1E14')+'" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
+  h+='<path d="M80 52.6 Q81.8 56 80 57.2" stroke="'+SKIN2+'" stroke-width="1.2" fill="none" stroke-linecap="round"/>';
   if(GIRLS[t])h+='<path d="M73 49.6 l-1.3 -1.2 M87 49.6 l1.3 -1.2" stroke="#2A1E14" stroke-width=".9" stroke-linecap="round"/><path d="M76.6 59.4 Q80 62.4 83.4 59.4" stroke="#B5523F" stroke-width="1.5" fill="none" stroke-linecap="round"/>';
   else if(NOBEARD[t])h+='';
   else{
@@ -3569,6 +3584,44 @@ FOE.elephant=function(){
   return h+eye(34,38,2.8,'#FFD43B')+'<path d="M28 33 Q35 33 40 38" stroke="#444B56" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
 };
 
+/* ===== art5: shadow katana, spider, shadow hood, tiger/hound/panther/ice-drake mounts ===== */
+var _x2=XDEFS2;
+XDEFS2=function(){return _x2()+
+  XG('gTigerM',[[0,'#F2A24A'],[.55,'#D9792B'],[1,'#8E4210']])+XG('gHound',[[0,'#5A2A2A'],[.5,'#2A1416'],[1,'#0C0809']])+XG('gPanth',[[0,'#4A5060'],[.5,'#1C2029'],[1,'#07080C']])+XG('gIceD',[[0,'#CFF3FF'],[.45,'#4FB4EA'],[1,'#134E86']])+XG('gKat',[[0,'#3A4156'],[.5,'#171B27'],[1,'#07090F']])};
+WPN.katana={g:[32,49.5],a:'<path d="M32.6 1.4 C40 12 39 30 36.4 42 H28.6 C30.8 29 30.6 13 32.6 1.4Z" fill="url(#gKat)" stroke="#05070B" stroke-width="1.2" stroke-linejoin="round"/>'+
+  '<path d="M32.6 3 C38 13 37.4 29 35.4 41" stroke="#37E6FF" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".95"/><path d="M31 6 C31.6 18 30.6 30 30 40" stroke="#8A93AE" stroke-width="1" fill="none" opacity=".7"/>'+
+  '<ellipse cx="32.4" cy="43" rx="8" ry="2.8" fill="#12151F" stroke="#37E6FF" stroke-width="1"/><circle cx="26.6" cy="43" r="1" fill="#37E6FF"/><circle cx="38.2" cy="43" r="1" fill="#37E6FF"/>'+
+  '<rect x="29.4" y="45" width="6" height="14" rx="2" fill="#2A0E14" stroke="#05070B" stroke-width="1"/><path d="M29.6 47 L35.2 51 M35.2 47 L29.6 51 M29.6 53 L35.2 57 M35.2 53 L29.6 57" stroke="#B3283A" stroke-width="1.1" opacity=".9"/><circle cx="32.4" cy="60.2" r="2.4" fill="#12151F" stroke="#37E6FF" stroke-width=".9"/>'+spark(40,8,3.4,'#9FF3FF')+spark(24,26,2.4,'#9FF3FF')};
+WPN.katana.sc=1;
+NOBEARD.shadow=1;
+HG.shadow=function(front){
+  if(!front)return '<path d="M60 54 Q58 27 80 26 Q102 27 100 54 Q104 84 108 108 L52 108 Q56 84 60 54Z" fill="#1B1D29" stroke="#07080E" stroke-width="1"/><path d="M66 74 Q64 92 62 104 M94 74 Q96 92 98 104" stroke="#07080E" stroke-width="1" fill="none" opacity=".7"/>';
+  return '<path d="M65.6 51 Q66 34 80 33.4 Q94 34 94.4 51 Q88 41 80 41 Q72 41 65.6 51Z" fill="#12141D" stroke="#07080E" stroke-width="1"/><path d="M68 41 Q80 35 92 41" stroke="#37E6FF" stroke-width="1.1" fill="none" opacity=".9"/><path d="M66.6 55.6 Q80 53 93.4 55.6 L94.4 70 Q80 82 65.6 70Z" fill="#242738" stroke="#07080E" stroke-width=".9"/><path d="M70 62 Q80 66 90 62" stroke="#37E6FF" stroke-width=".9" fill="none" opacity=".8"/><path d="M69 49.6 L77 51.4 M91 49.6 L83 51.4" stroke="#07080E" stroke-width="1.6" stroke-linecap="round"/>';
+};
+FOE.spider=function(){
+  var h='<defs><linearGradient id="gSp1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A3A66"/><stop offset=".55" stop-color="#1F1730"/><stop offset="1" stop-color="#0B0813"/></linearGradient><radialGradient id="gSp2"><stop offset="0" stop-color="#FF4A5E" stop-opacity=".9"/><stop offset="1" stop-color="#FF4A5E" stop-opacity="0"/></radialGradient></defs>'+gnd(50);
+  h+='<path d="M52 62 L36 14 L20 22" stroke="none" fill="none"/><path d="M52 60 L40 18 L24 40 L14 110 M62 58 L56 30 L44 46 L42 112 M76 62 L92 32 L96 60 L96 112 M84 66 L108 40 L112 70 L114 110" stroke="#150F20" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>';
+  h+=tw('62px 66px','<path d="M62 52 C74 34 98 36 104 54 C106 70 96 84 80 84 C66 84 56 70 62 52Z" fill="url(#gSp1)" stroke="#05030A" stroke-width="1.4"/><path d="M72 52 C78 62 82 66 90 74 C84 76 76 70 72 62Z M96 52 C92 62 90 66 84 74 C88 76 96 70 96 60Z" fill="#E02840" opacity=".9"/><path d="M80 40 l3 -9 l3 9 M92 44 l5 -8 l1 9" fill="#1F1730" stroke="#05030A" stroke-width="1"/><path d="M70 50 Q84 42 98 52" stroke="#9A86C8" stroke-width="2" fill="none" opacity=".5" stroke-linecap="round"/>');
+  h+='<path d="M52 64 L30 38 L16 64 L10 106" stroke="#241A38" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M54 68 L40 30 L28 62 L26 108" stroke="#241A38" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M60 68 L66 28 L72 62 L70 108" stroke="#241A38" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M64 66 L90 34 L100 62 L108 106" stroke="#241A38" stroke-width="3.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+  h+='<path d="M52 64 L30 38 L16 64 L10 106 M54 68 L40 30 L28 62 L26 108 M60 68 L66 28 L72 62 L70 108 M64 66 L90 34 L100 62 L108 106" stroke="#6C5A9A" stroke-width="1" fill="none" opacity=".5" transform="translate(-1 -1)"/>';
+  h+='<ellipse cx="44" cy="66" rx="19" ry="14" fill="url(#gSp1)" stroke="#05030A" stroke-width="1.4"/><path d="M30 60 Q42 52 54 60" stroke="#9A86C8" stroke-width="1.8" fill="none" opacity=".5" stroke-linecap="round"/>';
+  h+='<circle cx="30" cy="62" r="9" fill="url(#gSp2)"/><circle cx="31" cy="61" r="2.6" fill="#FF3B52"/><circle cx="37" cy="58" r="2.1" fill="#FF3B52"/><circle cx="26" cy="66" r="1.7" fill="#FF3B52"/><circle cx="31.6" cy="60.4" r=".8" fill="#fff"/>';
+  h+='<path d="M28 70 L24 82 L30 76Z M34 72 L34 84 L38 74Z" fill="#E9E2F4" stroke="#05030A" stroke-width="1" stroke-linejoin="round"/><path d="M23 70 L18 76 M36 54 L40 48" stroke="#241A38" stroke-width="3" stroke-linecap="round"/>';
+  return h;
+};
+/* recolour helpers for the cat / drake mounts that reuse the wolf and dragon art */
+var MREC={
+  tiger:[['url(#gWolf)','url(#gTigerM)'],['#E8EBEF','#F7E2B4'],['#454C56','#B3601E'],['#5E6672','#D9822B'],['#8A929E','#E0892F'],['#3E454F','#7A3F0C'],['#C9D0D8','#2A1608']],
+  hound:[['url(#gWolf)','url(#gHound)'],['#E8EBEF','#FF6A1A'],['#454C56','#2A1416'],['#5E6672','#3A1C1E'],['#8A929E','#2A1416'],['#3E454F','#05030A'],['#FFD43B','#FF3B2F'],['#C9D0D8','#FF7A1A']],
+  panther:[['url(#gWolf)','url(#gPanth)'],['#E8EBEF','#4A5060'],['#454C56','#14171F'],['#5E6672','#232733'],['#8A929E','#14171F'],['#3E454F','#05060A'],['#FFD43B','#6CFF8A'],['#C9D0D8','#232733']],
+  icedrake:[['url(#gDrag)','url(#gIceD)'],['#17775A','#2B8FD6'],['#0E4E3A','#0B3A66'],['#B63A2F','#6FB6E8'],['#4E100C','#12335A'],['#7A1F3D','#1B2A6B'],['#F4CB4C','#E8FFFF'],['#8C620E','#4F93B8']]
+};
+function recolorMount(k,str){var m=MREC[k];if(!m)return str;m.forEach(function(p){str=str.split(p[0]).join(p[1])});
+  if(k==='tiger')str=str.replace('<path d="M60 48 C68 44','<path d="M62 50 L66 62 M72 48 L76 60 M84 48 L88 60 M96 50 L98 62" stroke="#2A1608" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M60 48 C68 44');
+  return str}
+['tiger','hound','panther'].forEach(function(k){MSIDE[k]=function(m){return recolorMount(k,MSIDE.wolf(m))}});
+MSIDE.icedrake=function(m){return recolorMount('icedrake',MSIDE.dragon(m))};
+
 function foeSvg(e,cls){ensureDefs();return '<svg viewBox="0 0 120 120" class="'+(cls||'foeart')+'" aria-hidden="true">'+FOE[e.k]()+'</svg>'}
 /* small scenery behind each enemy card */
 var BACKS={
@@ -3611,7 +3664,7 @@ function catIcon(k){if(k==='field')return fieldIcon();
    The camera sits behind the fighter: you see the back of the head, the back,
    both arms and the legs, with the weapon pointing at the enemy. */
 var RP={a1:'lamellar',a2:'mail',a3:'plate',a4:'plate'};
-var MSEAT={horse:-16,mare:-16,donkey:-6,camel:-26,ostrich:-22,elephant:-34,falcon:-4,carpet:34,chariot:6,wolf:-14,lion:-16,rhino:-28,pegasus:-16,dragon:-12};
+var MSEAT={horse:-16,mare:-16,donkey:-6,camel:-26,ostrich:-22,elephant:-34,falcon:-4,carpet:34,chariot:6,wolf:-14,lion:-16,rhino:-28,pegasus:-16,dragon:-12,tiger:-14,hound:-14,panther:-14,icedrake:-12};
 function rearHead(ch){
   var t=ch.t,h='',hair='<path d="M-22 -8 Q-27 18 -19 34 L19 34 Q27 18 22 -8Z" fill="#2A1E14"/>',neck='<rect x="-13" y="20" width="26" height="30" rx="8" fill="'+SKIN2+'"/>';
   var folds=function(c,n){var s='';for(var i=-n;i<=n;i++)s+='<path d="M'+(i*9)+' -32 Q'+(i*12)+' 4 '+(i*13)+' 46" stroke="'+c+'" stroke-width="1" fill="none" opacity=".55"/>';return s};
@@ -3651,6 +3704,9 @@ function rearHead(ch){
   case 'smith':
     h=neck+'<ellipse cx="-26" cy="4" rx="4" ry="7" fill="'+SKIN2+'"/><ellipse cx="26" cy="4" rx="4" ry="7" fill="'+SKIN2+'"/><path d="M-26 6 Q-30 -32 0 -34 Q30 -32 26 6 Q24 22 14 28 L-14 28 Q-24 22 -26 6Z" fill="#1F1A17" stroke="#0A0807" stroke-width="1"/><path d="M-27 -10 Q0 -23 27 -10" stroke="#8A3B2A" stroke-width="5.4" fill="none" stroke-linecap="round"/><path d="M24 -12 L38 -2 L30 4Z" fill="#8A3B2A"/>';
     break;
+  case 'shadow':
+    h=neck+'<path d="M-29 6 Q-33 -32 0 -37 Q33 -32 29 6 L40 58 Q0 70 -40 58Z" fill="#1B1D29" stroke="#07080E" stroke-width="1.4" stroke-linejoin="round"/><path d="M0 -36 V60 M-14 -22 Q-20 20 -26 56 M14 -22 Q20 20 26 56" stroke="#07080E" stroke-width="1.4" fill="none" opacity=".7"/><path d="M-26 -6 Q0 -22 26 -6" stroke="#37E6FF" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".9"/>';
+    break;
   default:
     h=neck+'<ellipse cx="0" cy="0" rx="26" ry="29" fill="#2A1E14"/>';
   }
@@ -3673,7 +3729,7 @@ function pegWings(){
   return w+spark(24,112,8,'#fff')+spark(278,104,7,'#DFE6FF')+spark(14,196,5,'#fff')+spark(290,190,5,'#fff');
 }
 /* mounts seen from behind, drawn under the rider */
-function rearMount(m){
+function rearMount0(m){
   var k=m.kind,c=m.col,dk=m.dk,mn=m.mane,h='';
   var hoof=function(x,y,w){return '<ellipse cx="'+x+'" cy="'+y+'" rx="'+w+'" ry="6" fill="#1B1B1B"/>'};
   if(k==='horse'||k==='mare'||k==='donkey'||k==='pegasus'){
@@ -3742,17 +3798,21 @@ function rearMount(m){
   }
   return h;
 }
-/* the left arm reaches forward and grips the weapon behind the right hand. aimWeapon() re-aims it. */
+/* both arms reach FORWARD (away from the camera, toward the enemy). The left arm is drawn before the head, so the head hides part of it. */
 function leftArmGeom(ang){
-  var a=ang*Math.PI/180,hx=RW.hx-30*Math.sin(a),hy=RW.hy+30*Math.cos(a),sx=100,sy=130,ex=132,ey=172;
-  return {d:'M'+sx+' '+sy+' L'+ex+' '+ey+' L'+hx.toFixed(1)+' '+hy.toFixed(1),hx:hx,hy:hy,bx:(ex+(hx-ex)*.78).toFixed(1),by:(ey+(hy-ey)*.78).toFixed(1)};
+  var a=ang*Math.PI/180,hx=RW.hx-30*Math.sin(a),hy=RW.hy+30*Math.cos(a),sx=96,sy=128,ex=116,ey=90;
+  return {d:'M'+sx+' '+sy+' L'+ex+' '+ey+' L'+hx.toFixed(1)+' '+hy.toFixed(1),hx:hx,hy:hy,bx:(ex+(hx-ex)*.62).toFixed(1),by:(ey+(hy-ey)*.62).toFixed(1)};
 }
 function rearLeftArm(e,sl,full,f,ang){
+  var g=leftArmGeom(ang),up='M96 128 L116 90';
+  return '<g class="larm" style="transform-origin:98px 128px"><path class="lp" d="'+g.d+'" stroke="'+e+'" stroke-width="27" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path class="lp" d="'+g.d+'" stroke="'+sl+'" stroke-width="23" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<path d="'+up+'" stroke="'+e+'" stroke-width="35" fill="none" stroke-linecap="round"/><path d="'+up+'" stroke="'+sl+'" stroke-width="31" fill="none" stroke-linecap="round"/><path d="'+up+'" stroke="rgba(0,0,0,.2)" stroke-width="10" fill="none" stroke-linecap="round" transform="translate(7 3)"/><path d="'+up+'" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".3" transform="translate(-8 -2)"/>'+
+    '<path class="lp" d="'+g.d+'" stroke="rgba(0,0,0,.18)" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 6)"/>'+
+    (full?'<path class="lbr" d="M'+g.bx+' '+g.by+' L'+g.hx.toFixed(1)+' '+g.hy.toFixed(1)+'" stroke="'+e+'" stroke-width="26" stroke-linecap="round"/><path class="lbr" d="M'+g.bx+' '+g.by+' L'+g.hx.toFixed(1)+' '+g.hy.toFixed(1)+'" stroke="'+f+'" stroke-width="21" stroke-linecap="round"/>':'')+'</g>';
+}
+function rearLeftHand(ang){
   var g=leftArmGeom(ang);
-  return '<g class="larm" style="transform-origin:102px 128px"><path class="lp" d="'+g.d+'" stroke="'+e+'" stroke-width="30" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path class="lp" d="'+g.d+'" stroke="'+sl+'" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'+
-    '<path class="lp" d="'+g.d+'" stroke="rgba(0,0,0,.17)" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(5 7)"/><path class="lp" d="'+g.d+'" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".25" transform="translate(-4 -6)"/>'+
-    (full?'<path class="lbr" d="M'+g.bx+' '+g.by+' L'+g.hx.toFixed(1)+' '+g.hy.toFixed(1)+'" stroke="'+e+'" stroke-width="28" stroke-linecap="round"/><path class="lbr" d="M'+g.bx+' '+g.by+' L'+g.hx.toFixed(1)+' '+g.hy.toFixed(1)+'" stroke="'+f+'" stroke-width="23" stroke-linecap="round"/>':'')+
-    '<g class="lh" transform="translate('+g.hx.toFixed(1)+' '+g.hy.toFixed(1)+')"><circle r="12.6" fill="url(#gSkin)" stroke="'+SKIN2+'" stroke-width="1.4"/><path d="M-8 -5 q8 5 16 0 M-8 1 q8 5 16 0 M-7 7 q7 4 14 0" stroke="'+SKIN2+'" stroke-width="1.3" fill="none"/></g></g>';
+  return '<g class="lh" transform="translate('+g.hx.toFixed(1)+' '+g.hy.toFixed(1)+')"><circle r="12.2" fill="url(#gSkin)" stroke="'+SKIN2+'" stroke-width="1.4"/><path d="M-8 -5 q8 5 16 0 M-8 1 q8 5 16 0 M-7 7 q7 4 14 0" stroke="'+SKIN2+'" stroke-width="1.3" fill="none"/></g>';
 }
 /* the whole rider, from behind. o.cls sets the svg class. */
 function rearSvg(eq,o){
@@ -3794,17 +3854,25 @@ function rearSvg(eq,o){
   h+='<rect x="136" y="92" width="28" height="30" rx="8" fill="'+SKIN2+'"/>';
   /* left arm */
   var sl=full||!robe?a.col:'#F4F1EA';
+  h+=rearLeftArm(e,sl,full,f,40);
   /* head */
   h+='<g class="rhead" style="transform-origin:150px 110px"><g transform="translate(150 74)">'+rearHead(ch)+'</g></g>';
   if(ch.acc==='falcon')h+=rearFalcon();
   /* weapon arm: the weapon is aimed at the enemy by aimWeapon() */
-  var W=w?(WPN[w.k]||WPN.stick):null,HX=254,HY=100;
-  h+='<g class="rarm" style="transform-origin:200px 128px"><path d="M200 130 L240 154 L252 108" stroke="'+e+'" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 130 L240 154 L252 108" stroke="'+sl+'" stroke-width="28" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 130 L240 154" stroke="#fff" stroke-width="5" fill="none" opacity=".25" stroke-linecap="round"/>'+(full?'<path d="M249 124 L252 110" stroke="'+e+'" stroke-width="30" stroke-linecap="round"/><path d="M249 124 L252 110" stroke="'+f+'" stroke-width="25" stroke-linecap="round"/>':'');
+  var W=w?(WPN[w.k]||WPN.stick):null,HX=RW.hx,HY=RW.hy,fa='M246 106 L'+HX+' '+HY,ua='M204 128 L246 106';
+  h+='<g class="rarm" style="transform-origin:200px 128px"><path d="'+fa+'" stroke="'+e+'" stroke-width="28" fill="none" stroke-linecap="round"/><path d="'+fa+'" stroke="'+sl+'" stroke-width="24" fill="none" stroke-linecap="round"/>'+(full?'<path d="M240 92 L'+HX+' '+HY+'" stroke="'+e+'" stroke-width="27" stroke-linecap="round"/><path d="M240 92 L'+HX+' '+HY+'" stroke="'+f+'" stroke-width="22" stroke-linecap="round"/>':'')+
+    '<path d="'+ua+'" stroke="'+e+'" stroke-width="36" fill="none" stroke-linecap="round"/><path d="'+ua+'" stroke="'+sl+'" stroke-width="32" fill="none" stroke-linecap="round"/><path d="'+ua+'" stroke="rgba(0,0,0,.2)" stroke-width="10" fill="none" stroke-linecap="round" transform="translate(-6 5)"/><path d="'+ua+'" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".32" transform="translate(4 -7)"/>';
   if(W)h+='<g class="wp" data-gx="'+W.g[0]+'" data-gy="'+W.g[1]+'" data-k="'+w.k+'" transform="translate('+HX+' '+HY+') rotate(26) scale(1.75) translate('+(-W.g[0])+' '+(-W.g[1])+')">'+W.a+'</g>';
-  h+='<circle class="hand" cx="'+HX+'" cy="'+HY+'" r="13.5" fill="url(#gSkin)" stroke="'+SKIN2+'" stroke-width="1.4"/><path d="M246 94 q8 5 16 0 M246 101 q8 5 16 0 M247 108 q7 4 14 0" stroke="'+SKIN2+'" stroke-width="1.3" fill="none"/></g>';
-  h+=rearLeftArm(e,sl,full,f,40);
+  h+='<circle class="hand" cx="'+HX+'" cy="'+HY+'" r="13.5" fill="url(#gSkin)" stroke="'+SKIN2+'" stroke-width="1.4"/><path d="M'+(HX-8)+' '+(HY-6)+' q8 5 16 0 M'+(HX-8)+' '+(HY+1)+' q8 5 16 0 M'+(HX-7)+' '+(HY+8)+' q7 4 14 0" stroke="'+SKIN2+'" stroke-width="1.3" fill="none"/>'+rearLeftHand(40)+'</g>';
   h+='</g></g></svg>';
   return h;
+}
+
+var MALIAS={tiger:'wolf',hound:'wolf',panther:'wolf',icedrake:'dragon'};
+function rearMount(m){
+  var b=MALIAS[m.kind];if(!b)return rearMount0(m);
+  var o=rearMount0(Object.assign({},m,{kind:b}));
+  return typeof recolorMount==='function'?recolorMount(m.kind,o):o;
 }
 
 /* ================= battlefields: 1000 x 560 scenes, horizon near y 250 ================= */
@@ -4040,7 +4108,20 @@ FIELDS.lunar=function(){
   return h;
 };
 /* ===== living battlefields: drifting particles over every scene ===== */
-var FIELD_FX={sand:['drift','#F6E1B0',22],oasis:['drift','#FFF3B0',16],moon:['twinkle','#fff',34],jungle:['fall','#7BD66A',16],snow:['fall','#fff',46],pyramid:['drift','#FFD9A0',22],castle:['drift','#fff',16],volcano:['rise','#FF9A2A',30],crystal:['twinkle','#BFF3FF',30],sky:['drift','#fff',14],colosseum:['rise','#FFB35A',20],falls:['drift','#fff',20],ship:['drift','#fff',14],coral:['rise','#DFF8FF',30],lunar:['twinkle','#fff',34]};
+FIELDS.neon=function(){
+  var h='<defs>'+FG('fn1',[[0,'#0A0B24'],[.5,'#3B1466'],[1,'#E0407A']])+FG('fn2',[[0,'#1B1C3A'],[1,'#0A0A1C']])+FG('fn3',[[0,'#2A2D4E'],[1,'#10112A']])+FR('fn8','#FF4FB0',.7)+FR('fn9','#37E6FF',.6)+'</defs>';
+  h+='<rect width="1000" height="560" fill="url(#fn1)"/><circle cx="740" cy="150" r="120" fill="url(#fn8)"/><circle cx="740" cy="150" r="46" fill="#FFD6F0"/>'+dots(60,0,1000,0,160,1.4,['#fff','#BFF3FF','#FFD6F0'],5);
+  var cols=['#37E6FF','#FF4FB0','#FFD43B','#8A5CFF'];
+  for(var i=0;i<14;i++){var bx=i*76-10,bh=90+((i*53)%7)*26,col=cols[i%4];h+='<rect x="'+bx+'" y="'+(262-bh)+'" width="66" height="'+(bh+10)+'" fill="url(#fn2)" stroke="#05060F" stroke-width="2"/><rect x="'+bx+'" y="'+(262-bh)+'" width="66" height="4" fill="'+col+'" opacity=".9"/>';
+    for(var w=0;w<bh/16;w++)for(var c=0;c<3;c++)if((w*7+c*3+i)%3!==0)h+='<rect x="'+(bx+8+c*19)+'" y="'+(262-bh+12+w*16)+'" width="11" height="7" fill="'+((w+c+i)%5===0?col:'#FFE9A8')+'" opacity=".8"/>'}
+  h+='<rect x="130" y="130" width="120" height="36" rx="4" fill="#0A0B1E" stroke="#37E6FF" stroke-width="3"/><text x="190" y="156" text-anchor="middle" font-family="Arial Black,Arial" font-size="22" font-weight="900" fill="#37E6FF">ARENA</text><rect x="600" y="112" width="100" height="34" rx="4" fill="#0A0B1E" stroke="#FF4FB0" stroke-width="3"/><text x="650" y="136" text-anchor="middle" font-family="Arial Black,Arial" font-size="20" font-weight="900" fill="#FF4FB0">NEON</text>';
+  h+='<rect x="0" y="252" width="1000" height="16" fill="#1B1C3A" stroke="#05060F" stroke-width="2"/><path d="M0 252 H1000" stroke="#37E6FF" stroke-width="3" opacity=".9"/>';
+  h+='<rect x="0" y="268" width="1000" height="292" fill="url(#fn3)"/><path d="M0 268 H1000" stroke="#FF4FB0" stroke-width="2" opacity=".7"/>'+floorGrid(268,500,'#37E6FF',.22,6,7);
+  h+='<ellipse cx="500" cy="430" rx="420" ry="96" fill="none" stroke="#37E6FF" stroke-width="5" opacity=".75"/><ellipse cx="500" cy="430" rx="230" ry="52" fill="none" stroke="#FF4FB0" stroke-width="4" opacity=".7"/><ellipse cx="500" cy="430" rx="420" ry="96" fill="url(#fn9)" opacity=".18"/>';
+  [60,940].forEach(function(x){h+='<rect x="'+(x-4)+'" y="214" width="8" height="70" fill="#14152C"/><rect x="'+(x-26)+'" y="206" width="52" height="12" rx="3" fill="#37E6FF"/><ellipse cx="'+x+'" cy="300" rx="60" ry="14" fill="#37E6FF" opacity=".18"/>'});
+  return h;
+};
+var FIELD_FX={neon:['rise','#FF7AD0',26],sand:['drift','#F6E1B0',22],oasis:['drift','#FFF3B0',16],moon:['twinkle','#fff',34],jungle:['fall','#7BD66A',16],snow:['fall','#fff',46],pyramid:['drift','#FFD9A0',22],castle:['drift','#fff',16],volcano:['rise','#FF9A2A',30],crystal:['twinkle','#BFF3FF',30],sky:['drift','#fff',14],colosseum:['rise','#FFB35A',20],falls:['drift','#fff',20],ship:['drift','#fff',14],coral:['rise','#DFF8FF',30],lunar:['twinkle','#fff',34]};
 function fieldFx(k){
   var key=(typeof k==='string'?k:(k&&k.k))||'sand',f=FIELD_FX[key]||FIELD_FX.sand,h='<div class="fxp p-'+f[0]+'" aria-hidden="true">';
   for(var i=0;i<f[2];i++){
@@ -4052,7 +4133,7 @@ function fieldFx(k){
 
 /* ================= shop ================= */
 var STAT_MAX={weapon:48,armour:26,mount:7};
-var RW={hx:254,hy:100,s:1.75};
+var RW={hx:228,hy:64,s:1.75};
 BACKS.snow='<rect width="160" height="110" fill="#BFDDF5"/><path d="M0 70 L30 36 L52 60 L84 22 L116 62 L140 40 L160 58 V110 H0Z" fill="#8FA9C8"/><path d="M84 22 L74 38 L84 34 L94 40Z" fill="#fff"/><path d="M0 84 Q80 70 160 84 V110 H0Z" fill="#F4FAFF"/><g fill="#fff"><circle cx="20" cy="20" r="1.4"/><circle cx="60" cy="12" r="1.2"/><circle cx="120" cy="26" r="1.4"/><circle cx="144" cy="12" r="1.2"/></g>';
 BACKS.swamp='<rect width="160" height="110" fill="#C9D8A0"/><circle cx="120" cy="24" r="14" fill="#F6F0C0"/><path d="M0 74 Q80 60 160 74 V110 H0Z" fill="#6C8F4E"/><path d="M0 90 Q80 78 160 90 V110 H0Z" fill="#3F6B4A"/><path d="M30 76 V40 M34 76 V48 M120 78 V44 M124 78 V52" stroke="#4A6A32" stroke-width="3"/><ellipse cx="80" cy="96" rx="34" ry="5" fill="#8FC7C0" opacity=".7"/>';
 BACKS.jungle='<rect width="160" height="110" fill="#2E8A58"/><circle cx="20" cy="10" r="30" fill="#1B5E3A"/><circle cx="90" cy="0" r="30" fill="#1B5E3A"/><circle cx="150" cy="14" r="28" fill="#1B5E3A"/><path d="M0 76 Q80 64 160 76 V110 H0Z" fill="#4A7A3C"/><path d="M0 92 Q80 82 160 92 V110 H0Z" fill="#27441F"/><path d="M40 30 V70 M110 24 V70" stroke="#1A6B2E" stroke-width="3"/>';
@@ -4107,20 +4188,6 @@ function viewShop(){
   h+='<div class="igrid">'+(list.length?list.map(function(it){return itemCard(cat,it)}).join(''):'<p class="muted noitems">Nothing here yet. Try another filter.</p>')+'</div></section>';
   V.innerHTML=h;
 }
-/* shop tiles and enemy cards tilt towards the pointer, and their art moves a little for depth */
-(function(){
-  var cur=null,still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function reset(el){el.style.removeProperty('--rx');el.style.removeProperty('--ry');el.style.removeProperty('--px');el.style.removeProperty('--py')}
-  document.addEventListener('pointermove',function(ev){
-    if(still||ev.pointerType==='touch')return;
-    var el=ev.target.closest&&ev.target.closest('.itm,.foe:not(.locked)');
-    if(cur&&cur!==el)reset(cur);cur=el;if(!el)return;
-    var r=el.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width-.5,y=(ev.clientY-r.top)/r.height-.5;
-    el.style.setProperty('--rx',(-y*14).toFixed(2)+'deg');el.style.setProperty('--ry',(x*16).toFixed(2)+'deg');
-    el.style.setProperty('--px',(x*10).toFixed(1)+'px');el.style.setProperty('--py',(y*8).toFixed(1)+'px');
-  },{passive:true});
-  document.addEventListener('pointerleave',function(){if(cur){reset(cur);cur=null}});
-})();
 ACT.shoptab=function(b){S.shopTab=b.dataset.k;viewShop()};
 ACT.shopflt=function(b){S.shopFlt=b.dataset.f;viewShop()};
 ACT.shopview=function(b){S.shopView=b.dataset.v;viewShop()};
@@ -4192,6 +4259,7 @@ function arArrow(){
   L.appendChild(d);setTimeout(function(){d.remove()},500);
 }
 function aimWeapon(){
+  var st=document.getElementById('arStage')||document.querySelector('.abanner');if(!st)return;
   [].forEach.call(document.querySelectorAll('.rear .wp'),function(wp){
     var svg=wp.ownerSVGElement,hand=svg.querySelector('.hand'),foe=document.getElementById('foeW');
     var hr=hand.getBoundingClientRect(),fr=foe?foe.getBoundingClientRect():null,ang=28;
@@ -4202,7 +4270,7 @@ function aimWeapon(){
     var gm=leftArmGeom(ang);
     [].forEach.call(svg.querySelectorAll('.larm .lp'),function(p){p.setAttribute('d',gm.d)});
     [].forEach.call(svg.querySelectorAll('.larm .lbr'),function(p){p.setAttribute('d','M'+gm.bx+' '+gm.by+' L'+gm.hx.toFixed(1)+' '+gm.hy.toFixed(1))});
-    var lh=svg.querySelector('.larm .lh');if(lh)lh.setAttribute('transform','translate('+gm.hx.toFixed(1)+' '+gm.hy.toFixed(1)+')');
+    var lh=svg.querySelector('.lh');if(lh)lh.setAttribute('transform','translate('+gm.hx.toFixed(1)+' '+gm.hy.toFixed(1)+')');
   });
 }
 function fBar(id,v,m){var el=document.getElementById(id);if(!el)return;var p=Math.max(0,Math.min(100,v/m*100));el.querySelector('i').style.width=p+'%';var lag=el.querySelector('u');if(lag)lag.style.width=p+'%';el.classList.toggle('low',p<=25)}
@@ -4398,6 +4466,21 @@ ACT.arenastart=function(b){
 };
 ACT.arenaquit=function(){arenaStop();arenaLobby();aimWeapon()};
 window.addEventListener('resize',function(){if(document.querySelector('.rear .wp'))aimWeapon()});
+
+/* shop tiles and enemy cards tilt towards the pointer, and their art moves a little for depth */
+(function(){
+  var cur=null,still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function reset(el){el.style.removeProperty('--rx');el.style.removeProperty('--ry');el.style.removeProperty('--px');el.style.removeProperty('--py')}
+  document.addEventListener('pointermove',function(ev){
+    if(still||ev.pointerType==='touch')return;
+    var el=ev.target.closest&&ev.target.closest('.itm,.foe:not(.locked)');
+    if(cur&&cur!==el)reset(cur);cur=el;if(!el)return;
+    var r=el.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width-.5,y=(ev.clientY-r.top)/r.height-.5;
+    el.style.setProperty('--rx',(-y*14).toFixed(2)+'deg');el.style.setProperty('--ry',(x*16).toFixed(2)+'deg');
+    el.style.setProperty('--px',(x*10).toFixed(1)+'px');el.style.setProperty('--py',(y*8).toFixed(1)+'px');
+  },{passive:true});
+  document.addEventListener('pointerleave',function(){if(cur){reset(cur);cur=null}});
+})();
 
 /* ---------- words ---------- */
 function norm(s){return String(s||'').replace(/[ً-ٰٟ]/g,'').toLowerCase()}
