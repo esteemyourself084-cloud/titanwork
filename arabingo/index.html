@@ -3,7 +3,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Figtree:wght@400;500;600;700&family=Reem+Kufi:wght@500;600;700&family=Fraunces:opsz,wght@9..144,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Figtree:wght@400;500;600;700&family=Reem+Kufi:wght@500;600;700&family=Fraunces:opsz,wght@9..144,700&family=Lilita+One&display=swap">
 <style>
 /* Layout: slim top bar, one centred column. Home is a ladder of three level bands made of unit tiles; lessons and quizzes take over the column. */
 :root{
@@ -493,117 +493,195 @@ body:has(#cele.bad) .qfoot .mascot{visibility:hidden}
 @media (prefers-reduced-motion:reduce){#guide .body,#guide .belt,#guide .gl-r{animation:none}}
 .tile .tick{display:inline-flex;align-items:center;gap:6px;color:var(--ok,#1f7a4d);font-weight:700}.tile .tick svg{width:20px;height:20px}.tile .tick circle{fill:var(--ok,#1f7a4d)}.tile .tick path{fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 
-/* shop and arena */
-.shop,.arena{max-width:980px;margin:0 auto;padding-bottom:30px}
-.shop h2,.arena h2{font-size:clamp(24px,3.6vw,32px);margin:6px 0 8px}
+/* shop and arena: a game-lobby look, dark blue night sky in both themes, rarity-coloured tiles */
+.shop,.arena{--fn1:#0A1238;--fn2:#16309A;--fn3:#2456D6;--fnp:#13215E;--fnl:rgba(255,255,255,.16);--fny:#FFE23B;--fnyi:#2A1E00;--fnw:#FFFFFF;--fnm:#B9C7F2;
+  --f-fn:'Lilita One','Reem Kufi',Impact,'Arial Black',sans-serif;
+  position:relative;max-width:1000px;margin:0 auto 30px;padding:18px 18px 26px;border-radius:26px;color:var(--fnw);overflow:hidden;
+  background:radial-gradient(120% 70% at 50% 0%,var(--fn3),transparent 60%),linear-gradient(180deg,var(--fn2),var(--fn1) 70%)}
+.shop::before,.arena::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:repeating-conic-gradient(from 0deg at 50% -10%,rgba(255,255,255,.07) 0 4deg,transparent 4deg 12deg)}
+.shop>*,.arena>*{position:relative}
+.shop .muted,.arena .muted{color:var(--fnm)}
 .muted.sm,.sm{font-size:13px}
 .coin{width:16px;height:16px;vertical-align:-3px;flex:none}
 .ico{width:80px;height:80px}.ico.wide{width:120px;height:86px}
-.showcase{display:grid;grid-template-columns:minmax(210px,290px) 1fr;gap:22px;align-items:center;margin:16px 0 18px;padding:18px;border-radius:24px;border:1px solid var(--line);background:linear-gradient(160deg,var(--surface),var(--soft))}
-.stagebox{position:relative;aspect-ratio:1/1.08;display:flex;align-items:flex-end;justify-content:center}
-.stagebox .arch{position:absolute;inset:0;width:100%;height:100%}
-.stagebox .glow{position:absolute;left:8%;right:8%;top:10%;bottom:16%;background:radial-gradient(circle,rgba(244,203,76,.5),rgba(244,203,76,0) 68%)}
-.stagebox .fighter{position:relative;z-index:1;width:84%;margin-bottom:5%}
-.stagebox .fighter svg{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 6px rgba(0,0,0,.18))}
-.stagebox .pedestal{position:absolute;left:16%;right:16%;bottom:3%;height:11%;border-radius:50%;background:radial-gradient(ellipse at 50% 35%,#F1DDB2,#B89660 72%);box-shadow:0 5px 0 #8C6A3A,0 10px 18px rgba(0,0,0,.22)}
+.fnt{font:400 clamp(34px,7vw,60px)/.95 var(--f-fn);text-transform:uppercase;letter-spacing:.01em;font-style:italic;color:var(--fnw);margin:0;
+  text-shadow:0 3px 0 #0B1A5C,0 6px 0 rgba(0,0,0,.25),0 0 24px rgba(80,160,255,.55)}
+.fnh{font:400 clamp(20px,3.4vw,28px)/1.1 var(--f-fn);text-transform:uppercase;font-style:italic;letter-spacing:.02em;margin:22px 0 12px;text-shadow:0 2px 0 #0B1A5C;display:flex;align-items:center;gap:10px}
+.fnh::after{content:"";flex:1;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--fnl),transparent)}
+.kick{display:inline-block;font:700 14px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--fny)}
+.kick .ar{font:400 20px var(--f-ar);letter-spacing:0;color:var(--fnw);margin-inline-start:6px}
+.fnhead{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.fnhead>div{min-width:0}
+.clock{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.3);font-size:13px;font-weight:700;color:var(--fnm)}
+.clock b{color:var(--fnw);font-variant-numeric:tabular-nums}
+.vb{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;border-radius:14px;background:rgba(0,0,0,.35);border:2px solid var(--fnl)}
+.vb .coin{width:30px;height:30px}
+.vb b{font:400 26px var(--f-fn);font-variant-numeric:tabular-nums}
+.vb span{font-size:12px;font-weight:800;color:var(--fnm);text-transform:uppercase;letter-spacing:.08em}
+.fnbtn{white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border:0;border-radius:10px;cursor:pointer;text-decoration:none;
+  font:400 17px/1 var(--f-fn);text-transform:uppercase;letter-spacing:.03em;background:var(--fny);color:var(--fnyi);box-shadow:0 4px 0 #B89400,0 6px 12px rgba(0,0,0,.3);transition:transform .1s,filter .1s}
+.fnbtn:hover:not([disabled]){filter:brightness(1.08);transform:translateY(-1px)}
+.fnbtn:active:not([disabled]){transform:translateY(3px);box-shadow:0 1px 0 #B89400}
+.fnbtn.blue{background:#3D8BFF;color:#fff;box-shadow:0 4px 0 #1B4FB0,0 6px 12px rgba(0,0,0,.3)}
+.fnbtn.dark{background:rgba(255,255,255,.12);color:var(--fnw);box-shadow:inset 0 0 0 2px var(--fnl)}
+.fnbtn[disabled]{cursor:default;opacity:.85}
+.fnbtn .coin{width:18px;height:18px}
+/* locker: the equipped champion under spotlights */
+.locker{display:grid;grid-template-columns:minmax(210px,300px) 1fr;gap:22px;align-items:center;margin:14px 0 6px;padding:16px;border-radius:22px;background:rgba(5,10,40,.45);border:2px solid var(--fnl)}
+.stagebox{position:relative;aspect-ratio:1/1.08;display:flex;align-items:flex-end;justify-content:center;border-radius:18px;overflow:hidden;
+  background:radial-gradient(60% 50% at 50% 42%,#4C8DFF,transparent 72%),linear-gradient(180deg,#1B3CB4,#0B1550)}
+.stagebox .beams{position:absolute;inset:-20% -30% 0;background:conic-gradient(from 160deg at 50% 0%,transparent 0 6deg,rgba(255,255,255,.22) 8deg 12deg,transparent 14deg 22deg,rgba(255,255,255,.16) 24deg 27deg,transparent 29deg 34deg,rgba(255,255,255,.22) 36deg 40deg,transparent 42deg);animation:sway 6s ease-in-out infinite alternate}
+@keyframes sway{to{transform:rotate(4deg)}}
+.stagebox .glow{position:absolute;left:10%;right:10%;top:14%;bottom:14%;background:radial-gradient(circle,rgba(255,226,59,.35),transparent 66%)}
+.stagebox .fighter{position:relative;z-index:1;width:84%;margin-bottom:6%}
+.stagebox .fighter svg{width:100%;height:auto;display:block;filter:drop-shadow(0 8px 8px rgba(0,0,0,.45))}
+.stagebox .pedestal{position:absolute;left:14%;right:14%;bottom:3%;height:12%;border-radius:50%;background:radial-gradient(ellipse at 50% 35%,#8FD3FF,#2A63D9 60%,#13297A);box-shadow:0 0 24px #5AB0FF,0 5px 0 #0C1A5A}
 .fighter.newgear{animation:newgear .8s ease}
-@keyframes newgear{30%{transform:scale(1.07);filter:brightness(1.25) drop-shadow(0 0 14px #F4CB4C)}}
-.bal{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.bal .coin{width:34px;height:34px}
-.bal b{font:700 30px var(--f-display);font-variant-numeric:tabular-nums}
-.bal span{color:var(--ink2);font-weight:600}
+@keyframes newgear{30%{transform:scale(1.08);filter:brightness(1.35) drop-shadow(0 0 18px var(--fny))}}
+.sinfo{min-width:0}
+.sinfo .who{font:400 24px/1.1 var(--f-fn);text-transform:uppercase;font-style:italic;margin:0 0 2px}
+.sinfo .who+.ar{font:400 20px var(--f-ar);color:var(--fnm);margin:0 0 10px}
 .gst{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
-.gs{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:3px 8px;padding:8px 10px;border-radius:12px;background:var(--surface);border:1px solid var(--line);min-width:0}
+.gs{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:3px 8px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid var(--fnl);min-width:0}
 .gs .gi{grid-row:span 2;width:28px;height:28px}.gs .gi svg{width:100%;height:100%;display:block}
-.gs .gl{font-size:12px;color:var(--ink2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gs b{font:700 16px var(--f-display);text-align:end}
-.gs .gb{grid-column:2/4;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden}
-.gs .gb i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--gold));border-radius:99px}
+.gs .gl{font-size:11px;color:var(--fnm);font-weight:800;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gs b{font:400 18px var(--f-fn);text-align:end}
+.gs .gb{grid-column:2/4;height:7px;border-radius:2px;background:rgba(0,0,0,.4);overflow:hidden;transform:skewX(-14deg)}
+.gs .gb i{display:block;height:100%;background:linear-gradient(90deg,var(--fny),#FF9F1A)}
+.gs.sh .gb i{background:linear-gradient(90deg,#7FD8FF,#2E8BFF)}
 .slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
-.slot{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:12px;border:2px solid var(--rc);background:var(--surface);cursor:pointer;color:var(--ink);min-width:0;font:inherit}
-.slot svg,.slot .ico,.slot .ico.wide{width:46px;height:40px}
-.slot span{font-size:11px;font-weight:600;color:var(--ink2);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.shoptabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
-.shoptabs button{position:relative;border:2px solid var(--line);border-bottom-width:4px;background:var(--surface);border-radius:16px;padding:8px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.2;color:var(--ink);font:inherit;min-width:0}
-.shoptabs .ci{width:44px;height:36px;display:grid;place-items:center}.shoptabs .ci svg{width:100%;height:100%}
-.shoptabs .cn{font-weight:700;font-size:14px}
-.shoptabs small{font-family:var(--f-ar);font-size:15px;color:var(--ink2)}
-.shoptabs em{position:absolute;top:6px;right:8px;font-style:normal;font-size:11px;font-weight:700;color:var(--ink2)}
-.shoptabs button.on{background:var(--soft);border-color:var(--brand)}
-.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
-.itm{position:relative;overflow:hidden;background:var(--surface);border:2px solid var(--line);border-bottom-width:4px;border-radius:18px;padding:0 12px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px}
-.itm .pic{position:relative;align-self:stretch;height:118px;margin:0 -12px 6px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border-bottom:3px solid var(--rc)}
-.itm .pic::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 60%,var(--rc),transparent 66%);opacity:.3}
-.itm .pic.lg::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,rgba(255,243,176,.75),transparent 58%);animation:glowp 2.4s ease-in-out infinite}
-@keyframes glowp{50%{opacity:.35}}
-.itm .pic svg{position:relative;z-index:1;filter:drop-shadow(0 4px 4px rgba(0,0,0,.18))}
-.itm .ico{width:100px;height:100px}.itm .ico.wide{width:150px;height:108px}
-.itm .rar{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--rc)}
-.itm .ar{font-family:var(--f-ar);font-size:22px;margin:0;line-height:1.4}
-.itm b{font-size:15px}
-.itm .muted{font-size:12px}
-.sbar{align-self:stretch;height:6px;border-radius:99px;background:var(--surface2);overflow:hidden;margin:4px 0 2px}
-.sbar i{display:block;height:100%;border-radius:99px;background:var(--rc)}
-.itm .btn{margin-top:auto;width:100%;gap:6px}
-.itm .need{margin-top:auto;font-size:12px;font-weight:700;color:var(--ink2)}
-.itm .need+.btn{margin-top:4px}
-.itm.eq{border-color:var(--good)}
-.rib{position:absolute;top:13px;left:-34px;z-index:2;transform:rotate(-40deg);width:120px;text-align:center;background:var(--good);color:#fff;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 0;box-shadow:0 2px 4px rgba(0,0,0,.2)}
-.rib.own{background:var(--brand);color:var(--brand-ink)}
-.abanner{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(170px,240px) 1fr;gap:16px;align-items:end;min-height:260px;margin:16px 0;padding:16px 18px;border-radius:24px;border:1px solid var(--line)}
+.slot{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px 5px;border-radius:10px;border:0;border-bottom:4px solid var(--rc);cursor:pointer;color:var(--fnw);min-width:0;font:inherit;
+  background:radial-gradient(circle at 50% 40%,var(--g1),var(--g2) 80%);box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.slot:hover{filter:brightness(1.12)}
+.slot svg,.slot .ico,.slot .ico.wide{width:46px;height:40px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.slot span{font:400 11px var(--f-fn);text-transform:uppercase;letter-spacing:.02em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+/* featured item of the day */
+.feat{display:grid;grid-template-columns:minmax(200px,340px) 1fr;gap:0;border-radius:18px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.35);border:3px solid var(--rc);background:#0B1446}
+.feat .pic{position:relative;min-height:230px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 46%,var(--g1),var(--g2) 78%)}
+.feat .pic svg{position:relative;z-index:1;width:72%;max-width:220px;height:auto;filter:drop-shadow(0 8px 8px rgba(0,0,0,.4))}
+.feat .pic svg.wide{width:88%;max-width:280px}
+.feat .fi{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:18px 20px;min-width:0;background:linear-gradient(135deg,rgba(255,255,255,.06),transparent)}
+.feat .tag{font:800 11px var(--f-body);letter-spacing:.14em;text-transform:uppercase;padding:3px 10px;border-radius:4px;background:var(--fny);color:var(--fnyi);transform:skewX(-10deg)}
+.feat .nm{font:400 clamp(26px,4.6vw,40px)/1 var(--f-fn);text-transform:uppercase;font-style:italic;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.feat .ar{font:400 28px/1.3 var(--f-ar);margin:0}
+.feat .rar{font:800 12px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--g1)}
+.feat .ds{margin:0;color:var(--fnm);max-width:44ch}
+.feat .stl{font-weight:700;font-size:14px}
+.feat .need{font-size:12px;font-weight:700;color:var(--fnm)}
+/* tabs */
+.shoptabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:6px 0 14px}
+.shoptabs button{position:relative;border:0;border-radius:10px;padding:8px 6px 7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.15;color:var(--fnw);font:inherit;min-width:0;
+  background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 2px var(--fnl);transition:background .12s}
+.shoptabs button:hover{background:rgba(255,255,255,.18)}
+.shoptabs .ci{width:44px;height:36px;display:grid;place-items:center}.shoptabs .ci svg{width:100%;height:100%;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.shoptabs .cn{font:400 16px var(--f-fn);text-transform:uppercase;letter-spacing:.02em}
+.shoptabs small{font-family:var(--f-ar);font-size:15px;color:var(--fnm)}
+.shoptabs em{position:absolute;top:5px;right:7px;font-style:normal;font-size:11px;font-weight:800;color:var(--fnm)}
+.shoptabs button.on{background:var(--fny);color:var(--fnyi);box-shadow:0 4px 0 #B89400}
+.shoptabs button.on small,.shoptabs button.on em{color:#5A4700}
+/* item tiles */
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.itm{position:relative;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;background:#0B1446;box-shadow:0 6px 16px rgba(0,0,0,.35);outline:3px solid transparent;transition:transform .15s,outline-color .15s,box-shadow .15s}
+.itm:hover{transform:translateY(-4px) scale(1.015);outline-color:#fff;box-shadow:0 14px 26px rgba(0,0,0,.45)}
+.itm .pic,.feat .pic{isolation:isolate}
+.itm .pic{position:relative;height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 46%,var(--g1),var(--g2) 80%)}
+.itm .pic::before,.feat .pic::before{content:"";position:absolute;inset:-40%;z-index:0;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.16) 0 7deg,transparent 7deg 20deg);
+  -webkit-mask:radial-gradient(circle,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 18%,transparent 62%)}
+.itm .pic.lg::before,.feat .pic.lg::before{animation:spin 18s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.itm .pic::after,.feat .pic::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.35) 48%,transparent 60%);transform:translateX(-120%)}
+.itm:hover .pic::after,.feat:hover .pic::after{transition:transform .7s;transform:translateX(120%)}
+.itm .pic svg{position:relative;z-index:1;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4))}
+.itm .ico{width:118px;height:118px}.itm .ico.wide{width:168px;height:122px}
+.itm .band{display:flex;flex-direction:column;align-items:center;text-align:center;gap:1px;padding:8px 10px 10px;background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.55)),var(--g2);border-top:3px solid var(--rc);flex:1}
+.itm .nm{font:400 18px/1.05 var(--f-fn);text-transform:uppercase;letter-spacing:.01em;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.itm .ar{font-family:var(--f-ar);font-size:20px;margin:0;line-height:1.35;color:#fff}
+.itm .rar{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.itm .ds{font-size:12px;line-height:1.35;color:rgba(255,255,255,.78);margin:2px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.itm .stl{font-size:12px;font-weight:700;color:#fff;margin-top:4px}
+.sbar{align-self:stretch;height:6px;border-radius:2px;background:rgba(0,0,0,.45);overflow:hidden;margin:4px 0 2px;transform:skewX(-14deg)}
+.sbar i{display:block;height:100%;background:linear-gradient(90deg,#fff,var(--g1))}
+.itm .buy{display:flex;flex-direction:column;gap:4px;padding:8px 10px 10px;background:#0B1446}
+.itm .buy .fnbtn{width:100%}
+.itm .need{font-size:11px;font-weight:700;color:var(--fnm);text-align:center}
+.itm.eq{outline-color:var(--fny)}
+.rib{position:absolute;top:8px;left:8px;z-index:3;font:800 10px var(--f-body);letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:4px;transform:skewX(-10deg);background:var(--fny);color:var(--fnyi);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.rib.own{background:#fff;color:#13215E}
+.price{position:absolute;top:8px;right:8px;z-index:3;display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 4px;border-radius:999px;background:rgba(0,0,0,.5);font:400 14px var(--f-fn)}
+/* arena lobby */
+.abanner{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(170px,250px) 1fr;gap:16px;align-items:end;min-height:280px;margin:14px 0;padding:16px 18px;border-radius:20px;border:2px solid var(--fnl)}
+.abanner::after,.astage::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 50%,rgba(5,8,30,.65))}
 .abg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
 .abanner .champ{position:relative;z-index:1}
-.abanner .champ svg{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 8px rgba(0,0,0,.28))}
-.binfo{position:relative;z-index:1;align-self:center;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;border-radius:18px;background:var(--glass);box-shadow:0 8px 24px rgba(0,0,0,.12)}
-.binfo>b{font:700 18px var(--f-display)}.binfo>span{font-size:13px;color:var(--ink2)}
+.abanner .champ svg{width:100%;height:auto;display:block;filter:drop-shadow(0 8px 10px rgba(0,0,0,.45))}
+.binfo{position:relative;z-index:1;align-self:center;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;border-radius:16px;background:rgba(8,14,52,.82);border:2px solid var(--fnl);box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.binfo>b{font:400 22px/1.05 var(--f-fn);text-transform:uppercase;font-style:italic}
+.binfo>span{font-size:13px;color:var(--fnm)}
 .binfo .gst{margin:4px 0;width:100%}
-.binfo .wins{font-size:14px;color:var(--ink)}
-.aeh{font:700 18px var(--f-display);margin:22px 0 10px}
+.binfo .wins{font-size:14px;color:var(--fnw);font-weight:700}
 .egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
-.foe{display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:18px;border:2px solid var(--line);border-bottom-width:4px;background:var(--surface);color:var(--ink);cursor:pointer;text-align:center;font:inherit;transition:transform .12s}
-.foe:hover:not(.locked){border-color:var(--brand);transform:translateY(-3px)}
-.foe .fpic{position:relative;height:130px;overflow:hidden}
+.foe{position:relative;display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:14px;border:0;background:#0B1446;color:var(--fnw);cursor:pointer;text-align:center;font:inherit;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);outline:3px solid transparent;transition:transform .15s,outline-color .15s}
+.foe:hover:not(.locked){outline-color:#fff;transform:translateY(-4px)}
+.foe .fpic{position:relative;height:140px;overflow:hidden}
+.foe .fpic::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,var(--g2));opacity:.85}
 .foe .fback{position:absolute;inset:0;width:100%;height:100%}
-.foe .foeart{position:absolute;left:50%;bottom:-6px;width:122px;height:122px;transform:translateX(-50%);filter:drop-shadow(0 4px 4px rgba(0,0,0,.25))}
-.foe .fbeat{position:absolute;top:8px;left:8px;background:var(--good);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px}
-.foe .flock{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;background:rgba(10,19,36,.5)}
-.foe .fbody{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 10px 12px}
-.foe .ar{font-family:var(--f-ar);font-size:22px;margin:0;line-height:1.4}
-.foe b{font-size:15px}
-.dif{display:inline-flex;gap:1px;font-size:13px;color:var(--line)}.dif i{font-style:normal}.dif .on{color:var(--gold)}
-.fst{display:flex;gap:10px;font-size:12px;color:var(--ink2);font-weight:600}
-.foe .rw{display:inline-flex;align-items:center;gap:5px;margin-top:6px;color:var(--gold-ink);background:var(--gold);padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800}
-.foe.locked{opacity:.75;cursor:not-allowed}
-.battle .bhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
-.rnd{font:700 15px var(--f-display);color:var(--ink2)}.cmb{font-weight:800;color:#E8590C;animation:pop .35s ease}
+.foe .foeart{position:absolute;left:50%;bottom:-6px;z-index:1;width:132px;height:132px;transform:translateX(-50%);filter:drop-shadow(0 4px 6px rgba(0,0,0,.45))}
+.foe .fbeat{position:absolute;top:8px;left:8px;z-index:2;background:var(--fny);color:var(--fnyi);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;transform:skewX(-10deg)}
+.foe .flock{position:absolute;inset:0;z-index:2;display:grid;place-items:center;font-size:30px;background:rgba(5,8,30,.6)}
+.foe .fbody{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 10px 12px;background:linear-gradient(180deg,var(--g2),#0B1446);border-top:3px solid var(--rc);flex:1}
+.foe .ar{font-family:var(--f-ar);font-size:22px;margin:0;line-height:1.35}
+.foe b{font:400 19px/1.05 var(--f-fn);text-transform:uppercase}
+.foe .rar{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.dif{display:inline-flex;gap:1px;font-size:13px;color:rgba(255,255,255,.25)}.dif i{font-style:normal}.dif .on{color:var(--fny)}
+.fst{display:flex;gap:10px;font-size:12px;color:var(--fnm);font-weight:700}
+.foe .rw{display:inline-flex;align-items:center;gap:5px;margin-top:6px;color:var(--fnyi);background:var(--fny);padding:3px 10px;border-radius:6px;font:400 13px var(--f-fn);text-transform:uppercase;transform:skewX(-8deg)}
+.foe.locked{cursor:not-allowed}
+.foe.locked .fbody{filter:saturate(.4)}
+/* battle */
+.battle .bhead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:10px}
+.battle .bhead>:first-child{justify-self:start}.battle .bhead>:last-child{justify-self:end}
+.rnd{font:400 22px var(--f-fn);text-transform:uppercase;font-style:italic;text-shadow:0 2px 0 #0B1A5C}
+.cmb{font:400 18px var(--f-fn);text-transform:uppercase;color:#FF9F1A;text-shadow:0 2px 0 #5A2600;animation:pop .35s ease}
 .hud{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:10px}
-.hpc{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:16px;background:var(--surface);border:1px solid var(--line);min-width:0}
+.hpc{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:rgba(5,10,40,.55);border:2px solid var(--fnl);min-width:0}
 .hpc>div{flex:1;min-width:0}
-.hpc b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hpc b .ar{font-size:16px;font-weight:400}
-.hpc .pp{flex:none;width:46px;height:46px;border-radius:50%;overflow:hidden;background:var(--soft);border:2px solid var(--line);display:grid;place-items:center}
+.hpc b{display:block;font:400 16px var(--f-fn);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hpc b .ar{font:400 17px var(--f-ar);text-transform:none}
+.hpc .pp{flex:none;width:48px;height:48px;border-radius:10px;overflow:hidden;background:radial-gradient(circle,#4C8DFF,#13297A);border:2px solid #fff;display:grid;place-items:center}
+.hpc.them .pp{background:radial-gradient(circle,#FF6A5E,#6A1010)}
 .hpc .pp svg{width:100%;height:100%;display:block}
 .hpc .pp .ppf{width:130%;height:130%;margin-top:-10%}
 .hpc.them{text-align:end}
-.vs{font:800 20px var(--f-display);color:#E8590C;text-shadow:0 2px 0 rgba(0,0,0,.12)}
-.hp{height:12px;border-radius:99px;background:var(--surface2);overflow:hidden;margin:4px 0 2px;box-shadow:inset 0 1px 2px rgba(0,0,0,.15)}
-.hp i{display:block;height:100%;border-radius:99px;transition:width .45s ease}
-.hp.good i{background:linear-gradient(90deg,#2FBF71,#1D8A59)}.hp.bad i{background:linear-gradient(90deg,#F06A5E,#BF3A3A)}
+.vs{font:400 30px var(--f-fn);font-style:italic;color:var(--fny);text-shadow:0 3px 0 #8A5A00,0 0 16px rgba(255,200,0,.6)}
+.hpr{display:flex;align-items:center;gap:6px;margin:3px 0}
+.hpc.them .hpr{flex-direction:row-reverse}
+.hp{flex:1;height:14px;border-radius:2px;background:rgba(0,0,0,.5);overflow:hidden;transform:skewX(-14deg);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.hp.thin{height:9px}
+.hp i{display:block;height:100%;transition:width .45s ease}
+.hpc.them .hp i{margin-left:auto}
+.hp.good i{background:linear-gradient(180deg,#8CF07A,#2FBF4A)}.hp.bad i{background:linear-gradient(180deg,#FF8A7A,#D12F2F)}.hp.shd i{background:linear-gradient(180deg,#9BE2FF,#2E8BFF)}
 .hp.low i{animation:hpblink .8s ease-in-out infinite}
 @keyframes hpblink{50%{opacity:.45}}
-.hpc small{font-size:12px;color:var(--ink2);font-weight:700;font-variant-numeric:tabular-nums}
-.astage{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;align-items:end;min-height:280px;padding:12px 6% 4px;border-radius:22px;border:1px solid var(--line);margin-bottom:12px}
-.side{position:relative;z-index:1;display:flex;justify-content:center;align-items:flex-end}
-.side.p svg.fgt{width:min(100%,220px);height:auto;display:block}
-.side.e .foeart{width:min(100%,200px);height:auto;display:block;margin-bottom:6px}
+.hpr small{flex:none;min-width:32px;font:400 15px var(--f-fn);font-variant-numeric:tabular-nums;text-align:center}
+.astage{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;align-items:end;min-height:290px;padding:12px 6% 4px;border-radius:18px;border:2px solid var(--fnl);margin-bottom:12px}
+.astage .emb{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.astage .emb i{position:absolute;bottom:-10px;width:5px;height:5px;border-radius:50%;background:#FFD27A;box-shadow:0 0 8px #FF9F1A;opacity:0;animation:ember 5s linear infinite}
+@keyframes ember{0%{transform:translate(0,0);opacity:0}15%{opacity:.9}100%{transform:translate(30px,-300px);opacity:0}}
+.side{position:relative;z-index:2;display:flex;justify-content:center;align-items:flex-end}
+.side.p svg.fgt{width:min(100%,230px);height:auto;display:block;filter:drop-shadow(0 8px 8px rgba(0,0,0,.45))}
+.side.e .foeart{width:min(100%,210px);height:auto;display:block;margin-bottom:6px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.45))}
 .side .fx{position:absolute;left:15%;top:10%;width:70%;height:auto;z-index:2;pointer-events:none;overflow:visible}
 .fx.slash path,.fx.claw path{stroke-dasharray:1;stroke-dashoffset:1;animation:crdraw .28s ease-out forwards}
 .fx.claw path{animation-delay:.12s}
 .fx.burst{animation:burst .5s ease-out forwards}
 .fx.sting,.fx.fire{animation:burst .7s ease-out .1s both}
 @keyframes burst{0%{transform:scale(.3);opacity:0}30%{opacity:1}100%{transform:scale(1.25);opacity:0}}
-.dmg{position:absolute;top:6%;left:50%;transform:translateX(-50%);z-index:3;font:800 30px var(--f-display);color:#fff;text-shadow:0 2px 0 #B3261E,0 0 10px #B3261E;animation:dmgup 1s ease-out forwards;pointer-events:none}
-@keyframes dmgup{from{opacity:1;top:24%}to{opacity:0;top:-4%}}
+.dmg{position:absolute;top:6%;left:58%;z-index:4;font:400 40px/1 var(--f-fn);color:#fff;-webkit-text-stroke:2px #1A1A1A;paint-order:stroke fill;text-shadow:0 3px 0 rgba(0,0,0,.4);animation:dmgup 1.1s ease-out forwards;pointer-events:none}
+.dmg.crit{color:var(--fny);font-size:52px}
+.dmg.shd{color:#7FD8FF}
+@keyframes dmgup{0%{opacity:0;transform:scale(.4) translateY(30px)}15%{opacity:1;transform:scale(1.25) translateY(0)}30%{transform:scale(1)}100%{opacity:0;transform:translate(16px,-60px)}}
 .side.hurt{animation:hurtit .5s}
 @keyframes hurtit{0%,100%{transform:none;filter:none}20%{transform:translateX(-10px);filter:brightness(1.9) saturate(1.4)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
 .side.atk.p{animation:lungeR .5s}.side.atk.e{animation:lungeL .5s}
@@ -612,24 +690,37 @@ body:has(#cele.bad) .qfoot .mascot{visibility:hidden}
 .side.ko{animation:ko .9s ease-in .2s forwards}.side.e.ko{animation-name:koE}
 @keyframes ko{to{transform:translateY(10px) rotate(12deg);opacity:.35;filter:grayscale(1)}}
 @keyframes koE{to{transform:translateY(10px) rotate(-14deg);opacity:.35;filter:grayscale(1)}}
-.aq .tbar{height:8px;background:var(--surface2);border-radius:999px;overflow:hidden;margin-bottom:12px}
-.aq .tbar i{display:block;height:100%;background:var(--brand);transition:width .1s linear}
-.aq .tbar i.low{background:var(--bad)}
-.aq .qq{font:700 19px var(--f-display);margin:0 0 12px}
+.elim{position:absolute;left:0;right:0;top:38%;z-index:5;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;background:linear-gradient(90deg,transparent,rgba(5,8,30,.85) 20%,rgba(5,8,30,.85) 80%,transparent);animation:elimin .5s cubic-bezier(.2,1.6,.4,1) both}
+.elim b{font:400 clamp(30px,6vw,50px)/1 var(--f-fn);font-style:italic;text-transform:uppercase;color:var(--fny);text-shadow:0 3px 0 #8A5A00}
+.elim.lose b{color:#FF6A5E;text-shadow:0 3px 0 #6A1010}
+.elim span{font-weight:700;color:#fff;font-size:14px}
+@keyframes elimin{from{transform:scaleX(.2);opacity:0}}
+.aq{background:rgba(5,10,40,.6);border:2px solid var(--fnl);border-radius:18px;padding:16px;color:var(--fnw)}
+.aq .tbar{height:10px;background:rgba(0,0,0,.45);border-radius:2px;overflow:hidden;margin-bottom:12px;transform:skewX(-14deg)}
+.aq .tbar i{display:block;height:100%;background:linear-gradient(90deg,#B05CFF,#E58BFF);transition:width .1s linear}
+.aq .tbar i.low{background:linear-gradient(90deg,#FF4E4E,#FF9F1A)}
+.aq .qq{font:400 22px/1.2 var(--f-fn);margin:0 0 12px;text-align:center}
 .aq .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.aq .opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer;text-align:start;min-width:0;font:inherit}
-.aq .opt:hover:not([disabled]){border-color:var(--brand);background:var(--soft)}
-.aq .opt .k{width:24px;height:24px;border-radius:8px;background:var(--surface2);font:700 12px var(--f-body);display:grid;place-items:center;flex:none}
-.aq .opt.ar .t{font-family:var(--f-ar);font-size:24px;line-height:1.5;flex:1;text-align:center}
-.aq .opt.right{border-color:var(--good);background:var(--good-bg)}.aq .opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.aq .opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border:0;border-radius:10px;background:linear-gradient(180deg,#2E5BE0,#1C3AA8);box-shadow:0 4px 0 #0E2270;color:#fff;cursor:pointer;text-align:start;min-width:0;font:inherit;transition:transform .1s,filter .1s}
+.aq .opt:hover:not([disabled]){filter:brightness(1.15);transform:translateY(-2px)}
+.aq .opt .k{width:26px;height:26px;border-radius:6px;background:var(--fny);color:var(--fnyi);font:400 15px var(--f-fn);display:grid;place-items:center;flex:none}
+.aq .opt.ar .t{font-family:var(--f-ar);font-size:25px;line-height:1.5;flex:1;text-align:center}
+.aq .opt.right{background:linear-gradient(180deg,#43D16A,#1E8A3C);box-shadow:0 4px 0 #0E5523}.aq .opt.wrong{background:linear-gradient(180deg,#F05A4E,#A82222);box-shadow:0 4px 0 #5E0E0E}
+.aq .opt.locked:not(.right):not(.wrong){opacity:.55}
 .aq .opt:disabled{cursor:default}
-.note2{margin:12px 0 0;font-weight:700}.note2.ok{color:var(--good)}.note2.no{color:var(--bad)}.note2 .ar{font-size:20px}
-.result .row{display:flex;gap:10px;flex-wrap:wrap}
-.aend{text-align:center}.aend.win{border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,162,27,.2)}
-.trophy{width:96px;height:96px;margin:0 auto 6px;display:block;animation:pop .6s ease}
-.aend h2 .ar{font-size:.85em;color:var(--good)}
+.note2{margin:12px 0 0;font-weight:700;text-align:center}.note2.ok{color:#8CF07A}.note2.no{color:#FF9A8E}.note2 .ar{font-size:20px}
+.aend{text-align:center;background:rgba(5,10,40,.7);border:3px solid var(--fnl);border-radius:20px;padding:20px 16px;color:var(--fnw)}
+.aend.win{border-color:var(--fny);box-shadow:0 0 0 4px rgba(255,226,59,.2),0 0 40px rgba(255,200,0,.25)}
+.aend .vic{display:block;font:400 clamp(46px,10vw,84px)/.95 var(--f-fn);font-style:italic;text-transform:uppercase;color:var(--fny);text-shadow:0 4px 0 #8A5A00,0 8px 0 rgba(0,0,0,.3),0 0 30px rgba(255,200,0,.5);margin:4px 0 6px}
+.aend.lose .vic{color:#FF6A5E;text-shadow:0 4px 0 #6A1010,0 8px 0 rgba(0,0,0,.3)}
+.aend h2{font:400 20px var(--f-fn);text-transform:uppercase;margin:0 0 8px}
+.aend h2 .ar{font:400 24px var(--f-ar);text-transform:none;color:#8CF07A}
+.aend p{color:var(--fnm)}.aend p b{color:#fff}
+.trophy{width:96px;height:96px;margin:0 auto 2px;display:block;animation:pop .6s ease;filter:drop-shadow(0 0 16px rgba(255,200,0,.5))}
 .aend .coin{width:18px;height:18px;vertical-align:-3px}
-@media (max-width:640px){.showcase{grid-template-columns:1fr;padding:14px}.stagebox{max-width:250px;width:100%;margin:0 auto}.abanner{grid-template-columns:1fr;padding:14px}.abanner .champ{max-width:190px;margin:0 auto}.shoptabs{gap:6px}.shoptabs .ci{width:34px;height:28px}.shoptabs small{display:none}.hud{grid-template-columns:1fr 1fr}.vs{display:none}.hpc{padding:6px 8px;gap:6px}.hpc .pp{width:34px;height:34px}.astage{min-height:190px;padding:8px 2% 2px}.aq .opts{grid-template-columns:1fr 1fr}.igrid,.egrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.itm .ico{width:84px;height:84px}.itm .ico.wide{width:126px;height:92px}}
+.result .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+@media (prefers-reduced-motion:reduce){.stagebox .beams,.itm .pic.lg::before,.feat .pic.lg::before,.astage .emb i{animation:none}}
+@media (max-width:640px){.shop,.arena{padding:14px 12px 20px;border-radius:20px}.locker{grid-template-columns:1fr;padding:12px}.stagebox{max-width:260px;width:100%;margin:0 auto}.feat{grid-template-columns:1fr}.feat .pic{min-height:180px}.abanner{grid-template-columns:1fr;padding:12px}.abanner .champ{max-width:190px;margin:0 auto}.shoptabs{gap:6px}.shoptabs .ci{width:34px;height:28px}.shoptabs small{display:none}.shoptabs .cn{font-size:13px}.hud{grid-template-columns:1fr 1fr}.vs{display:none}.hpc{padding:6px 8px;gap:6px}.hpc .pp{width:34px;height:34px}.astage{min-height:200px;padding:8px 2% 2px}.aq .opts{grid-template-columns:1fr 1fr}.igrid,.egrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.itm .pic{height:124px}.itm .ico{width:90px;height:90px}.itm .ico.wide{width:132px;height:96px}.itm .nm{font-size:15px}.dmg{font-size:32px}.dmg.crit{font-size:40px}.hpr{gap:4px}.hpr small{min-width:24px;font-size:12px}.hp{height:11px}.hp.thin{height:7px}}
 @media (max-width:520px){.nav{gap:2px}.nav a{padding:6px 9px;font-size:13px}}
 </style>
 
@@ -1585,40 +1676,40 @@ ACT.rplay=function(){
 var SKIN='#E8B98A',SKIN2='#C98E5F';
 var ITEMS={
   weapon:[
-    {id:'w0',ar:'عَصًا',en:'Wooden Stick',price:0,pow:4,k:'stick'},
-    {id:'w1',ar:'خِنْجَرٌ',en:'Dagger',price:80,pow:8,k:'dagger'},
-    {id:'w2',ar:'سَيْفٌ',en:'Sword',price:200,pow:12,k:'sword'},
-    {id:'w3',ar:'رُمْحٌ',en:'Spear',price:350,pow:16,k:'spear'},
-    {id:'w4',ar:'قَوْسٌ',en:'Bow',price:500,pow:20,k:'bow'},
-    {id:'w5',ar:'سَيْفٌ ذَهَبِيٌّ',en:'Golden Sword',price:900,pow:28,k:'gsword'}],
+    {id:'w0',ar:'العَصَا',en:'Shepherd’s Staff',price:0,pow:4,k:'stick',d:'A herder’s staff of desert wood.'},
+    {id:'w1',ar:'الخَنْجَرُ',en:'Khanjar',price:80,pow:8,k:'dagger',d:'The curved dagger worn at the belt in Oman and Yemen.'},
+    {id:'w2',ar:'السَّيْفُ اليَمَانِيُّ',en:'Yamani Sword',price:200,pow:12,k:'sword',d:'A blade of Yemeni steel, praised by the poets of old Arabia.'},
+    {id:'w3',ar:'الرُّمْحُ الرُّدَيْنِيُّ',en:'Rudayni Spear',price:350,pow:16,k:'spear',d:'A lance named after Rudayna, famed for her straight spear shafts.'},
+    {id:'w4',ar:'قَوْسُ النَّبْعِ',en:'Nabʿ Bow',price:500,pow:20,k:'bow',d:'A bow of nabʿ, the hard mountain wood the Arabs prized for bows.'},
+    {id:'w5',ar:'السَّيْفُ المَشْرَفِيُّ',en:'Mashrafi Sword',price:900,pow:28,k:'gsword',d:'The legendary blade of al-Mashārif, the finest sword in Arabic poetry.'}],
   armour:[
-    {id:'a0',ar:'ثَوْبٌ',en:'Cloth Thobe',price:0,def:0,col:'#F4F1EA',edge:'#B9B2A3',g:'gCloth'},
-    {id:'a1',ar:'دِرْعٌ جِلْدِيٌّ',en:'Leather Armour',price:120,def:3,col:'#9A6A3A',edge:'#4A2C14',g:'gLeather'},
-    {id:'a2',ar:'دِرْعٌ حَدِيدِيٌّ',en:'Iron Armour',price:300,def:6,col:'#7D8791',edge:'#3A424B',g:'gIron'},
-    {id:'a3',ar:'دِرْعٌ فِضِّيٌّ',en:'Silver Armour',price:600,def:9,col:'#D2D9E2',edge:'#6B7684',g:'gSilver'},
-    {id:'a4',ar:'دِرْعٌ ذَهَبِيٌّ',en:'Golden Armour',price:1000,def:12,col:'#E3B53C',edge:'#8F6410',g:'gGold'}],
+    {id:'a0',ar:'الثَّوْبُ',en:'Thawb',price:0,def:0,col:'#F4F1EA',edge:'#B9B2A3',g:'gCloth',d:'A plain cotton robe. Light and cool, but no protection.'},
+    {id:'a1',ar:'اليَلَبُ',en:'Yalab',price:120,def:3,col:'#9A6A3A',edge:'#4A2C14',g:'gLeather',d:'Armour of layered, hardened camel hide.'},
+    {id:'a2',ar:'الزَّرَدُ',en:'Zarad Mail',price:300,def:6,col:'#7D8791',edge:'#3A424B',g:'gIron',d:'Rings of iron linked one into another to make a coat of mail.'},
+    {id:'a3',ar:'الجَوْشَنُ',en:'Jawshan',price:600,def:9,col:'#D2D9E2',edge:'#6B7684',g:'gSilver',d:'A breastplate of small steel plates laced together.'},
+    {id:'a4',ar:'الدِّرْعُ السَّابِرِيَّةُ',en:'Sabiri Mail',price:1000,def:12,col:'#E3B53C',edge:'#8F6410',g:'gGold',d:'Fine, close-woven mail, the most prized armour of the Arabs.'}],
   mount:[
-    {id:'m0',ar:'عَلَى القَدَمَيْنِ',en:'On foot',price:0,time:0,xp:1},
-    {id:'m1',ar:'حِمَارٌ',en:'Donkey',price:100,time:1,xp:1.1,kind:'donkey',col:'#8F9298',dk:'#5F6268',mane:'#4A4C52'},
-    {id:'m2',ar:'حِصَانٌ',en:'Horse',price:300,time:2,xp:1.25,kind:'horse',col:'#9A6233',dk:'#5E3A1C',mane:'#2E1A0C',blanket:'#2F6FB0'},
-    {id:'m3',ar:'جَمَلٌ',en:'Camel',price:500,time:3,xp:1.5,kind:'camel',col:'#CFA56B',dk:'#94703F',mane:'#8A6434',blanket:'#B3382E'},
-    {id:'m4',ar:'فَرَسٌ عَرَبِيَّةٌ',en:'Arabian Mare',price:900,time:4,xp:2,kind:'mare',col:'#F3F1EC',dk:'#BEB8AC',mane:'#C9C3B6',blanket:'#7A1F3D',gold:1}],
+    {id:'m0',ar:'عَلَى القَدَمَيْنِ',en:'On Foot',price:0,time:0,xp:1,d:'No mount yet. Earn XP to ride.'},
+    {id:'m1',ar:'الحِمَارُ الحَسَاوِيُّ',en:'Hasawi Donkey',price:100,time:1,xp:1.1,kind:'donkey',col:'#C4C1BA',dk:'#8D8A83',mane:'#5E5B55',d:'The tall, pale donkey of al-Ahsa, strong and steady.'},
+    {id:'m2',ar:'الحِصَانُ الصَّقْلَاوِيُّ',en:'Saqlawi Stallion',price:300,time:2,xp:1.25,kind:'horse',col:'#9A6233',dk:'#5E3A1C',mane:'#2E1A0C',blanket:'#2F6FB0',d:'A stallion of the Saqlawi line, one of the classic Arabian strains.'},
+    {id:'m3',ar:'النَّاقَةُ المَهْرِيَّةُ',en:'Mahri Camel',price:500,time:3,xp:1.5,kind:'camel',col:'#CFA56B',dk:'#94703F',mane:'#8A6434',blanket:'#B3382E',d:'The swift riding camel of the Mahra, bred for long desert crossings.'},
+    {id:'m4',ar:'الفَرَسُ الكُحَيْلَةُ',en:'Kuhaylan Mare',price:900,time:4,xp:2,kind:'mare',col:'#F3F1EC',dk:'#BEB8AC',mane:'#C9C3B6',blanket:'#7A1F3D',gold:1,d:'A mare of the Kuhaylan, the noblest strain of the Arabian horse.'}],
   char:[
-    {id:'c0',ar:'الدَّلِيلُ',en:'The Guide',price:0,t:'ghutra',d:'Knows the way to every lesson',wear:'url(#gCloth)'},
-    {id:'c1',ar:'الفَتَاةُ الشُّجَاعَةُ',en:'The Brave Girl',price:150,t:'hijab',d:'Never gives up on a hard word',wear:'#6C4A8A'},
-    {id:'c2',ar:'الفَارِسُ',en:'The Knight',price:300,t:'helmet',d:'Armoured, loyal and brave',wear:'url(#gIron)'},
-    {id:'c3',ar:'الحَكِيمُ',en:'The Sage',price:450,t:'turban',d:'Has read every book in the library',wear:'url(#gCloth)'},
-    {id:'c4',ar:'الحَارِسُ',en:'The Ranger',price:700,t:'ranger',d:'Scouts the desert for new words',wear:'#6A4C28'},
-    {id:'c5',ar:'الأَمِيرُ',en:'The Prince',price:1000,t:'prince',d:'Leads with courage and kindness',wear:'url(#gCloth)'}]
+    {id:'c0',ar:'الدَّلِيلُ',en:'The Guide',price:0,t:'ghutra',d:'A desert guide who knows the way to every lesson.',wear:'url(#gCloth)'},
+    {id:'c1',ar:'الفَارِسَةُ',en:'The Horsewoman',price:150,t:'hijab',d:'Rides and fights like Khawla bint al-Azwar.',wear:'#6C4A8A'},
+    {id:'c2',ar:'الفَارِسُ',en:'The Faris',price:300,t:'helmet',d:'A mounted knight of the desert, loyal and brave.',wear:'url(#gIron)'},
+    {id:'c3',ar:'العَالِمُ',en:'The Scholar',price:450,t:'turban',d:'Has read every book in Baghdad’s House of Wisdom.',wear:'url(#gCloth)'},
+    {id:'c4',ar:'قَصَّاصُ الأَثَرِ',en:'The Tracker',price:700,t:'ranger',d:'Reads footprints in the sand like the lines of a book.',wear:'#6A4C28'},
+    {id:'c5',ar:'الأَمِيرُ',en:'The Emir',price:1000,t:'prince',d:'Leads his people with courage and kindness.',wear:'url(#gCloth)'}]
 };
-var CATS=[['weapon','Weapons','سِلَاحٌ'],['armour','Armour','دِرْعٌ'],['mount','Mounts','مَرْكَبٌ'],['char','Characters','شَخْصِيَّةٌ']];
+var CATS=[['weapon','Weapons','الأَسْلِحَةُ'],['armour','Armour','الدُّرُوعُ'],['mount','Mounts','المَطَايَا'],['char','Characters','الشَّخْصِيَّاتُ']];
 var ENEMIES=[
   {k:'scorpion',ar:'عَقْرَبٌ',en:'Scorpion',hp:70,hit:9,fx:'sting',bg:'dunes'},
   {k:'wolf',ar:'ذِئْبٌ',en:'Wolf',hp:110,hit:12,fx:'claw',bg:'night'},
   {k:'lion',ar:'أَسَدٌ',en:'Lion',hp:150,hit:15,fx:'claw',bg:'savanna'},
   {k:'viper',ar:'أَفْعَى',en:'Viper',hp:190,hit:18,fx:'sting',bg:'canyon'},
   {k:'dragon',ar:'تِنِّينٌ',en:'Dragon',hp:260,hit:22,fx:'fire',bg:'volcano'}];
-var RARITY=[{n:'Common',c:'#7D879A'},{n:'Uncommon',c:'#2F9E6E'},{n:'Rare',c:'#2F7FD1'},{n:'Epic',c:'#8E44C9'},{n:'Legendary',c:'#D9A21B'}];
+var RARITY=[{n:'Common',c:'#B4BCC8',g1:'#C9CED6',g2:'#565D6B'},{n:'Uncommon',c:'#7BD23A',g1:'#86D93F',g2:'#1B6B1F'},{n:'Rare',c:'#3FC8FF',g1:'#47CCFF',g2:'#173E8C'},{n:'Epic',c:'#D27BFF',g1:'#D27BFF',g2:'#4E1E8E'},{n:'Legendary',c:'#FFB13D',g1:'#FFB847',g2:'#8A3A12'}];
 function rarityOf(it){var p=it.price;return RARITY[p===0?0:p<=150?1:p<=350?2:p<=600?3:4]}
 function itemById(id){for(var k in ITEMS){var a=ITEMS[k];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i]}return null}
 function shopState(){
@@ -1950,44 +2041,64 @@ function catIcon(k){
 
 /* ---- shop ---- */
 var STAT_MAX={weapon:28,armour:12,mount:4};
+var CAT_EN={weapon:'Weapon',armour:'Armour',mount:'Mount',char:'Character'};
 function statLine(k,it){
   if(k==='weapon')return 'Attack +'+it.pow;
-  if(k==='armour')return it.def?'Defence '+it.def:'No defence';
+  if(k==='armour')return it.def?'Shield '+it.def*10+' · blocks '+Math.floor(it.def/2):'No shield';
   if(k==='mount')return it.time?('+'+it.time+'s per question · ×'+it.xp+' XP'):'No bonus';
-  return it.d||'Fights with your gear';
+  return 'Fights with your gear';
 }
 function statBar(k,it){
   var v=k==='weapon'?it.pow:k==='armour'?it.def:k==='mount'?it.time:0;if(k==='char')return '';
   return '<div class="sbar" aria-hidden="true"><i style="width:'+Math.round(v/STAT_MAX[k]*100)+'%"></i></div>';
 }
-function itemCard(k,it){
-  var s=shopState(),own=!!s.own[it.id],eq=s.eq[k]===it.id,xp=S.prog.xp||0,R=rarityOf(it);
-  var pic=k==='weapon'?wpnIcon(it):k==='armour'?armIcon(it):k==='mount'?mountIcon(it):charIcon(it);
-  var btn;
-  if(eq)btn='<button class="btn sm ghost" type="button" disabled>Equipped ✓</button>';
-  else if(own)btn='<button class="btn sm" type="button" data-act="shopequip" data-k="'+k+'" data-id="'+it.id+'">Equip</button>';
-  else if(xp>=it.price)btn='<button class="btn sm gold" type="button" data-act="shopbuy" data-k="'+k+'" data-id="'+it.id+'">Buy '+COIN+it.price+'</button>';
-  else btn='<span class="need">Need '+(it.price-xp)+' more XP</span><button class="btn sm ghost" type="button" disabled title="Need '+(it.price-xp)+' more XP">🔒 '+COIN+it.price+'</button>';
-  return '<div class="itm'+(eq?' eq':'')+(own?' own':'')+'" style="--rc:'+R.c+'">'+(eq?'<span class="rib">Equipped</span>':own?'<span class="rib own">Owned</span>':'')+
-    '<div class="pic'+(R.n==='Legendary'?' lg':'')+'">'+pic+'</div><span class="rar">'+R.n+'</span><p class="ar">'+esc(it.ar)+'</p><b>'+esc(it.en)+'</b><span class="muted">'+statLine(k,it)+'</span>'+statBar(k,it)+btn+'</div>';
+function itemPic(k,it){return k==='weapon'?wpnIcon(it):k==='armour'?armIcon(it):k==='mount'?mountIcon(it):charIcon(it)}
+function rarStyle(R){return '--rc:'+R.c+';--g1:'+R.g1+';--g2:'+R.g2}
+function buyBtn(k,it){
+  var s=shopState(),xp=S.prog.xp||0;
+  if(s.eq[k]===it.id)return '<button class="fnbtn dark" type="button" disabled>Equipped ✓</button>';
+  if(s.own[it.id])return '<button class="fnbtn blue" type="button" data-act="shopequip" data-k="'+k+'" data-id="'+it.id+'">Equip</button>';
+  if(xp>=it.price)return '<button class="fnbtn" type="button" data-act="shopbuy" data-k="'+k+'" data-id="'+it.id+'">Buy '+COIN+it.price+'</button>';
+  return '<span class="need">Need '+(it.price-xp)+' more XP</span><button class="fnbtn dark" type="button" disabled title="Need '+(it.price-xp)+' more XP">🔒 '+COIN+it.price+'</button>';
 }
+function itemCard(k,it){
+  var s=shopState(),own=!!s.own[it.id],eq=s.eq[k]===it.id,R=rarityOf(it);
+  return '<div class="itm'+(eq?' eq':'')+(own?' own':'')+'" style="'+rarStyle(R)+'">'+(eq?'<span class="rib">Equipped</span>':own?'<span class="rib own">Owned</span>':'')+
+    (own||!it.price?'':'<span class="price">'+COIN+it.price+'</span>')+
+    '<div class="pic'+(R.n==='Legendary'?' lg':'')+'">'+itemPic(k,it)+'</div><div class="band"><b class="nm">'+esc(it.en)+'</b><p class="ar">'+esc(it.ar)+'</p><span class="rar">'+R.n+' '+CAT_EN[k]+'</span>'+
+    '<p class="ds">'+esc(it.d||'')+'</p><span class="stl">'+statLine(k,it)+'</span>'+statBar(k,it)+'</div><div class="buy">'+buyBtn(k,it)+'</div></div>';
+}
+/* one item a day is featured, chosen by the date */
+function featured(){
+  var all=[];CATS.forEach(function(c){ITEMS[c[0]].forEach(function(it){if(it.price)all.push([c[0],it])})});
+  var d=new Date(),n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  return all[(n*7)%all.length];
+}
+function featHtml(){
+  var f=featured(),k=f[0],it=f[1],R=rarityOf(it);
+  return '<h3 class="fnh">Featured today</h3><div class="feat" style="'+rarStyle(R)+'"><div class="pic'+(R.n==='Legendary'?' lg':'')+'">'+itemPic(k,it)+'</div><div class="fi"><span class="tag">Daily · '+CAT_EN[k]+'</span><span class="nm">'+esc(it.en)+'</span><p class="ar">'+esc(it.ar)+'</p><span class="rar">'+R.n+'</span><p class="ds">'+esc(it.d||'')+'</p><span class="stl">'+statLine(k,it)+'</span>'+buyBtn(k,it)+'</div></div>';
+}
+function clockText(){var d=new Date(),t=Math.max(0,Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate()+1)-d)/1000));var p=function(n){return (n<10?'0':'')+n};return p(Math.floor(t/3600))+':'+p(Math.floor(t/60)%60)+':'+p(t%60)}
+setInterval(function(){var el=document.getElementById('shopclock');if(el)el.textContent=clockText()},1000);
 function statsHtml(){
-  var g=gearStats(),rows=[['atk','Attack',g.atk,36],['def','Defence',g.def,12],['time','Extra time','+'+g.time+'s',4,g.time],['xp','XP bonus','×'+g.xp,2,g.xp]];
-  return '<div class="gst">'+rows.map(function(r){var v=r[4]!=null?r[4]:r[2];return '<div class="gs"><span class="gi">'+statIcon(r[0])+'</span><span class="gl">'+r[1]+'</span><b>'+r[2]+'</b><span class="gb"><i style="width:'+Math.min(100,Math.round((r[0]==='xp'?(v-1):v)/(r[0]==='xp'?1:r[3])*100))+'%"></i></span></div>'}).join('')+'</div>';
+  var g=gearStats(),rows=[['atk','Attack',g.atk,36],['def','Shield',g.def*10,120,null,'sh'],['time','Extra time','+'+g.time+'s',4,g.time],['xp','XP bonus','×'+g.xp,2,g.xp]];
+  return '<div class="gst">'+rows.map(function(r){var v=r[4]!=null?r[4]:r[2];return '<div class="gs'+(r[5]?' '+r[5]:'')+'"><span class="gi">'+statIcon(r[0])+'</span><span class="gl">'+r[1]+'</span><b>'+r[2]+'</b><span class="gb"><i style="width:'+Math.min(100,Math.round((r[0]==='xp'?(v-1):v)/(r[0]==='xp'?1:r[3])*100))+'%"></i></span></div>'}).join('')+'</div>';
 }
 function showcase(q,extra){
-  return '<div class="showcase"><div class="stagebox"><svg class="arch" viewBox="0 0 200 200" preserveAspectRatio="none" aria-hidden="true"><path d="M14 200 V86 Q14 14 100 8 Q186 14 186 86 V200Z" fill="var(--soft)"/><path d="M14 200 V86 Q14 14 100 8 Q186 14 186 86 V200" fill="none" stroke="var(--gold)" stroke-width="3" opacity=".7"/></svg><div class="glow"></div><div class="fighter">'+fighterSvg(q)+'</div><div class="pedestal"></div></div><div class="sinfo">'+extra+'</div></div>';
+  return '<div class="locker"><div class="stagebox"><div class="beams"></div><div class="glow"></div><div class="fighter">'+fighterSvg(q)+'</div><div class="pedestal"></div></div><div class="sinfo">'+extra+'</div></div>';
 }
 function slotsHtml(q){
-  return '<div class="slots">'+CATS.map(function(c){var it=q[c[0]],pic=c[0]==='weapon'?wpnIcon(it):c[0]==='armour'?armIcon(it):c[0]==='mount'?mountIcon(it):charIcon(it);
-    return '<button class="slot" type="button" data-act="shoptab" data-k="'+c[0]+'" title="'+esc(c[1]+': '+it.en)+'" style="--rc:'+rarityOf(it).c+'">'+pic+'<span>'+esc(it.en)+'</span></button>'}).join('')+'</div>';
+  return '<div class="slots">'+CATS.map(function(c){var it=q[c[0]];
+    return '<button class="slot" type="button" data-act="shoptab" data-k="'+c[0]+'" title="'+esc(c[1]+': '+it.en)+'" style="'+rarStyle(rarityOf(it))+'">'+itemPic(c[0],it)+'<span>'+esc(it.en)+'</span></button>'}).join('')+'</div>';
 }
 function viewShop(){
   ensureDefs();
   var cat=S.shopTab||'weapon',s=shopState(),q=eqItems();
-  var h='<section class="shop"><span class="eyebrow">Shop · المَتْجَرُ</span><h2>Gear up with your XP</h2><p class="muted">Spend the XP you earn from lessons, reading and tests on weapons, armour, mounts and characters, then take them into the Arena.</p>';
-  h+=showcase(q,'<div class="bal">'+COIN+'<b>'+(S.prog.xp||0)+'</b><span>XP to spend</span></div>'+statsHtml()+slotsHtml(q)+(REVIEW?'<button class="btn sm ghost" type="button" data-act="shopxp">+1000 XP (review only)</button>':''));
-  h+='<div class="shoptabs" role="tablist">'+CATS.map(function(c){var n=ITEMS[c[0]].filter(function(it){return s.own[it.id]}).length;return '<button type="button" role="tab" data-act="shoptab" data-k="'+c[0]+'" aria-selected="'+(cat===c[0])+'" class="'+(cat===c[0]?'on':'')+'"><span class="ci">'+catIcon(c[0])+'</span><span class="cn">'+c[1]+'</span><small class="ar">'+c[2]+'</small><em>'+n+'/'+ITEMS[c[0]].length+'</em></button>'}).join('')+'</div>';
+  var h='<section class="shop"><div class="fnhead"><div><span class="kick">Shop<span class="ar">المَتْجَرُ</span></span><h2 class="fnt">Item Shop</h2><span class="clock">New featured item in <b id="shopclock">'+clockText()+'</b></span></div><div class="vb">'+COIN+'<b>'+(S.prog.xp||0)+'</b><span>XP</span></div></div>';
+  h+='<p class="muted">Spend the XP you earn from lessons, reading and tests on the arms and armour of the old Arabs, on desert mounts and on new characters. Then take them into the Arena.</p>';
+  h+=showcase(q,'<p class="who">'+esc(q.char.en)+'</p><p class="ar">'+esc(q.char.ar)+'</p>'+statsHtml()+slotsHtml(q)+(REVIEW?'<button class="fnbtn dark" type="button" data-act="shopxp">+1000 XP (review only)</button>':''));
+  h+=featHtml();
+  h+='<h3 class="fnh">Browse</h3><div class="shoptabs" role="tablist">'+CATS.map(function(c){var n=ITEMS[c[0]].filter(function(it){return s.own[it.id]}).length;return '<button type="button" role="tab" data-act="shoptab" data-k="'+c[0]+'" aria-selected="'+(cat===c[0])+'" class="'+(cat===c[0]?'on':'')+'"><span class="ci">'+catIcon(c[0])+'</span><span class="cn">'+c[1]+'</span><small class="ar">'+c[2]+'</small><em>'+n+'/'+ITEMS[c[0]].length+'</em></button>'}).join('')+'</div>';
   h+='<div class="igrid">'+ITEMS[cat].map(function(it){return itemCard(cat,it)}).join('')+'</div></section>';
   V.innerHTML=h;
 }
@@ -1997,7 +2108,7 @@ ACT.shopbuy=function(b){
   var it=itemById(b.dataset.id),s=shopState();if(!it||s.own[it.id])return;
   if((S.prog.xp||0)<it.price){toast('Not enough XP yet.');return}
   S.prog.xp-=it.price;s.own[it.id]=1;s.eq[b.dataset.k]=it.id;saveProg();toast(it.en+' bought and equipped');viewShop();
-  var f=$('.showcase .fighter');if(f){f.classList.add('newgear');setTimeout(function(){f.classList.remove('newgear')},900)}
+  var f=$('.locker .fighter');if(f){f.classList.add('newgear');setTimeout(function(){f.classList.remove('newgear')},900)}
 };
 ACT.shopequip=function(b){var s=shopState();if(!s.own[b.dataset.id])return;s.eq[b.dataset.k]=b.dataset.id;saveProg();viewShop()};
 
@@ -2018,19 +2129,20 @@ function arenaQ(pool,last){
   var pick=same.slice(0,3);if(pick.length<3)pick=pick.concat(d.filter(function(x){return pick.indexOf(x)<0}).slice(0,3-pick.length));
   return {q:'Which word means “'+w.en+'”?',a:w.ar,o:shuffle(pick.map(function(x){return x.ar}).concat([w.ar]))};
 }
-function hpBar(v,m,cls){var p=Math.max(0,Math.round(v/m*100));return '<div class="hp '+cls+(p<=30?' low':'')+'"><i style="width:'+p+'%"></i></div><small>'+Math.max(0,Math.round(v))+' / '+m+'</small>'}
+function hpBar(v,m,cls){var p=Math.max(0,Math.round(v/m*100));return '<div class="hpr"><div class="hp '+cls+(p<=30&&cls!=='shd'?' low':'')+'"><i style="width:'+p+'%"></i></div><small>'+Math.max(0,Math.round(v))+'</small></div>'}
 function foeOpen(i){var s=shopState();return REVIEW||i===0||!!s.beat[i-1]}
 function stars(n){var h='';for(var i=0;i<5;i++)h+='<i class="'+(i<n?'on':'')+'">★</i>';return '<span class="dif" aria-label="Difficulty '+n+' of 5">'+h+'</span>'}
+function embers(){var h='<div class="emb" aria-hidden="true">';for(var i=0;i<14;i++)h+='<i style="left:'+((i*37)%100)+'%;animation-delay:'+(i*.37).toFixed(2)+'s;animation-duration:'+(4+i%4)+'s"></i>';return h+'</div>'}
 function arenaLobby(){
   ensureDefs();
   var q=eqItems(),s=shopState(),g=gearStats();
-  var h='<section class="arena"><span class="eyebrow">Arena · السَّاحَةُ</span><h2>Fight for XP</h2><p class="muted">Answer Arabic questions to attack. A right answer strikes with your weapon; a wrong answer or running out of time lets the enemy strike back, and your armour softens the blow. Win to earn XP.</p>';
-  h+='<div class="abanner">'+arenaBg()+'<div class="champ">'+fighterSvg(q)+'</div><div class="binfo"><b>Your champion</b><span>'+esc(q.char.en)+' · '+esc(q.weapon.en)+'</span>'+statsHtml()+'<span class="wins">🏆 Wins: <b>'+(s.wins||0)+'</b></span><a class="btn sm" href="#shop">Upgrade in the shop →</a></div></div>';
-  h+='<h3 class="aeh">Choose your opponent</h3><div class="egrid">'+ENEMIES.map(function(e,i){
-    var rw=Math.round((30+25*(i+1))*g.xp),open=foeOpen(i),beat=!!s.beat[i];
-    var inner='<div class="fpic">'+backSvg(e.bg)+foeSvg(e)+(beat?'<span class="fbeat">✓ Beaten</span>':'')+(open?'':'<span class="flock">🔒</span>')+'</div><div class="fbody"><p class="ar">'+esc(e.ar)+'</p><b>'+esc(e.en)+'</b>'+stars(i+1)+
+  var h='<section class="arena"><span class="kick">Arena<span class="ar">السَّاحَةُ</span></span><h2 class="fnt">Battle Arena</h2><p class="muted">Answer Arabic questions to attack. A right answer strikes with your weapon; a wrong answer, or running out of time, lets the enemy strike back. Your armour gives you a shield that takes the first hits. Win to earn XP.</p>';
+  h+='<div class="abanner">'+arenaBg()+'<div class="champ">'+fighterSvg(q)+'</div><div class="binfo"><b>'+esc(q.char.en)+'</b><span>'+esc(q.weapon.en)+' · '+esc(q.armour.en)+' · '+esc(q.mount.en)+'</span>'+statsHtml()+'<span class="wins">🏆 Wins: <b>'+(s.wins||0)+'</b></span><a class="fnbtn" href="#shop">Upgrade in the shop →</a></div></div>';
+  h+='<h3 class="fnh">Choose your opponent</h3><div class="egrid">'+ENEMIES.map(function(e,i){
+    var rw=Math.round((30+25*(i+1))*g.xp),open=foeOpen(i),beat=!!s.beat[i],R=RARITY[Math.min(i,RARITY.length-1)];
+    var inner='<div class="fpic">'+backSvg(e.bg)+foeSvg(e)+(beat?'<span class="fbeat">✓ Beaten</span>':'')+(open?'':'<span class="flock">🔒</span>')+'</div><div class="fbody"><b>'+esc(e.en)+'</b><p class="ar">'+esc(e.ar)+'</p><span class="rar">'+R.n+'</span>'+stars(i+1)+
       '<div class="fst"><span>❤ '+e.hp+' HP</span><span>⚔ hits '+e.hit+'</span></div><span class="rw">'+COIN+'Win '+rw+' XP</span></div>';
-    return open?'<button type="button" class="foe" data-act="arenastart" data-t="'+i+'">'+inner+'</button>':'<div class="foe locked" title="Beat the '+esc(ENEMIES[i-1].en)+' first" aria-disabled="true">'+inner+'</div>';
+    return open?'<button type="button" class="foe" style="'+rarStyle(R)+'" data-act="arenastart" data-t="'+i+'">'+inner+'</button>':'<div class="foe locked" style="'+rarStyle(R)+'" title="Beat the '+esc(ENEMIES[i-1].en)+' first" aria-disabled="true">'+inner+'</div>';
   }).join('')+'</div></section>';
   V.innerHTML=h;
 }
@@ -2043,15 +2155,18 @@ var FX={
 };
 function arenaView(){
   var A=AR_S;if(!A){arenaLobby();return}
-  var q=eqItems(),e=ENEMIES[A.tier],h='<section class="arena battle"><div class="bhead"><button class="btn sm ghost" type="button" data-act="arenaquit">← Leave</button><span class="rnd">Round '+A.round+'</span>'+(A.streak>=2?'<span class="cmb">🔥 '+A.streak+' combo</span>':'<span></span>')+'</div>';
-  h+='<div class="hud"><div class="hpc me"><span class="pp">'+charIcon(q.char)+'</span><div><b>You</b>'+hpBar(A.p,A.pm,'good')+'</div></div><span class="vs">VS</span><div class="hpc them"><div><b>'+esc(e.en)+' <span class="ar">'+esc(e.ar)+'</span></b>'+hpBar(A.e,A.em,'bad')+'</div><span class="pp">'+foeSvg(e,'ppf')+'</span></div></div>';
-  h+='<div class="astage">'+arenaBg()+'<div class="side p'+(A.fx==='p'?' hurt':'')+(A.fx==='e'?' atk':'')+(A.over&&!A.win?' ko':'')+'">'+fighterSvg(q)+(A.fx==='p'?FX[e.fx]+'<span class="dmg">−'+A.dmg+'</span>':'')+'</div>';
-  h+='<div class="side e'+(A.fx==='e'?' hurt':'')+(A.fx==='p'?' atk':'')+(A.over&&A.win?' ko':'')+'">'+foeSvg(e)+(A.fx==='e'?FX.slash+FX.burst+'<span class="dmg">−'+A.dmg+'</span>':'')+'</div></div>';
+  var q=eqItems(),e=ENEMIES[A.tier],h='<section class="arena battle"><div class="bhead"><button class="fnbtn dark" type="button" data-act="arenaquit">← Leave</button><span class="rnd">Round '+A.round+'</span>'+(A.streak>=2?'<span class="cmb">🔥 '+A.streak+' combo</span>':'<span></span>')+'</div>';
+  h+='<div class="hud"><div class="hpc me"><span class="pp">'+charIcon(q.char)+'</span><div><b>You</b>'+(A.shm?hpBar(A.sh,A.shm,'shd thin'):'')+hpBar(A.p,A.pm,'good')+'</div></div><span class="vs">VS</span><div class="hpc them"><div><b>'+esc(e.en)+' <span class="ar">'+esc(e.ar)+'</span></b>'+hpBar(A.e,A.em,'bad')+'</div><span class="pp">'+foeSvg(e,'ppf')+'</span></div></div>';
+  var dmgP=A.fx==='p'?'<span class="dmg'+(A.abs>=A.dmg?' shd':'')+'">'+A.dmg+'</span>':'',dmgE=A.fx==='e'?'<span class="dmg'+(A.crit?' crit':'')+'">'+A.dmg+'</span>':'';
+  h+='<div class="astage">'+arenaBg()+embers()+'<div class="side p'+(A.fx==='p'?' hurt':'')+(A.fx==='e'?' atk':'')+(A.over&&!A.win?' ko':'')+'">'+fighterSvg(q)+(A.fx==='p'?FX[e.fx]+dmgP:'')+'</div>';
+  h+='<div class="side e'+(A.fx==='e'?' hurt':'')+(A.fx==='p'?' atk':'')+(A.over&&A.win?' ko':'')+'">'+foeSvg(e)+(A.fx==='e'?FX.slash+FX.burst+dmgE:'')+'</div>';
+  if(A.over)h+='<div class="elim'+(A.win?'':' lose')+'"><b>Eliminated</b><span>'+(A.win?'You eliminated the '+esc(e.en):'You were eliminated by the '+esc(e.en))+'</span></div>';
+  h+='</div>';
   if(A.over){
-    h+='<div class="card result aend '+(A.win?'win':'lose')+'">'+(A.win?'<svg class="trophy" viewBox="0 0 80 80" aria-hidden="true"><path d="M22 10 H58 V26 C58 40 50 48 40 48 C30 48 22 40 22 26Z" fill="url(#gGold)" stroke="#8C620E" stroke-width="2"/><path d="M22 14 H12 C12 28 18 34 24 34 M58 14 H68 C68 28 62 34 56 34" fill="none" stroke="#8C620E" stroke-width="3"/><rect x="36" y="48" width="8" height="12" fill="url(#gGold)"/><rect x="26" y="60" width="28" height="9" rx="2" fill="#5A3416"/>'+spark(30,22,4,'#FFFBE0')+'</svg>':'<svg class="trophy" viewBox="0 0 80 80" aria-hidden="true"><path d="M40 8 L66 16 V36 C66 52 54 64 40 72 C26 64 14 52 14 36 V16Z" fill="url(#gIron)" stroke="#3A424B" stroke-width="2"/><path d="M40 10 L36 26 L46 36 L38 50 L44 70" stroke="#1B1F24" stroke-width="2.6" fill="none" stroke-linejoin="round"/></svg>')+
-      '<h2>'+(A.win?'Victory! <span class="ar">مَا شَاءَ اللَّهُ</span>':'Defeated')+'</h2><p>'+(A.win?'You beat the '+esc(e.en)+' in '+A.round+' rounds and earned '+COIN+'<b>'+A.reward+'</b> XP.'+(A.tier<ENEMIES.length-1&&A.firstBeat?' The '+esc(ENEMIES[A.tier+1].en)+' is now ready to fight.':''):'The '+esc(e.en)+' was too strong this time. You earned '+COIN+'<b>'+A.reward+'</b> XP for trying. Revise more, or upgrade your gear!')+'</p><div class="row" style="justify-content:center"><button class="btn" type="button" data-act="arenastart" data-t="'+A.tier+'">Fight again</button>'+(A.win&&A.tier<ENEMIES.length-1?'<button class="btn gold" type="button" data-act="arenastart" data-t="'+(A.tier+1)+'">Next: '+esc(ENEMIES[A.tier+1].en)+' →</button>':'')+'<button class="btn ghost" type="button" data-act="arenaquit">Back to the Arena</button></div></div>';
+    h+='<div class="result aend '+(A.win?'win':'lose')+'">'+(A.win?'<svg class="trophy" viewBox="0 0 80 80" aria-hidden="true"><path d="M22 10 H58 V26 C58 40 50 48 40 48 C30 48 22 40 22 26Z" fill="url(#gGold)" stroke="#8C620E" stroke-width="2"/><path d="M22 14 H12 C12 28 18 34 24 34 M58 14 H68 C68 28 62 34 56 34" fill="none" stroke="#8C620E" stroke-width="3"/><rect x="36" y="48" width="8" height="12" fill="url(#gGold)"/><rect x="26" y="60" width="28" height="9" rx="2" fill="#5A3416"/>'+spark(30,22,4,'#FFFBE0')+'</svg>':'')+
+      '<span class="vic">'+(A.win?'Victory!':'Defeated')+'</span><h2>'+(A.win?'<span class="ar">مَا شَاءَ اللَّهُ</span>':'Better luck next round')+'</h2><p>'+(A.win?'You beat the '+esc(e.en)+' in '+A.round+' rounds and earned '+COIN+'<b>'+A.reward+'</b> XP.'+(A.tier<ENEMIES.length-1&&A.firstBeat?' The '+esc(ENEMIES[A.tier+1].en)+' is now ready to fight.':''):'The '+esc(e.en)+' was too strong this time. You earned '+COIN+'<b>'+A.reward+'</b> XP for trying. Revise more, or upgrade your gear!')+'</p><div class="row"><button class="fnbtn blue" type="button" data-act="arenastart" data-t="'+A.tier+'">Fight again</button>'+(A.win&&A.tier<ENEMIES.length-1?'<button class="fnbtn" type="button" data-act="arenastart" data-t="'+(A.tier+1)+'">Next: '+esc(ENEMIES[A.tier+1].en)+' →</button>':'')+'<button class="fnbtn dark" type="button" data-act="arenaquit">Back to the Arena</button></div></div>';
   }else{
-    h+='<div class="card aq"><div class="tbar"><i id="arT" style="width:100%"></i></div><p class="qq">'+esc(A.q.q)+'</p><div class="opts">'+A.q.o.map(function(o,i){
+    h+='<div class="aq"><div class="tbar"><i id="arT" style="width:100%"></i></div><p class="qq">'+esc(A.q.q)+'</p><div class="opts">'+A.q.o.map(function(o,i){
       var cl='opt ar';if(A.lock){if(o===A.q.a)cl+=' right';else if(i===A.sel)cl+=' wrong';cl+=' locked'}
       return '<button class="'+cl+'" type="button" data-act="arenapick" data-i="'+i+'"'+(A.lock?' disabled':'')+'><span class="k">'+(i+1)+'</span><span class="t">'+esc(o)+'</span></button>'}).join('')+'</div>'+(A.note?'<p class="note2 '+(A.fx==='e'?'ok':'no')+'">'+A.note+'</p>':'')+'</div>';
   }
@@ -2069,11 +2184,13 @@ function arenaNext(){
     if(B.left<=0)arenaResolve(-1);
   },100);
 }
+/* A hit on you drains the armour's shield first, then your health. */
 function arenaResolve(i){
   var A=AR_S;if(!A||A.lock)return;A.lock=true;clearInterval(A.t);A.sel=i;
   var ok=i>=0&&A.q.o[i]===A.q.a,g=gearStats(),e=ENEMIES[A.tier];
-  if(ok){A.streak++;A.dmg=g.atk+(A.streak>=3?6:0);A.e-=A.dmg;A.fx='e';A.note=A.streak>=3?'Combo! Extra damage.':'Hit!'}
-  else{A.streak=0;A.dmg=Math.max(3,e.hit-g.def);A.p-=A.dmg;A.fx='p';A.note=(i<0?'Time is up! ':'')+'The '+esc(e.en)+' strikes back. The answer was <span class="ar">'+esc(A.q.a)+'</span>'}
+  if(ok){A.streak++;A.crit=A.streak>=3;A.dmg=g.atk+(A.crit?6:0);A.e-=A.dmg;A.fx='e';A.note=A.crit?'Combo! Extra damage.':'Hit!'}
+  else{A.streak=0;A.dmg=Math.max(3,e.hit-Math.floor(g.def/2));A.abs=Math.min(A.sh,A.dmg);A.sh-=A.abs;A.p-=A.dmg-A.abs;A.fx='p';
+    A.note=(i<0?'Time is up! ':'')+'The '+esc(e.en)+' strikes back'+(A.abs?(A.abs>=A.dmg?' and your shield takes the hit':' and breaks your shield'):'')+'. The answer was <span class="ar">'+esc(A.q.a)+'</span>'}
   if(A.e<=0||A.p<=0){
     A.over=true;A.win=A.e<=0;var s=shopState();
     A.reward=A.win?Math.round((30+25*(A.tier+1))*g.xp):5;
@@ -2089,7 +2206,7 @@ ACT.arenastart=function(b){
   var pool=arenaPool(),t=+b.dataset.t,e=ENEMIES[t];
   if(!foeOpen(t)){toast('Beat the '+ENEMIES[t-1].en+' first.');return}
   if(pool.length<4){toast('Learn a few words first.');return}
-  arenaStop();var hp=100+gearStats().def*5;AR_S={tier:t,pool:pool,p:hp,pm:hp,e:e.hp,em:e.hp,round:0,streak:0,q:null};
+  arenaStop();var sh=gearStats().def*10;AR_S={tier:t,pool:pool,p:100,pm:100,sh:sh,shm:sh,e:e.hp,em:e.hp,round:0,streak:0,q:null};
   arenaNext();try{window.scrollTo(0,0)}catch(err){}
 };
 ACT.arenapick=function(b){arenaResolve(+b.dataset.i)};
