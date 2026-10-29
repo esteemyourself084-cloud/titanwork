@@ -35,6 +35,12 @@ CSS=r'''
 .fight:fullscreen .fhud{position:absolute;left:12px;right:12px;top:8px;z-index:9;margin:0}
 .fight:fullscreen .astage~*{display:none}
 .fight:fullscreen .g3fs{top:auto;bottom:auto;top:84px}
+.g3st{position:relative;height:6px;width:58%;margin-top:4px;background:#0A0306;box-shadow:0 0 0 1px #3A5A1E;transform:skewX(-18deg);overflow:hidden}
+.g3st i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#3FAA3A,#B4F06A);transition:width .12s}
+.g3st.low i{background:linear-gradient(90deg,#B8321A,#FF8A3A);animation:spglow .35s ease-in-out infinite alternate}
+.g3po{position:relative;height:7px;width:72%;margin:3px 0 0 auto;background:#0A0306;box-shadow:0 0 0 1px #7A5A1E;transform:skewX(18deg);overflow:hidden}
+.g3po i{display:block;height:100%;width:100%;margin-left:auto;background:linear-gradient(270deg,#E8B54A,#FFF0A0);transition:width .12s}
+.g3po.brk i{background:linear-gradient(270deg,#FFFFFF,#FFE066);animation:spglow .25s ease-in-out infinite alternate}
 .g3hint{position:absolute;left:12px;bottom:10px;margin:0;max-width:46%;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.45);color:#fff;font-size:12px;line-height:1.4;pointer-events:none}
 @media (pointer:coarse){.g3hint{display:none}}
 @media (max-width:640px){.g3k{width:52px;height:52px;font-size:18px}.g3k.k-light{width:70px;height:70px;font-size:26px}.g3b{gap:6px}.g3hint{display:none}}

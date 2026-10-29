@@ -49,7 +49,20 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
 - **Fight moves**: attacks home in on the target; light attacks chain into a four-hit combo with a finisher;
   every hit has a short freeze-frame and makes the enemy flinch; block just before a blow to parry it; a roll at the
   last moment is a perfect dodge with slow motion; tougher enemies chain attacks and answer button-mashing with a
-  shockwave; archers keep their distance and shoot along a marked lane. The 3D picture uses up to about 2.1 million
+  shockwave; archers keep their distance and shoot along a marked lane.
+  - **Stamina** (the green bar under Special): rolls and blocked blows use it, and it refills when you rest.
+    Run out and you can't roll ("Tired!"), and a blocked blow breaks your guard.
+  - **Charged heavy**: hold K, right-click or the Heavy button; the longer you hold (up to about a second),
+    the harder it hits and the further it knocks the enemy back.
+  - **Roll-cancel and dash**: a roll cancels an attack once its blow has landed; attack right after a roll for
+    a dash strike.
+  - **Poise** (the yellow bar under the enemy's health): every hit wears it down, parries a lot. When it breaks
+    the enemy is staggered, and a heavy blow or a combo finisher then lands a critical (2.6× damage).
+  - **Enraged**: from the third opponent on, an enemy below 40% health roars once and fights faster. It chains
+    more attacks, shrugs off light hits and uses a shockwave.
+  - **Feints**: from the fifth opponent on, some wind-ups stop halfway and restart, to catch early rolls.
+  - **Knockdowns**: slams and charges knock you down (you can't be hit while down); press roll to get up
+    sooner. Enemies punish a long block with a slam, and a slow charge with a quick attack. The 3D picture uses up to about 2.1 million
   pixels (Full HD level), and the fight can go full screen.
 - **Arena fight (2D)**: without WebGL the earlier fight is used: dodge left or right at the last moment, block,
   light, heavy and special, with the buttons under the fight.

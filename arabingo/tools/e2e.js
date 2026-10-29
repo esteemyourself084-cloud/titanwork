@@ -32,7 +32,8 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   await p.route(/three\.min\.js/, r => r.abort());
   await p.goto('file://' + html);
   await p.waitForTimeout(300);
-  const prog = () => p.evaluate(() => JSON.parse(localStorage.getItem('arabingo.progress.v3') || 'null'));
+  // while the page reloads the read can fail; the polling loops then simply try again
+  const prog = () => p.evaluate(() => JSON.parse(localStorage.getItem('arabingo.progress.v3') || 'null')).catch(() => null);
 
   // 1. complete a unit with a conversation, answering everything correctly
   async function doUnit(id, wrongAt) {
