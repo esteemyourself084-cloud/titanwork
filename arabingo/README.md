@@ -33,6 +33,10 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
   lightning, gold or a twin strike.
 - **Armour** (22), **mounts** (27, including the classic Arabian horse strains and camel breeds) and
   **characters** (30), and 20 battlefields.
+- **3D**: the fight, the shop's champion and the arena lobby are drawn in 3D with Three.js r128 (loaded from
+  cdnjs): a lit arena with shadows, a cheering crowd, torches, banners and props for each battlefield; a 3D
+  champion built from the equipped character, armour, weapon and mount; 3D creatures; sword trails, sparks,
+  camera shake and hit flashes. Without WebGL, or if the script cannot load, the 2D drawings are used.
 - **Arena fight**: real time, best of three rounds of 60 seconds. The creature winds up before it strikes
   (a yellow "!" is a swipe you can block, a red "!!" is a slam you must dodge). Dodge at the last moment and it
   is left open for a counter. Light attacks are quick, heavy attacks break a guard and stop a wind-up, and the
@@ -73,7 +77,7 @@ node tools/e2e.js "$PWD/index.html"
 
 The shop, arena and learn-page changes are applied to the published page by `tools/build/build_fight.py`
 (new swords, items, the fight and the skin, from the other files in `tools/build`), then `rearfix.py` (the champion
-seen from behind) and `learnfix.py` (lesson cards and drag-to-box questions).
+seen from behind), `learnfix.py` (lesson cards and drag-to-box questions) and `g3fix.py` (adds `arena3d.js`).
 
 Other tools: `tools/dump_level.py` prints a level for review, and `tools/audit_content.py` runs automatic
 checks on the Arabic.

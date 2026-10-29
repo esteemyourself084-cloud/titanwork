@@ -6,13 +6,13 @@ const src = fs.readFileSync(html, 'utf8');
 const SEED = JSON.parse(src.match(/^var SEED=(.*);$/m)[1]);
 const QA = {}, EN = {}, PL = {};
 SEED.forEach(u => {
-  u.qs.forEach(q => { QA[q.q] = q.a; });
-  if (u.conv) u.conv.qs.forEach(q => { QA[q.q] = q.a; });
+  u.qs.forEach(q => { (QA[q.q] = QA[q.q] || []).push(q.a); });
+  if (u.conv) u.conv.qs.forEach(q => { (QA[q.q] = QA[q.q] || []).push(q.a); });
   u.rules.forEach(r => r.ex.forEach(e => { (EN[e.en] = EN[e.en] || []).push(e.ar); }));
   u.words.forEach(w => { (EN[w.en] = EN[w.en] || []).push(w.ar); if (w.pl) PL[w.ar] = w.pl; });
 });
 function answerFor(q, opts) {
-  if (QA[q] && opts.includes(QA[q])) return QA[q];
+  if (QA[q]) { const hit = opts.find(o => QA[q].includes(o)); if (hit) return hit; }
   let m = q.match(/^(?:Which word means|How do you say) [“"](.*)[”"]\?$/);
   if (m && EN[m[1]]) { const hit = opts.find(o => EN[m[1]].includes(o)); if (hit) return hit; }
   m = q.match(/^What is the plural of (.*)\?$/);
@@ -49,7 +49,7 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
       if (await p.$('.cvwrap')) {
         const qs = await p.$$eval('.cvq', cs => cs.map(c => ({ q: c.querySelector('h3').textContent, o: [...c.querySelectorAll('.opt .t')].map(t => t.textContent) })));
         for (let i = 0; i < qs.length; i++) {
-          const a = answerFor(qs[i].q, qs[i].o); if (!a) unknown++;
+          const a = answerFor(qs[i].q, qs[i].o); if (!a) { unknown++; unknownQ.push('CONV ' + qs[i].q + ' | ' + qs[i].o.join(' / ')); }
           const k = a ? qs[i].o.indexOf(a) : 0;
           await p.click(`[data-act=cvpick][data-q="${i}"][data-i="${k}"]`);
           await p.waitForTimeout(60);
@@ -114,7 +114,7 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   const xp0 = (await prog()).xp;
   const rq = await p.$$eval('.cvq', cs => cs.map(c => ({ q: c.querySelector('h3').textContent, o: [...c.querySelectorAll('.opt .t')].map(t => t.textContent) })));
   for (let i = 0; i < rq.length; i++) {
-    const a = answerFor(rq[i].q, rq[i].o);
+    const a = answerFor(rq[i].q, rq[i].o); if (!a) unknownQ.push('READ ' + rq[i].q + ' | ' + rq[i].o.join(' / '));
     await p.click(`[data-act=rpick][data-q="${i}"][data-i="${a ? rq[i].o.indexOf(a) : 0}"]`); await p.waitForTimeout(40);
   }
   await p.click('[data-act=rcheck]'); await p.waitForTimeout(300);
