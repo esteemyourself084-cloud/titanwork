@@ -675,6 +675,8 @@ var G3=(function(){
     function groundAt(cx,cy){var r=C.r.domElement.getBoundingClientRect();ndc.set((cx-r.left)/r.width*2-1,-((cy-r.top)/r.height)*2+1);ray.setFromCamera(ndc,cam);return ray.ray.intersectPlane(ground,gp)?gp.clone():null}
     FG={C:C,W:W,H:H,F:F,shake:0,flashE:0,flashP:0,burst:burst,pop:pop,arc:arc,arrows:arrows,groundAt:groundAt,stb:document.getElementById('fstP'),pob:document.getElementById('fpoE'),reachP:reachP,ranged:ranged,reachE:reachE,FR:FR,kit:kit,spdE:spdE,tier:tier,e:e,q:q};
     var lastRound=-1;if(A0)A0.g3=1;applyQ(C,W);
+    /* on a phone, bring the fight to the top of the screen once the page has settled */
+    if(window.innerWidth<=640)setTimeout(function(){try{var hd=(stage.closest('.fight')||document).querySelector('.fhud');if(hd&&CUR===C)hd.scrollIntoView({block:'start'})}catch(err){}},120);
     loop(C,function(dt,t){
       /* until a quality is chosen, a slow device steps down to High or Fast after its first few seconds */
       if(!QSET&&!C.qd){C.fc=(C.fc||0)+1;if(C.fc===40)C.f0=performance.now();if(C.fc===130){C.qd=1;var fps=90000/Math.max(1,performance.now()-C.f0);if(fps<24&&Q!=='fast'){Q=Q==='epic'&&fps>=15?'high':'fast';applyQ(C,W);[].forEach.call(document.querySelectorAll('.g3qb'),function(b){b.textContent=Q.toUpperCase()})}}}

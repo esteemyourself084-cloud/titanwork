@@ -1108,6 +1108,16 @@ kbd{display:inline-block;min-width:22px;padding:1px 6px;margin:0 2px;border-radi
 @keyframes itemFloat{from{translate:0 3px;rotate:-2deg}to{translate:0 -5px;rotate:2deg}}
 @media (prefers-reduced-motion:reduce){.itm .pic>svg{animation:none}}
 @media (max-width:520px){.nav{gap:2px}.nav a{padding:6px 9px;font-size:13px}}
+/* a bigger fight: wider on large screens, and on phones edge to edge, filling the screen below the health bars */
+.wrap:has(.arena.fight){max-width:1480px}
+.arena.fight{max-width:100%}
+.fight .astage{max-height:calc(100vh - 150px)}
+@media (min-width:641px){.fight .astage{min-height:440px}}
+@media (max-width:640px){
+  .arena.fight{max-width:none;margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));padding-left:0;padding-right:0;border-radius:0}
+  .fight .fhud{padding:0 max(8px,env(safe-area-inset-left,0px)) 0 max(8px,env(safe-area-inset-right,0px))}
+  .fight .astage{aspect-ratio:auto;height:calc(100svh - 92px);min-height:440px;max-height:none;border-radius:0}
+}
 </style>
 
 <div class="wrap">
@@ -6459,6 +6469,8 @@ var G3=(function(){
     function groundAt(cx,cy){var r=C.r.domElement.getBoundingClientRect();ndc.set((cx-r.left)/r.width*2-1,-((cy-r.top)/r.height)*2+1);ray.setFromCamera(ndc,cam);return ray.ray.intersectPlane(ground,gp)?gp.clone():null}
     FG={C:C,W:W,H:H,F:F,shake:0,flashE:0,flashP:0,burst:burst,pop:pop,arc:arc,arrows:arrows,groundAt:groundAt,stb:document.getElementById('fstP'),pob:document.getElementById('fpoE'),reachP:reachP,ranged:ranged,reachE:reachE,FR:FR,kit:kit,spdE:spdE,tier:tier,e:e,q:q};
     var lastRound=-1;if(A0)A0.g3=1;applyQ(C,W);
+    /* on a phone, bring the fight to the top of the screen once the page has settled */
+    if(window.innerWidth<=640)setTimeout(function(){try{var hd=(stage.closest('.fight')||document).querySelector('.fhud');if(hd&&CUR===C)hd.scrollIntoView({block:'start'})}catch(err){}},120);
     loop(C,function(dt,t){
       /* until a quality is chosen, a slow device steps down to High or Fast after its first few seconds */
       if(!QSET&&!C.qd){C.fc=(C.fc||0)+1;if(C.fc===40)C.f0=performance.now();if(C.fc===130){C.qd=1;var fps=90000/Math.max(1,performance.now()-C.f0);if(fps<24&&Q!=='fast'){Q=Q==='epic'&&fps>=15?'high':'fast';applyQ(C,W);[].forEach.call(document.querySelectorAll('.g3qb'),function(b){b.textContent=Q.toUpperCase()})}}}
