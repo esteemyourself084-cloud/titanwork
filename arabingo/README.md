@@ -44,6 +44,18 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
   a lane (charge) and a long cone (fire breath). Roll through an attack (Space or the Roll button) and it is left
   open for a counter. J or a click attacks (three hits make a combo), K or a right click is a heavy attack that
   breaks a guard and stops a wind-up, L is the special, Shift blocks.
+- **Animals**: four-legged animals (and mounts) have a shaped body with a deep chest and a tucked belly, a painted coat
+  (darker back, lighter belly, crisp stripes or spots, fur grain), a neck, a skull with a muzzle, nose and jaw, and
+  legs with shoulder or thigh, elbow or hock and foot joints ending in hooves, pads or paws; tails are continuous and
+  hang the way the animal holds them. They run with a gait worked out from the distance covered, so each foot stays
+  planted while the body passes over it, and people's running steps follow their real speed too.
+- **Riders**: the Bedouin Rider (horse), the Camel Raider (camel, bow), the Mamluk Cavalier and the Desert Lancer
+  fight on horseback, with a longer reach, a faster mount and charges.
+- **Harder fights**: enemies are about 30% faster, wind up and recover sooner, chain more swings (two in a row from the
+  seventh opponent or when enraged), sometimes sidestep an attack and strike back at once (from the third opponent),
+  hit 15% harder, have 15% more health and stay open for less time after a miss.
+- **Mouse**: the sword follows the cursor; hold the button and flick to slash that way (toward the arrow to parry),
+  click to attack, hold still to run to the pointer, right-click to charge a heavy.
 - **Opponents**: 40 creatures and 8 human fighters (the Thief, the Highwayman, the Raider Archer, the Mercenary,
   the Swordswoman, the Black Knight, the Raider Chief and, last, the Arena Champion), dressed in the shop's gear.
 - **Fight moves**: attacks home in on the target; light attacks chain into a four-hit combo with a finisher;
