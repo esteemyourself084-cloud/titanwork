@@ -361,7 +361,7 @@ var G3=(function(){
     CUR={r:r,scene:scene,cam:cam,host:host,raf:0,t:0,last:0};
     return CUR;
   }
-  function fit(C){var w=C.host.clientWidth,h=C.host.clientHeight;if(!w||!h)return;if(C.w!==w||C.h!==h){C.w=w;C.h=h;C.r.setPixelRatio(Math.max(1,Math.min(2.5,Math.max(window.devicePixelRatio||1,1.5),Math.sqrt(1.6e6/(w*h)))));C.r.setSize(w,h,false);C.cam.aspect=w/h;C.cam.updateProjectionMatrix()}}
+  function fit(C){var w=C.host.clientWidth,h=C.host.clientHeight;if(!w||!h)return;if(C.w!==w||C.h!==h){C.w=w;C.h=h;C.r.setPixelRatio(Math.max(1,Math.min(3,Math.max(window.devicePixelRatio||1,2),Math.sqrt(2.1e6/(w*h)))));C.r.setSize(w,h,false);C.cam.aspect=w/h;C.cam.updateProjectionMatrix()}}
   function loop(C,fn){function f(ts){if(CUR!==C)return;if(!document.body.contains(C.r.domElement)){stop();return}var dt=C.last?Math.min(.05,(ts-C.last)/1000):.016;C.last=ts;C.t+=dt;fit(C);fn(dt,C.t);C.r.render(C.scene,C.cam);C.raf=requestAnimationFrame(f)}C.raf=requestAnimationFrame(f)}
   var ease=function(x){return x<0?0:x>1?1:x*x*(3-2*x)};
   function pulse(t,a,b){return t<a?0:t>b?0:Math.sin((t-a)/(b-a)*Math.PI)}

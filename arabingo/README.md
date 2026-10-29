@@ -49,8 +49,8 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
 - **Fight moves**: attacks home in on the target; light attacks chain into a four-hit combo with a finisher;
   every hit has a short freeze-frame and makes the enemy flinch; block just before a blow to parry it; a roll at the
   last moment is a perfect dodge with slow motion; tougher enemies chain attacks and answer button-mashing with a
-  shockwave; archers keep their distance and shoot along a marked lane. The 3D picture uses up to about 1.6 million
-  pixels, and the fight can go full screen.
+  shockwave; archers keep their distance and shoot along a marked lane. The 3D picture uses up to about 2.1 million
+  pixels (Full HD level), and the fight can go full screen.
 - **Arena fight (2D)**: without WebGL the earlier fight is used: dodge left or right at the last moment, block,
   light, heavy and special, with the buttons under the fight.
 
@@ -93,3 +93,8 @@ seen from behind), `learnfix.py` (lesson cards and drag-to-box questions) and `g
 
 Other tools: `tools/dump_level.py` prints a level for review, and `tools/audit_content.py` runs automatic
 checks on the Arabic.
+
+## Versions
+
+- **1.0**: `versions/arabingo-1.0.html` (git tag `arabingo-v1.0`) is the app as it was before the move to Full HD
+  level 3D (up to about 1.6 million pixels). It opens on its own, like `index.html`.
