@@ -27,7 +27,7 @@ var G3=(function(){
     return {play:play,wake:function(){var a=ctx();if(a&&a.state==='suspended')try{a.resume()}catch(err){}},muted:function(){return mute},
       setMute:function(m){mute=m;try{localStorage.setItem('arabingo.g3m',m?'1':'0')}catch(err){}}}})();
   /* graphics quality: Epic (bloom, reflections, up to about 3.7 million pixels), High (up to about 2.1 million) or Fast */
-  var QN=['epic','high','fast'],Q='epic',QSET=false,QCAP={epic:3.7e6,high:2.6e6,fast:2.1e6},QSH={epic:4096,high:2048,fast:1024};
+  var QN=['epic','high','fast'],Q='epic',QSET=false,QCAP={epic:8.3e6,high:3.7e6,fast:2.1e6},QSH={epic:4096,high:2048,fast:1024};
   var TOUCH=false;try{TOUCH=matchMedia('(pointer:coarse)').matches}catch(err){}if(TOUCH)QSH.epic=2048;
   try{var q0=localStorage.getItem('arabingo.g3q');if(QN.indexOf(q0)>=0){Q=q0;QSET=true}}catch(err){}
   function stop(){
@@ -167,9 +167,10 @@ var G3=(function(){
     face(head,ch);hat(head,ch,robeC);
     /* arms: shoulder, elbow and hand pivots; the sleeves follow the armour */
     function fist(h,sx,m){
-      sph(.058,m,0,-.01,0,h,1.05,1.12,.82);
-      for(var i=0;i<4;i++){var x=(i-1.5)*.027;sph(.019,m,x,-.06,-.03,h,1,1,1.1);sph(.017,m,x,-.072,-.005,h,1,1.1,1)}
-      var th=sph(.02,m,sx*-.05,-.03,-.035,h,1,1.7,1);th.rotation.z=sx*.5;
+      /* a hand: a palm, four curled fingers and a thumb */
+      sph(.05,m,0,-.015,0,h,1,1.15,.72);
+      for(var i=0;i<4;i++){var fg=sph(.0125,m,(i-1.5)*.021,-.062+Math.abs(i-1.5)*.004,-.022,h,1,2.1,1.15);fg.rotation.x=.55}
+      var th=sph(.014,m,sx*-.046,-.032,-.03,h,1,2.2,1.1);th.rotation.z=sx*.6;th.rotation.x=.3;
     }
     function side(sx){var sh=grp(chest,.33*sx,.47,0),up=limb(sh,.072,.3,arm),el=grp(up,0,-.3,0),fo=limb(el,.064,.27,a.full||robe?arm:M(hex(a.col,'#999'),metal?{m:.72,r:.3}:{r:.72})),hand=grp(el,0,-.3,0);fist(hand,sx,a.full?arm:skin);return {sh:sh,el:el,hand:hand}}
     P.R=side(1);P.L=side(-1);
@@ -665,9 +666,9 @@ var G3=(function(){
     CUR={r:r,scene:scene,cam:cam,host:host,raf:0,t:0,last:0};
     return CUR;
   }
-  function fit(C){var w=C.host.clientWidth,h=C.host.clientHeight;if(!w||!h)return;if(C.w!==w||C.h!==h||C.ds!==C.dsA){C.w=w;C.h=h;C.dsA=C.ds;var dpr=window.devicePixelRatio||1,mx=Q==='fast'?Math.min(dpr,2):Math.min(3,Math.max(dpr,2));C.r.setPixelRatio(Math.max(.6,Math.max(1,Math.min(mx,Math.sqrt(QCAP[Q]/(w*h))))*(C.ds||1)));C.r.setSize(w,h,false);if(C.post)C.post.size(w,h,C.r.getPixelRatio());C.cam.aspect=w/h;C.cam.updateProjectionMatrix()}}
+  function fit(C){var w=C.host.clientWidth,h=C.host.clientHeight;if(!w||!h)return;if(C.w!==w||C.h!==h||C.ds!==C.dsA){C.w=w;C.h=h;C.dsA=C.ds;var dpr=window.devicePixelRatio||1,mx=Q==='fast'?Math.min(dpr,2):Math.min(3,Math.max(dpr,Q==='epic'?2.5:2));C.r.setPixelRatio(Math.max(.6,Math.max(1,Math.min(mx,Math.sqrt(QCAP[Q]/(w*h))))*(C.ds||1)));C.r.setSize(w,h,false);if(C.post)C.post.size(w,h,C.r.getPixelRatio());C.cam.aspect=w/h;C.cam.updateProjectionMatrix()}}
   function dynRes(C,ms){if(!C.dyn)return;C.fa=(C.fa||0)+ms;C.fn=(C.fn||0)+1;if(C.fa<1000)return;var avg=C.fa/C.fn;C.fa=0;C.fn=0;var d=C.ds||1;
-    if(avg>26&&d>.78)C.ds=Math.max(.78,Math.round((d-.08)*100)/100);else if(avg<17.8&&d<1){C.ok2=(C.ok2||0)+1;if(C.ok2>=2){C.ok2=0;C.ds=Math.min(1,Math.round((d+.05)*100)/100)}}else C.ok2=0}
+    if(avg>26&&d>.8)C.ds=Math.max(.8,Math.round((d-.08)*100)/100);else if(avg<17.8&&d<1){C.ok2=(C.ok2||0)+1;if(C.ok2>=2){C.ok2=0;C.ds=Math.min(1,Math.round((d+.05)*100)/100)}}else C.ok2=0}
   function loop(C,fn){function f(ts){if(CUR!==C)return;if(!document.body.contains(C.r.domElement)){stop();return}var dt=C.last?Math.min(.05,(ts-C.last)/1000):.016;if(C.last)dynRes(C,ts-C.last);C.last=ts;C.t+=dt;fit(C);fn(dt,C.t);if(C.postOn)C.post.render();else C.r.render(C.scene,C.cam);C.raf=requestAnimationFrame(f)}C.raf=requestAnimationFrame(f)}
   var ease=function(x){return x<0?0:x>1?1:x*x*(3-2*x)};
   function pulse(t,a,b){return t<a?0:t>b?0:Math.sin((t-a)/(b-a)*Math.PI)}
@@ -710,8 +711,10 @@ var G3=(function(){
       else if(st==='dazed'){ch.rotation.x=.45;ch.rotation.z=Math.sin(t*3)*.12;sx=.3;lx=.3;ex=.2;lex=.2;wr=-1.2;H.hips.rotation.x=-.1}
       else if(st==='ko'){var k4=ease(pt/800);root.rotation.x=-1.35*k4;root.position.y=-.1*k4}
       if(o.hold&&(st==='idle'||st==='run'))aimA(o.hold.x,o.hold.y);
+      if(H.mount&&st!=='ko'){H.hips.rotation.set(0,0,0);root.rotation.x=0;root.rotation.z=0;root.position.y=0}
       R.sh.rotation.set(sx+br,0,sz);R.el.rotation.set(ex,0,0);L.sh.rotation.set(lx-br,0,lz);L.el.rotation.set(lex,0,0);H.wpn.rotation.x=wr;
-      if(H.legL&&!H.mount){H.legL.hip.rotation.x=legA;H.legR.hip.rotation.x=-legA;H.legL.kn.rotation.x=run?-Math.max(0,Math.sin(cyc+1.2))*1.2:0;H.legR.kn.rotation.x=run?-Math.max(0,Math.sin(cyc+1.2+Math.PI))*1.2:0;var st3=st==='block'||st==='wind'?.25:0;if(!run){H.legL.hip.rotation.set(st3*.6,0,-.06);H.legR.hip.rotation.set(-st3,0,.06);H.legL.kn.rotation.x=-st3;H.legR.kn.rotation.x=-st3*.5}}
+      var lrun=run||o.mv&&st!=='roll'&&st!=='down'&&st!=='ko';if(lrun&&!run)legA=Math.sin(cyc)*.6;
+      if(H.legL&&!H.mount){H.legL.hip.rotation.x=legA;H.legR.hip.rotation.x=-legA;H.legL.kn.rotation.x=lrun?-Math.max(0,Math.sin(cyc+1.2))*1.2:0;H.legR.kn.rotation.x=lrun?-Math.max(0,Math.sin(cyc+1.2+Math.PI))*1.2:0;var st3=st==='block'||st==='wind'?.25:0;if(!lrun){H.legL.hip.rotation.set(st3*.6,0,-.06);H.legR.hip.rotation.set(-st3,0,.06);H.legL.kn.rotation.x=-st3;H.legR.kn.rotation.x=-st3*.5}}
     H.head.rotation.set(Math.sin(t*1.3)*.03,Math.sin(t*.7)*.05,0);
   }
   function arena(stage,q,e){
@@ -780,12 +783,18 @@ var G3=(function(){
       /* the camera: behind the champion, turned so the creature stays in view, a little to the right */
       var portrait=C.h>C.w,dx=P.x-E.x,dz=P.z-E.z,dl=Math.sqrt(dx*dx+dz*dz)||1,ux=dx/dl,uz=dz/dl,back=portrait?5.9:5.2,side=portrait?1.1:2.1;
       var want=new T.Vector3(P.x+ux*back-uz*side,portrait?3.4:2.7,P.z+uz*back+ux*side),lk=new T.Vector3(P.x+(E.x-P.x)*.55,1.05,P.z+(E.z-P.z)*.55);
-      var kk=1-Math.exp(-dt*5);camPos.lerp(want,kk);camLook.lerp(lk,kk);
+      /* never behind the wall: near the edge the camera stays inside the ring and rises to look down over the fighters */
+      var CR=11.4,wr=Math.sqrt(want.x*want.x+want.z*want.z);
+      if(wr>CR){var ox=want.x-P.x,oz=want.z-P.z,fit=null,csg=FG.cside||1;
+        for(var ai=1;ai<=12&&!fit;ai++){var an2=Math.ceil(ai/2)*.3*(ai%2?csg:-csg);for(var sc2=1;sc2>=.7&&!fit;sc2-=.15){var cx=P.x+(ox*Math.cos(an2)-oz*Math.sin(an2))*sc2,cz=P.z+(ox*Math.sin(an2)+oz*Math.cos(an2))*sc2;if(cx*cx+cz*cz<=CR*CR){fit=[cx,cz];FG.cside=an2>0?1:-1}}}
+        lk.set(P.x+(E.x-P.x)*.3,1.2,P.z+(E.z-P.z)*.3);
+        if(fit){want.x=fit[0];want.z=fit[1]}else{want.x*=CR/wr;want.z*=CR/wr;want.y+=Math.min(3.2,(wr-CR)*.55)}}
+      var kk=1-Math.exp(-dt*5);camPos.lerp(want,kk);camLook.lerp(lk,kk);var cr2=Math.sqrt(camPos.x*camPos.x+camPos.z*camPos.z);if(cr2>CR){camPos.x*=CR/cr2;camPos.z*=CR/cr2}
       FG.punch=Math.max(0,(FG.punch||0)-dt*3);cam.fov=(portrait?66:55)-FG.punch*7;cam.updateProjectionMatrix();FG.shake=Math.max(0,FG.shake-dt*2.6);var sh=FG.shake*FG.shake*.25;
       cam.position.set(camPos.x+(Math.random()-.5)*sh,camPos.y+(Math.random()-.5)*sh,camPos.z+(Math.random()-.5)*sh);cam.lookAt(camLook);
       /* the champion */
       var psd=FG.lpx==null?0:Math.sqrt((P.x-FG.lpx)*(P.x-FG.lpx)+(P.z-FG.lpz)*(P.z-FG.lpz))/Math.max(.001,dt);FG.lpx=P.x;FG.lpz=P.z;FG.psp=(FG.psp||0)+(Math.min(16,psd)-(FG.psp||0))*Math.min(1,dt*10);FG.pc=(FG.pc||0)+FG.psp*dt*3.3;
-      var run=(P.st==='run'||P.st==='block'&&P.mv||P.st==='dash'&&pt<200)&&FG.psp>.35;poseHero(H,P.st,pt,t,{cyc:FG.pc,run:run,combo:P.combo,dur:P.dur,a:P.a||0,x:P.x,z:P.z,hd:P.hd,pow:P.st==='charge'?cPow(pt):0,sl:P.sl,hold:(SW&&SW.aim||MOUSE&&MOUSE.aim||MAIM)&&(P.st==='idle'||P.st==='run')?(SW&&SW.aim||MOUSE&&MOUSE.aim||MAIM):null});
+      var run=(P.st==='run'||P.st==='block'&&P.mv||P.st==='dash'&&pt<200)&&FG.psp>.35;poseHero(H,P.st,pt,t,{mv:FG.psp>1.2,cyc:FG.pc,run:run,combo:P.combo,dur:P.dur,a:P.a||0,x:P.x,z:P.z,hd:P.hd,pow:P.st==='charge'?cPow(pt):0,sl:P.sl,hold:(SW&&SW.aim||MOUSE&&MOUSE.aim||MAIM)&&(P.st==='idle'||P.st==='run')?(SW&&SW.aim||MOUSE&&MOUSE.aim||MAIM):null});
       bub.visible=P.st==='block';if(bub.visible)bub.material.opacity=.22+Math.sin(t*8)*.06;
       if(H.cape){var ca=H.cape.geometry.attributes.position.array,cb=H.capeBase;for(var c=0;c<ca.length;c+=3){var yy=cb[c+1],d=(.52-yy);ca[c+2]=cb[c+2]+d*(.18+Math.sin(t*3+yy*4+cb[c]*3)*.06+(run||P.st!=='idle'?.35:0))}H.cape.geometry.attributes.position.needsUpdate=true}
       if(H.mount){var Mn=H.mount;if(Mn.legs){var mlh=Mn.legs[0].userData&&Mn.legs[0].userData.lh||.8,mam=Math.min(1,FG.psp/(mlh*3.5));FG.mph=(FG.mph||0)+FG.psp*dt/(1.6*mlh*Math.max(.3,mam));gaitQ(Mn.legs,FG.mph,mam,t)}if(Mn.tail)Mn.tail.forEach(function(s,i){s.rotation.y=Math.sin(t*2+i*.5)*.12});if(Mn.wings)Mn.wings.forEach(function(w,i){w.rotation.z=(i?-1:1)*Math.sin(t*(run?8:4))*.4});if(Mn.carpet){var pa=Mn.cg.attributes.position.array,pb=Mn.base;for(var j=0;j<pa.length;j+=3)pa[j+2]=pb[j+2]+Math.sin(t*3+pb[j+1]*2)*.06;Mn.cg.attributes.position.needsUpdate=true}}
@@ -816,7 +825,7 @@ var G3=(function(){
       if(F.trunk)F.trunk.rotation.x=Math.sin(t*1.4)*.25-(tele?.9*Math.min(1,et/(E.len||800)):0);
       ['cl1','cl-1'].forEach(function(kk2,i){if(F[kk2])F[kk2].rotation.y=(i?1:-1)*(Math.sin(t*2)*.1+(tele?.4:0))});
       if(F.kind==='human'){var hs=E.st==='evade'?'run':E.st==='idle'?(FG.esp>.6?'run':'idle'):E.st==='tele'?'wind':E.st==='strike'?(atk==='charge'?'thrust':'swing'):E.st==='guard'?'block':E.st==='open'?'hurt':E.st==='stagger'?'dazed':E.st==='roar'?'wind':E.st;
-        poseHero(F.H,hs,et,t,{cyc:FG.ec,run:hs==='run',a:E.a||0,x:E.x,z:E.z,tu:tele?Math.min(1,et/(E.len||800)):E.st==='roar'?1:0,su:E.st==='strike'?Math.min(1,et/(E.slen||300)):0,aim:atk==='arrow',dir:E.dir});
+        poseHero(F.H,hs,et,t,{mv:FG.esp>1.2,cyc:FG.ec,run:hs==='run',a:E.a||0,x:E.x,z:E.z,tu:tele?Math.min(1,et/(E.len||800)):E.st==='roar'?1:0,su:E.st==='strike'?Math.min(1,et/(E.slen||300)):0,aim:atk==='arrow',dir:E.dir});
         if(E.st==='strike'&&atk==='slam')fr.position.y=Math.sin(Math.min(1,et/(E.slen||420))*Math.PI)*1.2;if(E.st==='ko'){fr.rotation.x=-1.35*ease(et/800)}}
       fbl.position.set(E.x,.02,E.z);ring.position.set(E.x,.03,E.z);ring.scale.setScalar(FR*1.25);ring.material.opacity=E.st==='ko'?0:.32+Math.sin(t*4)*.08;
       if(mv>.5&&Math.random()<dt*6)puff(E.x,E.z,.9);
