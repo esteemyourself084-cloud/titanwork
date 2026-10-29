@@ -13,13 +13,13 @@ SEED.forEach(u => {
 });
 function answerFor(q, opts) {
   if (QA[q] && opts.includes(QA[q])) return QA[q];
-  let m = q.match(/^(?:Which word means|How do you say) “(.*)”\?$/);
+  let m = q.match(/^(?:Which word means|How do you say) [“"](.*)[”"]\?$/);
   if (m && EN[m[1]]) { const hit = opts.find(o => EN[m[1]].includes(o)); if (hit) return hit; }
   m = q.match(/^What is the plural of (.*)\?$/);
   if (m && PL[m[1]] && opts.includes(PL[m[1]])) return PL[m[1]];
   return null;
 }
-const results = [];
+const results = [], unknownQ = [];
 function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + (info ? ' — ' + info : '')); }
 (async () => {
   const b = await chromium.launch();
@@ -43,7 +43,7 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
       if (qc) { await qc.click(); await p.waitForTimeout(80); }
       await p.click('[data-act=next]'); await p.waitForTimeout(150);
     }
-    let n = 0, unknown = 0;
+    let n = 0, unknown = 0, matches = 0;
     for (let guard = 0; guard < 80; guard++) {
       if (await p.$('.result')) break;
       if (await p.$('.cvwrap')) {
@@ -60,8 +60,16 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
       }
       const q = await p.$eval('.qbody .q', e => e.textContent).catch(() => null);
       if (!q) { await p.waitForTimeout(200); continue; }
+      if (await p.$('.mbox')) {
+        // drag-to-box question: tap each card, then the box it belongs in (card i belongs in box i)
+        for (let i = 0; i < 4; i++) { await p.click(`#mTray .mchip[data-mc="${i}"]`); await p.waitForTimeout(40); await p.click(`.mbox[data-mb="${i}"] .md`); await p.waitForTimeout(60); }
+        matches++;
+        await p.click('[data-act=qcheck]'); await p.waitForTimeout(120);
+        await p.click('[data-act=cont]'); await p.waitForTimeout(150);
+        n++; if (wrongAt === n - 1) wrongAt = n; continue;
+      }
       const opts = await p.$$eval('.qbody .opt .t', ts => ts.map(t => t.textContent));
-      let a = answerFor(q, opts); if (!a) unknown++;
+      let a = answerFor(q, opts); if (!a) { unknown++; unknownQ.push(q + ' | ' + opts.join(' / ')); }
       let k = a ? opts.indexOf(a) : 0;
       if (wrongAt === n) k = (k + 1) % opts.length;
       await p.click(`[data-act=pick][data-i="${k}"]`); await p.waitForTimeout(60);
@@ -70,10 +78,11 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
       n++;
     }
     const txt = await p.$eval('.result', e => e.textContent).catch(() => '');
-    return { n, unknown, txt };
+    return { n, unknown, txt, matches };
   }
   let r = await doUnit('1-1-1');
   check('unit 1-1-1 passes with right answers', /Unit complete/.test(r.txt) && /100%/.test(r.txt), `questions=${r.n} unknown=${r.unknown}`);
+  check('unit test includes drag-to-box questions', r.matches >= 1, 'matches=' + r.matches);
   let pr = await prog();
   check('progress saved for 1-1-1', pr && pr.done['1-1-1'] && pr.done['1-1-1'].score === 100);
   check('next-unit button offered', !!(await p.$('.result a[href="#unit-1-1-2"]')));
@@ -154,5 +163,6 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   for (const h of ['#home', '#reading', '#words', '#quiz', '#shop', '#arena']) { await p.evaluate(x => { location.hash = x; }, h); await p.waitForTimeout(120); }
   check('all ' + ids.length + ' unit pages and main pages render', errs.length === 0, errs.slice(0, 3).join(' | '));
   console.log(results.join('\n'));
+  if (unknownQ.length) console.log('UNANSWERED\n  ' + unknownQ.join('\n  '));
   await b.close();
 })();

@@ -16,7 +16,10 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
 
 ## Pages
 
-- **Learn**: the original layout, with levels, unit tiles and progress.
+- **Learn**: the original layout, with levels, unit tiles and progress. On a topic page the explanation sits in its
+  own panel and the examples are cards in a grid; a question and its reply show as a two-card dialogue.
+- **Tests** mix multiple choice with drag-to-box questions: drag four Arabic words into the boxes with their
+  meanings, or four meanings into the boxes with the Arabic (tap a card and then a box also works).
 - **Reading**: the conversations as reading passages. Tap any word to look it up in the word bank, turn the
   vowel marks on or off, listen, and answer questions for XP.
 - **Quiz**: "Practise your mistakes", "Quick review", and the level road with level and stage tests.
@@ -67,6 +70,10 @@ python3 tools/check_course.py index.html
 # end-to-end browser checks (needs Playwright)
 node tools/e2e.js "$PWD/index.html"
 ```
+
+The shop, arena and learn-page changes are applied to the published page by `tools/build/build_fight.py`
+(new swords, items, the fight and the skin, from the other files in `tools/build`), then `rearfix.py` (the champion
+seen from behind) and `learnfix.py` (lesson cards and drag-to-box questions).
 
 Other tools: `tools/dump_level.py` prints a level for review, and `tools/audit_content.py` runs automatic
 checks on the Arabic.
