@@ -44,6 +44,13 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
   a lane (charge) and a long cone (fire breath). Roll through an attack (Space or the Roll button) and it is left
   open for a counter. J or a click attacks (three hits make a combo), K or a right click is a heavy attack that
   breaks a guard and stops a wind-up, L is the special, Shift blocks.
+- **Opponents**: 16 creatures and 8 human fighters (the Thief, the Highwayman, the Raider Archer, the Mercenary,
+  the Swordswoman, the Black Knight, the Raider Chief and, last, the Arena Champion), dressed in the shop's gear.
+- **Fight moves**: attacks home in on the target; light attacks chain into a four-hit combo with a finisher;
+  every hit has a short freeze-frame and makes the enemy flinch; block just before a blow to parry it; a roll at the
+  last moment is a perfect dodge with slow motion; tougher enemies chain attacks and answer button-mashing with a
+  shockwave; archers keep their distance and shoot along a marked lane. The 3D picture uses up to about 1.6 million
+  pixels, and the fight can go full screen.
 - **Arena fight (2D)**: without WebGL the earlier fight is used: dodge left or right at the last moment, block,
   light, heavy and special, with the buttons under the fight.
 

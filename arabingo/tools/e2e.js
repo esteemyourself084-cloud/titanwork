@@ -28,6 +28,8 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));
   await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+  // these checks run the 2D game: the 3D library is not loaded, as on a device without WebGL
+  await p.route(/three\.min\.js/, r => r.abort());
   await p.goto('file://' + html);
   await p.waitForTimeout(300);
   const prog = () => p.evaluate(() => JSON.parse(localStorage.getItem('arabingo.progress.v3') || 'null'));
