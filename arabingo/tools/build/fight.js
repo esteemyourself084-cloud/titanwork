@@ -115,7 +115,7 @@ function fLoop(ts){
   var A=AR_S;if(!A||A.dead)return;
   var dt=A.last?Math.min(50,ts-A.last):16;A.last=ts;
   if(A.stop>0){A.stop-=dt;dt=0}
-  if(A.live&&dt)fStep(dt);
+  if(A.live&&dt){if(A.g3&&typeof G3!=='undefined'&&G3.step)G3.step(dt);else fStep(dt)}
   A.raf=requestAnimationFrame(fLoop);
 }
 function fStep(dt){
@@ -243,7 +243,7 @@ function fInput(k){
 function fRelease(k){var A=AR_S;if(!A)return;if(k==='bl'){A.hold=false;if(A.P&&A.P.st==='block'&&A.P.t>=150)fSet('p','idle')}}
 var FKEYS={ArrowLeft:'dl',a:'dl',A:'dl',ArrowRight:'dr',d:'dr',D:'dr',ArrowDown:'bl',s:'bl',S:'bl',Shift:'bl',j:'li',J:'li',z:'li',Z:'li',k:'he',K:'he',x:'he',X:'he',l:'sp',L:'sp',c:'sp',C:'sp',' ':'sp'};
 document.addEventListener('keydown',function(ev){
-  var A=AR_S;if(!A||A.over||ev.ctrlKey||ev.metaKey||ev.altKey)return;var k=FKEYS[ev.key];if(!k)return;
+  var A=AR_S;if(!A||A.over||A.g3||ev.ctrlKey||ev.metaKey||ev.altKey)return;var k=FKEYS[ev.key];if(!k)return;
   if(ev.target&&/INPUT|TEXTAREA|SELECT/.test(ev.target.tagName))return;
   ev.preventDefault();if(ev.repeat)return;fInput(k);
 });

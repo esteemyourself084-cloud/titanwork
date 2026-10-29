@@ -37,11 +37,15 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
   cdnjs): a lit arena with shadows, a cheering crowd, torches, banners and props for each battlefield; a 3D
   champion built from the equipped character, armour, weapon and mount; 3D creatures; sword trails, sparks,
   camera shake and hit flashes. Without WebGL, or if the script cannot load, the 2D drawings are used.
-- **Arena fight**: real time, best of three rounds of 60 seconds. The creature winds up before it strikes
-  (a yellow "!" is a swipe you can block, a red "!!" is a slam you must dodge). Dodge at the last moment and it
-  is left open for a counter. Light attacks are quick, heavy attacks break a guard and stop a wind-up, and the
-  special fills as you land hits and dodges. Keys: ← → or A D dodge, ↓ or S block, J light, K heavy, L or Space
-  special; on a phone, the buttons under the fight.
+- **Arena fight (3D)**: an action fight, best of three rounds of 60 seconds. Move freely around the arena
+  (WASD or arrows; or hold the mouse button and point; on a phone, drag on the left of the screen for a
+  joystick). The camera follows behind you and keeps the creature in view. The creature chases you, circles and
+  winds up attacks marked on the ground: a red cone (swipe; block it or step out), a red circle (pounce; get out),
+  a lane (charge) and a long cone (fire breath). Roll through an attack (Space or the Roll button) and it is left
+  open for a counter. J or a click attacks (three hits make a combo), K or a right click is a heavy attack that
+  breaks a guard and stops a wind-up, L is the special, Shift blocks.
+- **Arena fight (2D)**: without WebGL the earlier fight is used: dodge left or right at the last moment, block,
+  light, heavy and special, with the buttons under the fight.
 
 `REVIEW = true` in the script unlocks every unit and stage and shows the "+1000 XP" button for testing.
 
