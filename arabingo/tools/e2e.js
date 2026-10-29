@@ -127,7 +127,7 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   const tapped = await p.evaluate(() => { const w = document.querySelector('.rconvo .w'); w.click(); return !!document.querySelector('.wsheet'); });
   check('tapping a word opens the meaning sheet', tapped);
 
-  // 5. arena: win against the first opponent (the Thief)
+  // 5. arena: win against the first opponent (the Pickpocket)
   await p.evaluate(() => { location.hash = '#arena'; }); await p.waitForTimeout(250);
   await p.click('[data-act=arenastart][data-t="0"]'); await p.waitForTimeout(2200);
   // a real-time fight: dodge late in each wind-up, attack the rest of the time
@@ -142,7 +142,7 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   const won = await p.$eval('.aend', e => e.textContent).catch(() => '');
   pr = await prog();
   check('arena fight can be won', /Victory/.test(won), won.slice(0, 50));
-  check('beating an enemy is remembered', pr.shop && pr.shop.beatK && pr.shop.beatK.h_thief === 1);
+  check('beating an enemy is remembered', pr.shop && pr.shop.beatK && pr.shop.beatK.scorpion === 1);
 
   // 6. progress saved on the small units (versions 3 and 4) moves onto the original units
   await p.evaluate(() => { localStorage.setItem('arabingo.progress.v3', JSON.stringify({ v: 4, xp: 5, streak: 0, last: '', done: { '1-1-5': { score: 90 }, '1-1-6': { score: 80 }, '1-1-7': { score: 100 }, '1-1-8': { score: 95 }, '1-1-1': { score: 100 }, 'lt-1-5': { score: 85 } }, miss: [], read: { '1-5-3': { score: 3, total: 4 } } })); location.reload(); });
