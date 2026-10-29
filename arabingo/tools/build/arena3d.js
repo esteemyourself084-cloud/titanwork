@@ -258,7 +258,7 @@ var G3=(function(){
         var n=1+(Math.random()-.5)*.09+Math.sin(px*.9+py*2.3)*.02,q=(py*W+px)*4;col.convertLinearToSRGB();d[q]=Math.min(255,col.r*n*255);d[q+1]=Math.min(255,col.g*n*255);d[q+2]=Math.min(255,col.b*n*255);d[q+3]=255}}
     x.putImageData(im,0,0);x.globalAlpha=.12;for(var i=0;i<2600;i++){var sx=Math.random()*W,sy=Math.random()*Hh;x.strokeStyle=Math.random()<.5?'#000':'#fff';x.lineWidth=1;x.beginPath();x.moveTo(sx,sy);x.lineTo(sx+(Math.random()-.5)*2,sy+4+Math.random()*6);x.stroke()}
     var t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;t.anisotropy=CUR?Math.min(16,CUR.r.capabilities.getMaxAnisotropy()):4;return t}
-  function torsoGeo(o){var L=o.len,r=o.r,ry=o.ry||.92,N=30,pts=[],prof=o.low?[[0,.5],[.2,.95],[.6,1],[.85,.9],[1,.55]]:[[0,.62],[.17,1],[.43,.84],[.72,1.07],[.88,1],[1,.62]];
+  function torsoGeo(o){var L=o.len,r=o.r,ry=o.ry||.92,N=30,pts=[],prof=o.prof||(o.low?[[0,.5],[.2,.95],[.6,1],[.85,.9],[1,.55]]:[[0,.62],[.17,1],[.43,.84],[.72,1.07],[.88,1],[1,.62]]);
     function pf(t){for(var i=1;i<prof.length;i++)if(t<=prof[i][0]){var a=prof[i-1],b=prof[i],u=(t-a[0])/(b[0]-a[0]);u=u*u*(3-2*u);return a[1]+(b[1]-a[1])*u}return prof[prof.length-1][1]}
     for(var i=0;i<=N;i++){var t=i/N,e=Math.pow(Math.sin(Math.PI*Math.max(.001,Math.min(.999,t))),.42);pts.push(new T.Vector2(Math.max(.002,r*pf(t)*e),(t-.5)*L))}
     var g=new T.LatheGeometry(pts,40);g.rotateX(Math.PI/2);var p=g.attributes.position;
@@ -362,10 +362,60 @@ var G3=(function(){
     skelhorse:{col:'#E8E2D0',len:1.7,r:.34,h:.72,head:.17,hz:1.7,snl:1.5,neck:.42,ear:'point',tail:'long',tailCol:'#B8B09A',hairMane:'#B8B09A',eye:'#7CFC5A',glowEye:1}
   });
 
+  /* ---- horses, donkeys and camels, built as what they are: a deep glossy barrel, an arched neck with a mane that
+     falls to one side, a long head with a soft muzzle, nostrils, eyes set on the sides and small ears, slim legs with
+     muscled forearms, knees or hocks, fetlocks and hooves, and a long flowing tail. A camel has its hump, an S-shaped
+     neck, knobbly knees and padded feet; a donkey has long ears and a short upright mane. ---- */
+  function sweep(cv,rf,sx,mat,par,seg){var tg=new T.TubeGeometry(cv,seg||28,1,18,false),p=tg.attributes.position,rs=19,ctr=new T.Vector3();
+    for(var i=0;i<=(seg||28);i++){var u=i/(seg||28);cv.getPointAt(u,ctr);var rr=rf(u);for(var j=0;j<rs;j++){var k=i*rs+j,x=p.getX(k)-ctr.x,y=p.getY(k)-ctr.y,z=p.getZ(k)-ctr.z;p.setXYZ(k,ctr.x+x*rr*sx,ctr.y+y*rr,ctr.z+z*rr)}}
+    tg.computeVertexNormals();return mesh(tg,mat,0,0,0,par)}
+  function legE(B,o,sx,front,c,hoofM,camel){var r=o.r,L=o.len,lh=o.h+r*.55,lr=r*(camel?.2:.24);
+    var hip=grp(B,sx*r*(front?.42:.5),-r*.2,(front?1:-1)*L*(front?.34:.32));
+    var a0=front?.04:-.28,k0=front?-.04:.6,f0=front?-.45:-.7;
+    var uL=lh*.44,lL=lh*.4,fL=lh*.16,drop=uL*Math.cos(a0)+lL*Math.cos(a0+k0)+fL*Math.cos(a0+k0+f0),sc=lh/drop;uL*=sc;lL*=sc;fL*=sc;
+    var up=grp(hip);up.rotation.x=a0;sph(lr*(front?1.7:2.1),c,0,-uL*.08,front?0:-lr*.3,up,front?.85:.8,front?1.6:1.9,front?1.1:1.3);cyl(lr*1.15,lr*.72,uL,c,0,-uL/2,0,up);
+    var kn=grp(up,0,-uL,0);kn.rotation.x=k0;sph(lr*(camel?.85:.7),c,0,0,0,kn,.95,1.1,1.05);cyl(lr*.62,lr*.5,lL,c,0,-lL/2,0,kn);
+    var an=grp(kn,0,-lL,0);an.rotation.x=f0;sph(lr*.6,c,0,0,0,an,.95,1,1.05);
+    if(camel){cyl(lr*.55,lr*.75,fL,c,0,-fL/2,0,an);var pd=grp(an,0,-fL,0);pd.rotation.x=-(a0+k0+f0);sph(lr*1.25,M('#6A5A48',{r:.9}),0,-lr*.1,lr*.25,pd,1,.35,1.3)}
+    else{cyl(lr*.46,lr*.52,fL*.78,c,0,-fL*.39,0,an);var hf=grp(an,0,-fL*.82,0);hf.rotation.x=-(a0+k0+f0);cyl(lr*.6,lr*.84,fL*.45,hoofM,0,-fL*.1,lr*.06,hf,18)}
+    hip.userData={up:up,kn:kn,an:an,a0:a0,k0:k0,f0:f0,front:front,lh:lh};return hip}
+  function equine(o,kind){
+    var camel=kind==='camel',donkey=kind==='donkey',L=o.len,r=o.r,hd=o.head*(camel?1:1.18),R=grp(),B=grp(R,0,o.h+r*.8,0);
+    var c=M(o.col,{r:.55}),dk=M(o.dark||'#2A1A10',{r:.5}),hair=M(o.hairMane||o.tailCol||o.mane||(camel?'#8A6434':'#2E1A0C'),{r:.85,ds:true}),hoofM=M('#2A2018',{r:.4}),eyeM=M('#120A06',{r:.12}),nos=M('#2A1C18',{r:.7}),leather=M('#3A2214',{r:.6});
+    var o2={};for(var k in o)o2[k]=o[k];o2.belly=o.belly||o.col;
+    o2.prof=camel?[[0,.6],[.18,.95],[.45,.9],[.7,1],[.88,.95],[1,.55]]:[[0,.58],[.12,1],[.32,.93],[.55,.9],[.76,1.03],[.9,1],[1,.6]];
+    var tx=coatTex(o2,coat(o2));mesh(torsoGeo(o2),new T.MeshStandardMaterial({map:tx,bumpMap:tx,bumpScale:.003,roughness:camel?.8:.5}),0,0,0,B);
+    if(camel){sph(r*.66,c,0,r*.86,-L*.02,B,.95,.95,1.3);sph(r*.4,c,0,r*1.25,-L*.02,B,1,.8,1.1)}
+    var legs=[];[[-1,1],[1,1],[-1,-1],[1,-1]].forEach(function(s){legs.push(legE(B,o,s[0],s[1]>0,c,hoofM,camel))});
+    /* the neck: a chain of shapes along a curve, thick at the shoulders and narrow at the head, with the mane on the crest */
+    var N=grp(B,0,r*.08,L*.33),nl=camel?L*.72:L*.52;
+    var cp=(camel?[[0,0,0],[0,-r*.25,nl*.45],[0,nl*.22,nl*.74],[0,nl*.58,nl*.8]]:[[0,0,0],[0,nl*.36,nl*.32],[0,nl*.64,nl*.56],[0,nl*.8,nl*.8]]).map(function(p){return new T.Vector3(p[0],p[1],p[2])});
+    var cv=new T.CatmullRomCurve3(cp),rb=r*(camel?.46:.84),rt=hd*(camel?.5:.62);
+    sweep(cv,function(u){return rb+(rt-rb)*Math.pow(u,.55)},camel?.9:.78,c,N);
+    if(!camel)for(var i=0;i<9;i++){var u=.05+i/9*.9,p=cv.getPointAt(u),tn=cv.getTangentAt(u),rr=rb+(rt-rb)*Math.pow(u,.7),up=new T.Vector3(0,tn.z,-tn.y).normalize();
+      if(donkey)sph(rr*.3,hair,0,p.y+up.y*rr*.92,p.z+up.z*rr*.92,N,.3,.95,1.4);else{var mn=sph(rr*.5,hair,rr*.3,p.y+up.y*rr*.7,p.z+up.z*rr*.7,N,.4,1.25,1.5);mn.rotation.z=-.5;mn.rotation.x=Math.atan2(tn.y,tn.z)*-.4}}
+    var hp=cv.getPoint(1),H=grp(N,hp.x,hp.y,hp.z);H.rotation.x=camel?.2:.95;
+    /* the head: poll, cheeks and jaw, a face that narrows to a soft muzzle with nostrils, side-set eyes with a glint, small ears */
+    sph(hd,c,0,0,0,H,.82,.95,1.15);sph(hd*.85,c,0,-hd*.28,hd*.35,H,.85,.8,1.2);
+    var ml=hd*(camel?1.6:donkey?1.5:1.9),mz=cyl(hd*.42,hd*.66,ml,c,0,-hd*.12,hd*.5+ml/2,H,22);mz.rotation.x=Math.PI/2;
+    sph(hd*.5,o.noseC?M(o.noseC,{r:.7}):c,0,-hd*.18,hd*.5+ml,H,1,.92,.85);box(hd*.5,hd*.03,ml*.45,dk,0,-hd*.44,hd*.5+ml*.82,H);
+    [-1,1].forEach(function(s){sph(hd*.1,nos,s*hd*.22,-hd*.08,hd*.5+ml+hd*.36,H,1,.7,.5);sph(hd*.16,eyeM,s*hd*.8,hd*.12,hd*.32,H,.6,1,1.1);sph(hd*.045,M('#FFFFFF',{r:.1}),s*hd*.88,hd*.18,hd*.4,H);
+      if(camel)sph(hd*.16,c,s*hd*.6,hd*.55,-hd*.35,H,.7,1,.6);else{var eg=grp(H,s*hd*.34,hd*.72,-hd*.25);eg.rotation.set(-.35,s*.25,-s*(donkey?.35:.15));sph(hd*(donkey?.24:.15),c,0,hd*(donkey?.5:.24),0,eg,.75,donkey?2.4:1.9,.42);sph(hd*(donkey?.17:.1),dk,0,hd*(donkey?.52:.25),hd*.04,eg,.6,donkey?2.1:1.6,.25)}});
+    if(!camel&&!donkey){sph(hd*.36,hair,0,hd*.72,hd*.1,H,.7,.45,1.3);
+      /* a bridle: noseband, cheek straps and the bit */
+      var nb=tor(hd*.56,hd*.035,leather,0,-hd*.12,hd*.5+ml*.55,H);[-1,1].forEach(function(s){var cs=box(hd*.05,hd*1.1,hd*.07,leather,s*hd*.6,-hd*.05,hd*.55,H);cs.rotation.x=.5;sph(hd*.08,M('#C9C2B0',{m:.8,r:.3}),s*hd*.5,-hd*.4,hd*.5+ml*.72,H)})}
+    /* the tail: a dock, then long hair that hangs and sways (a camel or a donkey has a thin tail with a tuft) */
+    var tl=grp(B,0,r*.42,-L*.49),tailG=[tl],thin=camel||donkey;sph(r*.14,c,0,0,-r*.04,tl,1,1,1.5);tl.rotation.x=thin?-.2:0;
+    var tc=new T.CatmullRomCurve3((thin?[[0,0,0],[0,-.2,-.06],[0,-.42,-.05],[0,-.6,-.02]]:[[0,0,0],[0,-.12,-.16],[0,-.42,-.26],[0,-.78,-.24],[0,-1.02,-.16]]).map(function(p){return new T.Vector3(p[0],p[1]*(o.h+r)/1.05,p[2])}));
+    sweep(tc,thin?function(u){return .03-u*.008}:function(u){return .05+Math.sin(Math.min(1,u*1.15)*Math.PI)*.07+u*.02},thin?1:.55,thin?c:hair,tl,22);
+    if(thin){var tp=tc.getPointAt(1);sph(.07,hair,0,tp.y,tp.z,tl,.8,1.7,.8)}
+    B.userData.y0=B.position.y;
+    return {root:R,body:B,head:H,neck:N,legs:legs,tail:tailG,eyes:[],seat:o.h+r*1.55};
+  }
   function mountModel(m,parent){
     var k=m.kind,base=MOUNTQ[k],o;
     if(base){o={};for(var x in base)o[x]=base[x];if(m.col&&/^#/.test(m.col))o.col=m.col;if(m.mane&&/^#/.test(m.mane)&&(k==='horse'||k==='mare'||k==='pegasus')){o.hairMane=m.mane;o.tailCol=m.mane}
-      if(k==='pegasus')o.wings='#F7F7FB';o.cat=CATS.test(k);var Q=quad(o);Q.root.rotation.y=Math.PI;parent.add(Q.root);
+      if(k==='pegasus')o.wings='#F7F7FB';o.cat=CATS.test(k);if(m.dk&&/^#/.test(m.dk))o.dark=m.dk;var Q=/^(horse|mare|donkey|camel)$/.test(k)?equine(o,k==='mare'?'horse':k):quad(o);Q.root.rotation.y=Math.PI;parent.add(Q.root);
       if(m.blanket&&/^#/.test(m.blanket))box(o.r*1.5,.04,o.len*.36,M(m.blanket,{r:.8}),0,o.r*.85,0,Q.body);
       Q.seat=(o.h+o.r*.8)+o.r*.85+.05;return Q}
     var R=grp(parent);
