@@ -55,6 +55,14 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
     criticals on a staggered enemy) or up for an uppercut. A faster swipe hits harder, changing direction from one
     swipe to the next builds a combo, and the fourth is a finisher. A tap is a quick attack. With a mouse, flick it
     while holding the button to slash.
+  - **Blade contact**: a hit lands where the sword actually passes through the enemy (the blade is sampled every
+    frame), with sparks at that point and the enemy recoiling the way it was cut. A swing that only comes close
+    still grazes.
+  - **Directional parry**: before a swing lands, an arrow over the enemy shows the side it comes from, with a ring
+    that closes on the moment. Swipe toward the arrow inside the last third of a second to parry (in the last
+    eighth, a perfect parry). An arrow (✦) can be deflected by any swipe. With keys, block just in time.
+  - **Sound**: swooshes, hits, clashes, blocks and roars, made with Web Audio; the 🔊 button mutes them.
+  - **Pace**: the champion runs faster, rolls and light attacks are quicker, and enemies wind up and recover sooner.
   - **Stamina** (the green bar under Special): rolls and blocked blows use it, and it refills when you rest.
     Run out and you can't roll ("Tired!"), and a blocked blow breaks your guard.
   - **Charged heavy**: hold K, right-click or the Heavy button; the longer you hold (up to about a second),
@@ -74,6 +82,11 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
   and up to about 1 million pixels. On a phone, Epic and High use every pixel of the screen. Until you pick one, a
   slow device steps down by itself after the first few seconds. The choice is kept on the device. Models use
   smoother shapes, and the arena floor and walls use sharper, bump-mapped textures.
+- **Speed**: parts of a character that move together, and everything in the arena that never moves, are joined into
+  single meshes (about 110 draw calls instead of 250), only things inside the shadow area cast shadows, the glow is
+  computed at a quarter of the size, 4x anti-aliasing is skipped when the picture is already supersampled, and a
+  sharpening pass keeps edges crisp. Dynamic resolution lowers the pixel count a little when a frame takes longer
+  than about 21 ms and raises it again when there is room.
 - **Arena fight (2D)**: without WebGL the earlier fight is used: dodge left or right at the last moment, block,
   light, heavy and special, with the buttons under the fight.
 

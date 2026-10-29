@@ -150,8 +150,7 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
   pr = await prog();
   check('small-unit progress moves to the original units', pr && pr.v === 5 && pr.done['1-1-2'] && pr.done['1-1-2'].score === 80 && !pr.done['1-1-1'] && pr.done['lt-1-2'] && pr.read['1-2-1'], pr ? Object.keys(pr.done).join(',') + ' read=' + Object.keys(pr.read) : 'none');
   await p.evaluate(() => { localStorage.setItem('arabingo.progress.v3', JSON.stringify({ v: 3, xp: 5, streak: 0, last: '', done: { 'lt-2-1': { score: 80 }, 'st-2': { score: 1 } }, miss: [], read: {} })); location.reload(); });
-  await p.waitForTimeout(1200);
-  pr = await prog();
+  for (let i = 0; i < 30; i++) { await p.waitForTimeout(200); pr = await prog(); if (pr && pr.done && !pr.done['st-2']) break; }
   check('progress from the Stage 2 layout moves to Stage 1', pr && pr.done['lt-1-4'] && !pr.done['st-2'], pr ? Object.keys(pr.done).join(',') : 'none');
 
   // 6b. progress from the first version of the app keeps its unit ids

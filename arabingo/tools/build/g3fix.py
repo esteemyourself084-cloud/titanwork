@@ -47,6 +47,15 @@ CSS=r'''
 .g3tip{display:none}
 @media (pointer:coarse){.g3tip{display:block;position:absolute;left:50%;top:58px;transform:translateX(-50%);width:min(86%,420px);margin:0;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.55);color:#fff;font-size:13px;line-height:1.4;text-align:center;pointer-events:none;animation:g3tip 8s ease forwards}}
 @keyframes g3tip{0%,82%{opacity:1}100%{opacity:0;visibility:hidden}}
+.g3mu{position:absolute;top:10px;left:10px;width:40px;height:40px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#fff;font-size:18px;cursor:pointer;pointer-events:auto;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+.fight:fullscreen .g3mu{top:84px}
+.g3dir{position:absolute;width:92px;height:92px;margin:-46px 0 0 -46px;pointer-events:none;display:none;z-index:4}
+.g3dir.on{display:block}
+.g3dir i{position:absolute;inset:0;border-radius:50%;border:4px solid rgba(255,90,40,.95);box-shadow:0 0 16px rgba(255,80,30,.75),inset 0 0 12px rgba(255,80,30,.5)}
+.g3dir b{position:absolute;inset:0;display:grid;place-items:center;font:900 52px/1 system-ui,sans-serif;color:#fff;text-shadow:0 0 12px #FF3A1A,0 3px 0 #7A1A0A}
+.g3dir em{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;font:800 12px/1 var(--f-fn,sans-serif);letter-spacing:.12em;text-transform:uppercase;color:#fff;font-style:normal;text-shadow:0 1px 3px #000;white-space:nowrap}
+.g3dir.now i{border-color:#FFE066;box-shadow:0 0 22px rgba(255,210,60,.9),inset 0 0 14px rgba(255,210,60,.6)}
+.g3dir.now b{color:#FFF6C8;text-shadow:0 0 16px #FFB000,0 3px 0 #7A4A00}
 .g3hint{position:absolute;left:12px;bottom:10px;margin:0;max-width:46%;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.45);color:#fff;font-size:12px;line-height:1.4;pointer-events:none}
 @media (pointer:coarse){.g3hint{display:none}}
 @media (max-width:640px){.g3k{width:52px;height:52px;font-size:18px}.g3k.k-light{width:70px;height:70px;font-size:26px}.g3b{gap:6px}.g3hint{display:none}}
