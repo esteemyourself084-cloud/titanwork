@@ -50,6 +50,11 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
   every hit has a short freeze-frame and makes the enemy flinch; block just before a blow to parry it; a roll at the
   last moment is a perfect dodge with slow motion; tougher enemies chain attacks and answer button-mashing with a
   shockwave; archers keep their distance and shoot along a marked lane.
+  - **Sword control on touch screens**: drag on the left half to move; on the right half the sword follows your
+    finger, and a swipe swings it that way: across for a cut, down for a chop (breaks a guard, interrupts and lands
+    criticals on a staggered enemy) or up for an uppercut. A faster swipe hits harder, changing direction from one
+    swipe to the next builds a combo, and the fourth is a finisher. A tap is a quick attack. With a mouse, flick it
+    while holding the button to slash.
   - **Stamina** (the green bar under Special): rolls and blocked blows use it, and it refills when you rest.
     Run out and you can't roll ("Tired!"), and a blocked blow breaks your guard.
   - **Charged heavy**: hold K, right-click or the Heavy button; the longer you hold (up to about a second),
@@ -62,8 +67,13 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
     more attacks, shrugs off light hits and uses a shockwave.
   - **Feints**: from the fifth opponent on, some wind-ups stop halfway and restart, to catch early rolls.
   - **Knockdowns**: slams and charges knock you down (you can't be hit while down); press roll to get up
-    sooner. Enemies punish a long block with a slam, and a slow charge with a quick attack. The 3D picture uses up to about 2.1 million
-  pixels (Full HD level), and the fight can go full screen.
+    sooner. Enemies punish a long block with a slam, and a slow charge with a quick attack. The fight can go full screen.
+- **Graphics quality** (the button next to full screen): **Epic** draws up to about 3.7 million pixels (1440p level)
+  with 4096 shadows, glow (bloom), sky reflections on metal and cloth, 4x anti-aliasing and colour grading;
+  **High** is the same at up to about 2.1 million pixels with 2048 shadows; **Fast** has no glow or reflections
+  and up to about 1 million pixels. On a phone, Epic and High use every pixel of the screen. Until you pick one, a
+  slow device steps down by itself after the first few seconds. The choice is kept on the device. Models use
+  smoother shapes, and the arena floor and walls use sharper, bump-mapped textures.
 - **Arena fight (2D)**: without WebGL the earlier fight is used: dodge left or right at the last moment, block,
   light, heavy and special, with the buttons under the fight.
 

@@ -41,6 +41,12 @@ CSS=r'''
 .g3po{position:relative;height:7px;width:72%;margin:3px 0 0 auto;background:#0A0306;box-shadow:0 0 0 1px #7A5A1E;transform:skewX(18deg);overflow:hidden}
 .g3po i{display:block;height:100%;width:100%;margin-left:auto;background:linear-gradient(270deg,#E8B54A,#FFF0A0);transition:width .12s}
 .g3po.brk i{background:linear-gradient(270deg,#FFFFFF,#FFE066);animation:spglow .25s ease-in-out infinite alternate}
+.g3qb{position:absolute;top:10px;right:58px;height:40px;padding:0 12px;border:0;border-radius:10px;background:rgba(0,0,0,.45);color:#FFE08A;font:700 13px/40px var(--f-fn,sans-serif);letter-spacing:.1em;cursor:pointer;pointer-events:auto;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+.fight:fullscreen .g3qb{top:84px}
+.g3sw{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.g3tip{display:none}
+@media (pointer:coarse){.g3tip{display:block;position:absolute;left:50%;top:58px;transform:translateX(-50%);width:min(86%,420px);margin:0;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.55);color:#fff;font-size:13px;line-height:1.4;text-align:center;pointer-events:none;animation:g3tip 8s ease forwards}}
+@keyframes g3tip{0%,82%{opacity:1}100%{opacity:0;visibility:hidden}}
 .g3hint{position:absolute;left:12px;bottom:10px;margin:0;max-width:46%;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.45);color:#fff;font-size:12px;line-height:1.4;pointer-events:none}
 @media (pointer:coarse){.g3hint{display:none}}
 @media (max-width:640px){.g3k{width:52px;height:52px;font-size:18px}.g3k.k-light{width:70px;height:70px;font-size:26px}.g3b{gap:6px}.g3hint{display:none}}
