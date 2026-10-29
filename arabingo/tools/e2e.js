@@ -155,8 +155,7 @@ function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + 
 
   // 6b. progress from the first version of the app keeps its unit ids
   await p.evaluate(() => { localStorage.removeItem('arabingo.progress.v3'); localStorage.setItem('arabingo.progress.v2', JSON.stringify({ xp: 77, streak: 1, last: '', done: { '1-1-4': { score: 92, stars: 2 }, '1-3-10': { score: 88, stars: 1 }, 'lt-1-2': { score: 90, stars: 2 } } })); location.reload(); });
-  await p.waitForTimeout(1200);
-  pr = await prog();
+  for (let i = 0; i < 30; i++) { await p.waitForTimeout(200); pr = await prog(); if (pr && pr.v === 5) break; }
   check('first-version progress kept', pr && pr.v === 5 && ['1-1-4', '1-3-10', 'lt-1-2'].every(k => pr.done[k]) && pr.xp === 77, pr ? Object.keys(pr.done).join(',') : 'none');
 
   // 7. every unit page and the main pages render without errors

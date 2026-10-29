@@ -44,7 +44,7 @@ Published artifact: https://claude.ai/artifact/T3ehfd5MLocuet6CnFHqYh
   a lane (charge) and a long cone (fire breath). Roll through an attack (Space or the Roll button) and it is left
   open for a counter. J or a click attacks (three hits make a combo), K or a right click is a heavy attack that
   breaks a guard and stops a wind-up, L is the special, Shift blocks.
-- **Opponents**: 16 creatures and 8 human fighters (the Thief, the Highwayman, the Raider Archer, the Mercenary,
+- **Opponents**: 40 creatures and 8 human fighters (the Thief, the Highwayman, the Raider Archer, the Mercenary,
   the Swordswoman, the Black Knight, the Raider Chief and, last, the Arena Champion), dressed in the shop's gear.
 - **Fight moves**: attacks home in on the target; light attacks chain into a four-hit combo with a finisher;
   every hit has a short freeze-frame and makes the enemy flinch; block just before a blow to parry it; a roll at the
@@ -86,7 +86,8 @@ python3 tools/check_course.py index.html
 node tools/e2e.js "$PWD/index.html"
 ```
 
-The shop, arena and learn-page changes are applied to the published page by `tools/build/build_fight.py`
+Another chat also edits the published page, so `index.html` is merged with each newly published version
+(a three-way merge from the version both started from). The scripts below rebuilt an earlier stage of the page: `tools/build/build_fight.py`
 (new swords, items, the fight and the skin, from the other files in `tools/build`), then `rearfix.py` (the champion
 seen from behind), `learnfix.py` (lesson cards and drag-to-box questions) and `g3fix.py` (adds `arena3d.js`).
 
