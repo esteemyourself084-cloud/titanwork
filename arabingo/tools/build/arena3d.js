@@ -27,8 +27,8 @@ var G3=(function(){
     return {play:play,wake:function(){var a=ctx();if(a&&a.state==='suspended')try{a.resume()}catch(err){}},muted:function(){return mute},
       setMute:function(m){mute=m;try{localStorage.setItem('arabingo.g3m',m?'1':'0')}catch(err){}}}})();
   /* graphics quality: Epic (bloom, reflections, up to about 3.7 million pixels), High (up to about 2.1 million) or Fast */
-  var QN=['epic','high','fast'],Q='epic',QSET=false,QCAP={epic:8.3e6,high:3.7e6,fast:2.1e6},QSH={epic:4096,high:2048,fast:1024};
-  var TOUCH=false;try{TOUCH=matchMedia('(pointer:coarse)').matches}catch(err){}if(TOUCH)QSH.epic=2048;
+  var QN=['epic','high','fast'],Q='epic',QSET=false,QCAP={epic:12e6,high:3.7e6,fast:2.1e6},QSH={epic:4096,high:2048,fast:1024};
+  var TOUCH=false;try{TOUCH=matchMedia('(pointer:coarse)').matches}catch(err){}if(TOUCH)QSH.epic=4096;
   try{var q0=localStorage.getItem('arabingo.g3q');if(QN.indexOf(q0)>=0){Q=q0;QSET=true}}catch(err){}
   function stop(){
     if(AR_S)AR_S.g3=0;FG=null;KEY={};JOY=null;MOUSE=null;SW=null;TR=[];
@@ -423,7 +423,7 @@ var G3=(function(){
   function hlMount(m,parent){
     var sp=window.ARB_HORSES&&window.ARB_HORSES[m.hl];if(!sp||!window.HorseLab)return null;
     var R=new T.Group(),W=new T.Group(),S=.68;R.add(W);W.rotation.y=-Math.PI/2;W.scale.setScalar(S);
-    var G=HorseLab.build(sp,.035,true);W.add(G);
+    var G=HorseLab.build(sp,.024,true);W.add(G);
     var legs=[0,1,2,3].map(function(i){return {rotation:{x:0},userData:{up:{rotation:{x:0}},kn:{rotation:{x:0}},an:{rotation:{x:0}},a0:0,k0:0,f0:0,front:i<2}}});
     if(G.userData.rig)G.userData.rig.legs=legs;
     R.rotation.y=Math.PI;parent.add(R);
@@ -629,7 +629,7 @@ var G3=(function(){
     'float l=dot(c,vec3(.299,.587,.114));c=mix(vec3(l),c,1.16);c=(c-.5)*1.07+.5;vec2 q=vU-.5;c*=1.-dot(q,q)*.25;c+=(hs(gl_FragCoord.xy)-.5)/255.;gl_FragColor=vec4(clamp(c,0.,1.),1.);}';
   function makePost(C){
     var r=C.r,gl2=r.capabilities.isWebGL2;if(!gl2||!r.extensions.get('EXT_color_buffer_float'))return null;
-    function mk(ms){var o={type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:!!ms,stencilBuffer:false},t;if(ms&&T.WebGLMultisampleRenderTarget){t=new T.WebGLMultisampleRenderTarget(1,1,o);t.samples=4}else t=new T.WebGLRenderTarget(1,1,o);return t}
+    function mk(ms){var o={type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:!!ms,stencilBuffer:false},t;if(ms&&T.WebGLMultisampleRenderTarget){t=new T.WebGLMultisampleRenderTarget(1,1,o);t.samples=Math.min(8,r.capabilities.maxSamples||4)}else t=new T.WebGLRenderTarget(1,1,o);return t}
     var main=mk(1),plain=(function(){var o={type:T.HalfFloatType,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:true,stencilBuffer:false};return new T.WebGLRenderTarget(1,1,o)})(),a1=mk(),a2=mk(),b1=mk(),b2=mk(),V='varying vec2 vU;void main(){vU=uv;gl_Position=vec4(position.xy,0.,1.);}';
     function sm(fs,u){return new T.ShaderMaterial({uniforms:u,vertexShader:V,fragmentShader:fs,depthTest:false,depthWrite:false})}
     var mB=sm('uniform sampler2D t;uniform float th;varying vec2 vU;void main(){vec3 c=texture2D(t,vU).rgb;float l=max(c.r,max(c.g,c.b));gl_FragColor=vec4(c*smoothstep(th,th*1.6,l),1.);}',{t:{value:null},th:{value:2.2}});
@@ -690,7 +690,7 @@ var G3=(function(){
   /* a small 3D turntable on top of a shop card: the item spins on its own while the pointer is on it */
   function hover(host,kind,it){
     hoverStop();var w=host.clientWidth,h=host.clientHeight;if(!w||!h||!it||it.id==='m0')return false;
-    var r=new T.WebGLRenderer({antialias:true,alpha:true});r.setPixelRatio(Math.min(window.devicePixelRatio||1,2));r.setSize(w,h,false);
+    var r=new T.WebGLRenderer({antialias:true,alpha:true});r.setPixelRatio(Math.min(Math.max(window.devicePixelRatio||1,2),3));r.setSize(w,h,false);
     r.outputEncoding=T.sRGBEncoding;r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.05;
     var cv=r.domElement;cv.className='hvc';host.appendChild(cv);
     var sc=new T.Scene(),cam=new T.PerspectiveCamera(30,w/h,.1,60);envFor(r,sc);
@@ -730,15 +730,15 @@ var G3=(function(){
   }
   function start(host,cls,alpha){
     stop();var r=new T.WebGLRenderer({antialias:true,alpha:!!alpha,powerPreference:'high-performance'});
-    r.setPixelRatio(Math.min(window.devicePixelRatio||1,2));r.outputEncoding=T.sRGBEncoding;r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.05;r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;
+    r.setPixelRatio(Math.min(Math.max(window.devicePixelRatio||1,2),3));r.outputEncoding=T.sRGBEncoding;r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.05;r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;
     var cv=r.domElement;cv.className='g3c';host.insertBefore(cv,host.firstChild);host.classList.add(cls);if(cls==='a3d'){[].slice.call(host.querySelectorAll('.g3vig')).forEach(function(n){n.remove()});var vg=document.createElement('div');vg.className='g3vig';host.insertBefore(vg,cv.nextSibling)}
     var scene=new T.Scene(),cam=new T.PerspectiveCamera(50,1,.1,200);envFor(r,scene);
     CUR={r:r,scene:scene,cam:cam,host:host,raf:0,t:0,last:0};
     return CUR;
   }
-  function fit(C){var w=C.host.clientWidth,h=C.host.clientHeight;if(!w||!h)return;if(C.w!==w||C.h!==h||C.ds!==C.dsA){C.w=w;C.h=h;C.dsA=C.ds;var dpr=window.devicePixelRatio||1,mx=Q==='fast'?Math.min(dpr,2):Math.min(3,Math.max(dpr,Q==='epic'?3:2));C.r.setPixelRatio(Math.max(.6,Math.max(1,Math.min(mx,Math.sqrt(QCAP[Q]/(w*h))))*(C.ds||1)));C.r.setSize(w,h,false);if(C.post)C.post.size(w,h,C.r.getPixelRatio());C.cam.aspect=w/h;C.cam.updateProjectionMatrix()}}
+  function fit(C){var w=C.host.clientWidth,h=C.host.clientHeight;if(!w||!h)return;if(C.w!==w||C.h!==h||C.ds!==C.dsA){C.w=w;C.h=h;C.dsA=C.ds;var dpr=window.devicePixelRatio||1,mx=Q==='fast'?Math.min(dpr,2):Math.min(Q==='epic'?4:3,Math.max(dpr,Q==='epic'?3:2));C.r.setPixelRatio(Math.max(.6,Math.max(1,Math.min(mx,Math.sqrt(QCAP[Q]/(w*h))))*(C.ds||1)));C.r.setSize(w,h,false);if(C.post)C.post.size(w,h,C.r.getPixelRatio());C.cam.aspect=w/h;C.cam.updateProjectionMatrix()}}
   function dynRes(C,ms){if(!C.dyn||Q==='epic'){C.ds=1;return}C.fa=(C.fa||0)+ms;C.fn=(C.fn||0)+1;if(C.fa<1000)return;var avg=C.fa/C.fn;C.fa=0;C.fn=0;var d=C.ds||1;
-    if(avg>26&&d>.8)C.ds=Math.max(.8,Math.round((d-.08)*100)/100);else if(avg<17.8&&d<1){C.ok2=(C.ok2||0)+1;if(C.ok2>=2){C.ok2=0;C.ds=Math.min(1,Math.round((d+.05)*100)/100)}}else C.ok2=0}
+    if(avg>30&&d>.9)C.ds=Math.max(.9,Math.round((d-.08)*100)/100);else if(avg<17.8&&d<1){C.ok2=(C.ok2||0)+1;if(C.ok2>=2){C.ok2=0;C.ds=Math.min(1,Math.round((d+.05)*100)/100)}}else C.ok2=0}
   function loop(C,fn){function f(ts){if(CUR!==C)return;if(!document.body.contains(C.r.domElement)){stop();return}var dt=C.last?Math.min(.05,(ts-C.last)/1000):.016;if(C.last)dynRes(C,ts-C.last);C.last=ts;C.t+=dt;fit(C);fn(dt,C.t);if(C.postOn)C.post.render();else C.r.render(C.scene,C.cam);C.raf=requestAnimationFrame(f)}C.raf=requestAnimationFrame(f)}
   var ease=function(x){return x<0?0:x>1?1:x*x*(3-2*x)};
   function pulse(t,a,b){return t<a?0:t>b?0:Math.sin((t-a)/(b-a)*Math.PI)}
@@ -796,7 +796,7 @@ var G3=(function(){
     var H=hero(q);S3.add(H.root);var hb=blob(S3,.7);
     var F=creature(e);S3.add(F.root);var fsize=new T.Box3().setFromObject(F.root),fdep=Math.max(fsize.max.x-fsize.min.x,fsize.max.z-fsize.min.z);
     var FR=Math.max(.7,Math.min(1.7,fdep*.32)),fbl=blob(S3,FR*1.3);
-    var kit=e.kit||FOEKIT[e.k]||['swipe','slam'],spdK=1.3,rider=!!(e.human&&e.gear&&e.gear[3]),reachE=e.human?(REACH[humanGear(e).weapon.k]||2)+.4+(rider?.9:0):FR+1.3,tier=ENEMIES.indexOf(e),spdE=(['panther','tiger','lion','wolf','hyena'].indexOf(e.k)>=0?2.9:rider?3.5:2.2)*spdK*(e.boss?1.15:1)+tier*.06;
+    var kit=e.kit||FOEKIT[e.k]||['swipe','slam'],spdK=1.3,rider=!!(e.human&&e.gear&&e.gear[3]),reachE=e.human?(REACH[humanGear(e).weapon.k]||2)+.4+(rider?.9:0):FR+1.3,tier=ENEMIES.indexOf(e),spdE=(['panther','tiger','lion','wolf','hyena'].indexOf(e.k)>=0?2.9:rider?3.5:2.2)*spdK*(e.boss?1.15:1)*.82+tier*.04;
     var wk=q.weapon&&q.weapon.k||'stick',reachP=REACH[wk]||2.05,ranged=reachP>5;
     /* telegraphs on the ground: a cone, a circle and a lane, each with a fill that grows during the wind-up */
     var tcone=grp(S3),tconeO=decal('#FF3A1A',new T.RingGeometry(.2,1,32,1,-Math.PI/2-.95,1.9)),tconeF=decal('#FF6A2A',new T.CircleGeometry(1,32,-Math.PI/2-.95,1.9));tcone.add(tconeO);tcone.add(tconeF);
