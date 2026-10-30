@@ -1171,6 +1171,417 @@ kbd{display:inline-block;min-width:22px;padding:1px 6px;margin:0 2px;border-radi
 <div id="modal" hidden></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
+/* Horse Study mounts: one-skin horses built from a smooth field */
+/* Horse body as one smooth signed-distance field. Pure maths, no THREE. */
+(function(root){
+function smin(a,b,k){var h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k*.25}
+function clamp01(x){return x<0?0:x>1?1:x}
+function sstep(a,b,x){var t=clamp01((x-a)/(b-a));return t*t*(3-2*t)}
+function bez(p0,p1,p2,p3,t){var u=1-t;return [u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]]}
+function ell(cx,cy,cz,rx,ry,rz,k,h){return {t:0,cx:cx,cy:cy,cz:cz,rx:rx,ry:ry,rz:rz,k:k,h:!!h,R:Math.max(rx,ry,rz)}}
+function cone(a,b,r1,r2,k,zs){var dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],l2=dx*dx+dy*dy+dz*dz,rr=r1-r2,a2=l2-rr*rr;
+ return {t:1,ax:a[0],ay:a[1],az:a[2],bx:dx,by:dy,bz:dz,l2:l2,rr:rr,a2:a2,il2:1/l2,r1:r1,r2:r2,k:k,zs:zs||1,
+  mx:(a[0]+b[0])/2,my:(a[1]+b[1])/2,mz:(a[2]+b[2])/2,R:Math.sqrt(l2)/2+Math.max(r1,r2)}}
+function smax(a,b,k){return -smin(-a,-b,k)}
+function makeField(sp){
+ var b=sp.build||{},bu=b.bulk||1,A=b.arch||0,nl=(b.neckLen||1)*1.15,nk=b.neckThick||1,hs=(b.head||1)*.98,hh=(b.headH||1)*1.12,rf=b.refined?.82:1;
+ var P0=[.6,1.76],P1=[.62+.3*nl,1.62+(.12+.04*A)*nl],P2=[.62+.4*nl,1.62+(.36+.1*A)*nl],P3=[.62+(.63+.03*A)*nl,1.62+(.54+.04*A)*nl];
+ var neck=[],i,t,pp;for(i=0;i<=8;i++){t=i/8;pp=bez(P0,P1,P2,P3,t);neck.push([pp[0],pp[1],(.3-.14*t)*nk])}
+ var ho=[P3[0]+.03,P3[1]+.02],HR=.92,cH=Math.cos(HR),sH=Math.sin(HR);
+ var P=[],legs=[];
+ P.push(ell(.02,1.5,0,.84,.42*bu,.37*bu,.2),ell(.5,1.48,0,.38,.4,.27*bu,.18),ell(-.5,1.56,0,.46,.46,.4*bu,.2),ell(.36,1.86,0,.22,.12,.13,.1),
+  ell(-.3,1.46,0,.38,.22,.29*bu,.16),ell(.12,1.28,0,.3,.14,.27*bu,.16),ell(.68,1.4,0,.18*(b.chest||1),.28,.24*bu*(b.chest||1),.15),ell(-.66,1.74,0,.26,.2,.2*bu*(b.rump||1),.15));
+ [-1,1].forEach(function(s){P.push(ell(-.56,1.62,s*.15*bu,.32,.32,.22*bu,.14))});
+ [-1,1].forEach(function(s){P.push(cone([.4,1.72,s*.19],[.6,1.3,s*.21*bu],.08,.08,.12))});
+ if(b.belly)P.push(ell(0,1.2,0,.6,.22*b.belly,.34*bu,.15));
+ for(i=0;i<=26;i++){t=i/26;pp=bez(P0,P1,P2,P3,t);var rr=(.24-.1*t)*nk;P.push(ell(pp[0],pp[1],0,rr*1.05,rr*1.2,rr*.82,.04))}
+ P.push(ell(.08,0,0,.22*rf,.17*rf,.13*rf,.06,1),ell(.35,-.035,0,.34,.125*rf,.095*rf,.06,1),ell(.64,-.07,0,.135,.118,.095,.05,1),ell(.26,-.13,0,.22,.11,.085,.06,1),ell(.04,-.04,0,.2,.12,.13*rf,.06,1),ell(.14,-.1,0,.14,.1,.105*rf,.06,1));
+ [[.155,1],[-.155,1]].forEach(function(l){var z=l[0];
+  P.push(ell(.6,1.12,z*.9,.12,.34,.12,.1),cone([.6,1.3,z],[.62,.66,z],.13,.066,.1),ell(.625,.64,z,.07,.075,.066,.03),cone([.62,.64,z],[.63,.2,z],.058,.048,.04),cone([.6,.58,z],[.612,.26,z],.03,.03,.025),ell(.635,.19,z,.06,.058,.058,.03),cone([.63,.2,z],[.65,.07,z],.054,.05,.03))});
+ [[.2,1],[-.2,1]].forEach(function(l){var z=l[0];
+  var rest=z<0,c1=rest?[-.69,.27,z]:[-.74,.2,z],c2=rest?[-.635,.13,z]:[-.72,.07,z];
+  P.push(ell(-.62,1.24,z*.95,.26,.4,.2*bu,.14),cone([-.64,1.3,z],[-.8,.72,z],.17,.08,.14),ell(-.83,.73,z,.065,.1,.06,.04),cone([-.87,.78,z],[-.8,.64,z],.03,.025,.02),cone([-.8,.72,z],c1,.064,.05,.04),ell(c1[0],c1[1],z,.058,.056,.056,.03),cone(c1,c2,.052,.05,.03))});
+ var SUB=[ell(.72,-.045,.058,.026,.02,.024,.012,1),ell(.72,-.045,-.058,.026,.02,.024,.012,1)];
+ var n=P.length;
+ function f(x,y,z){
+  var qx=x-ho[0],qy=y-ho[1],lx=(qx*cH-qy*sH)/hs,ly=(qx*sH+qy*cH)/hh,d=1e9,j,p,dp;
+  for(j=0;j<n;j++){p=P[j];
+   if(p.t===0){
+    var ex,ey,ez;if(p.h){ex=lx;ey=ly;ez=z}else{ex=x;ey=y;ez=z}
+    var u=(ex-p.cx),v=(ey-p.cy),w=(ez-p.cz);
+    if(d<1e8&&Math.abs(u)>p.R+d+p.k+.02&&0){continue}
+    var X=u/p.rx,Y=v/p.ry,Z=w/p.rz,k0=Math.sqrt(X*X+Y*Y+Z*Z);
+    if(d<1e8&&(k0-1)*Math.min(p.rx,p.ry,p.rz)>d+p.k)continue;
+    var k1=Math.sqrt((X/p.rx)*(X/p.rx)+(Y/p.ry)*(Y/p.ry)+(Z/p.rz)*(Z/p.rz));
+    dp=k1<1e-9?-Math.min(p.rx,p.ry,p.rz):k0*(k0-1)/k1;
+   }else{
+    var zz=z/p.zs,pax=x-p.ax,pay=y-p.ay,paz=zz-p.az;
+    var bx=p.bx,by=p.by,bz=p.bz,yy=pax*bx+pay*by+paz*bz,zc=yy-p.l2;
+    var cx=pax*p.l2-bx*yy,cy=pay*p.l2-by*yy,cz=paz*p.l2-bz*yy,x2=cx*cx+cy*cy+cz*cz,y2=yy*yy*p.l2,z2=zc*zc*p.l2;
+    var kk=(p.rr>0?1:-1)*p.rr*p.rr*x2;
+    if((zc>0?1:-1)*p.a2*z2>kk)dp=Math.sqrt(x2+z2)*p.il2-p.r2;
+    else if((yy>0?1:-1)*p.a2*y2<kk)dp=Math.sqrt(x2+y2)*p.il2-p.r1;
+    else dp=(Math.sqrt(x2*p.a2*p.il2)+yy*p.rr)*p.il2-p.r1;
+    dp*=p.zs;
+   }
+   d=d>1e8?dp:smin(d,dp,p.k);
+  }
+  for(j=0;j<2;j++){p=SUB[j];var X2=(lx-p.cx)/p.rx,Y2=(ly-p.cy)/p.ry,Z2=(z-p.cz)/p.rz,kq=Math.sqrt(X2*X2+Y2*Y2+Z2*Z2);d=smax(d,-(kq-1)*p.ry,p.k)}
+  return d;
+ }
+ /* per-vertex colour override: returns [r,g,b,a] in sRGB 0..1 or null */
+ var sock=sp.socks||[0,0,0,0];
+ function head(x,y,z){var qx=x-ho[0],qy=y-ho[1];return [(qx*cH-qy*sH)/hs,(qx*sH+qy*cH)/hh,z]}
+ function inFace(x,y,z){var h=head(x,y,z);return h}
+ function neckAt(t){var p=bez(P0,P1,P2,P3,t);return [p[0],p[1],(.24-.1*t)*nk]}
+ function headSurfZ(lx,ly){var qx=hs*lx*cH+hh*ly*sH,qy=-hs*lx*sH+hh*ly*cH,x=ho[0]+qx,y=ho[1]+qy,lo=0,hi=.5,m,k;for(k=0;k<22;k++){m=(lo+hi)/2;if(f(x,y,m)<0)lo=m;else hi=m}return lo}
+ function hf(lx,ly,z){return f(ho[0]+hs*lx*cH+hh*ly*sH,ho[1]-hs*lx*sH+hh*ly*cH,z)}
+ function headCross(lx){var a=0,b=.4,k,m;for(k=0;k<20;k++){m=(a+b)/2;if(hf(lx,m,0)<0)a=m;else b=m}var top=a;a=-.45;b=0;for(k=0;k<20;k++){m=(a+b)/2;if(hf(lx,m,0)<0)b=m;else a=m}var bot=b,mid=(top+bot)/2;a=0;b=.4;for(k=0;k<20;k++){m=(a+b)/2;if(hf(lx,mid,m)<0)a=m;else b=m}return {top:top,bot:bot,mid:mid,zw:a}}
+ return {headCross:headCross,hf:hf,neckAt:neckAt,headSurfZ:headSurfZ,f:f,head:head,ho:ho,HR:HR,hs:hs,hh:hh,neck:neck,P3:P3,sstep:sstep,
+  bounds:[[-1.15,-.02,-.65],[1.4+Math.max(0,nl-1)*1.2+.9*hs,3.15+Math.max(0,nl-1)*.9,.65]]};
+}
+var api={makeField:makeField,sstep:sstep,smin:smin};
+if(typeof module!=='undefined')module.exports=api;else root.HSDF=api;
+})(this);
+
+;
+/* Naive surface nets over a scalar field. Returns positions and triangle indices. */
+(function(root){
+function surfaceNets(f,lo,hi,step){
+ var nx=Math.ceil((hi[0]-lo[0])/step),ny=Math.ceil((hi[1]-lo[1])/step),nz=Math.ceil((hi[2]-lo[2])/step),sx=nx+1,sy=ny+1,sz=nz+1;
+ var F=new Float32Array(sx*sy*sz),x,y,z,i=0;
+ for(z=0;z<sz;z++)for(y=0;y<sy;y++)for(x=0;x<sx;x++)F[i++]=f(lo[0]+x*step,lo[1]+y*step,lo[2]+z*step);
+ var cube=[],ce=[];for(i=0;i<8;i++)cube.push([i&1,(i>>1)&1,(i>>2)&1]);
+ for(i=0;i<8;i++)for(var a=0;a<3;a++){var j=i^(1<<a);if(i<j)ce.push([i,j])}
+ var buf=new Int32Array(nx*ny*nz).fill(-1),pos=[],cnt=0;
+ var g=new Float32Array(8);
+ for(z=0;z<nz;z++)for(y=0;y<ny;y++)for(x=0;x<nx;x++){
+  var mask=0;for(i=0;i<8;i++){var c=cube[i],v=F[(x+c[0])+sx*((y+c[1])+sy*(z+c[2]))];g[i]=v;if(v<0)mask|=1<<i}
+  if(mask===0||mask===255)continue;
+  var px=0,py=0,pz=0,en=0;
+  for(i=0;i<12;i++){var e=ce[i],i0=e[0],i1=e[1],a0=g[i0],a1=g[i1];if((a0<0)===(a1<0))continue;var t=a0/(a0-a1);px+=cube[i0][0]+t*(cube[i1][0]-cube[i0][0]);py+=cube[i0][1]+t*(cube[i1][1]-cube[i0][1]);pz+=cube[i0][2]+t*(cube[i1][2]-cube[i0][2]);en++}
+  buf[x+nx*(y+ny*z)]=cnt++;pos.push(lo[0]+(x+px/en)*step,lo[1]+(y+py/en)*step,lo[2]+(z+pz/en)*step);
+ }
+ var idx=[];
+ for(z=0;z<nz;z++)for(y=0;y<ny;y++)for(x=0;x<nx;x++){
+  var A=buf[x+nx*(y+ny*z)];if(A<0)continue;var cc=[x,y,z];
+  for(var ax=0;ax<3;ax++){var u=(ax+1)%3,v=(ax+2)%3;if(cc[u]===0||cc[v]===0)continue;
+   var s0=F[x+sx*(y+sy*z)]<0,s1=F[(x+(ax===0?1:0))+sx*((y+(ax===1?1:0))+sy*(z+(ax===2?1:0)))]<0;if(s0===s1)continue;
+   var du=[0,0,0],dv=[0,0,0];du[u]=1;dv[v]=1;
+   var B=buf[(x-du[0])+nx*((y-du[1])+ny*(z-du[2]))],C=buf[(x-du[0]-dv[0])+nx*((y-du[1]-dv[1])+ny*(z-du[2]-dv[2]))],D=buf[(x-dv[0])+nx*((y-dv[1])+ny*(z-dv[2]))];
+   if(B<0||C<0||D<0)continue;
+   if(s0){idx.push(A,B,C,A,C,D)}else{idx.push(A,C,B,A,D,C)}
+  }}
+ return {pos:new Float32Array(pos),idx:idx};
+}
+var api={surfaceNets:surfaceNets};
+if(typeof module!=='undefined')module.exports=api;else root.HSURF=api;
+})(this);
+
+;
+(function(){
+/* without the 3D library (no WebGL, or it failed to load) the horses are simply not built; the 2D game carries on */
+if(typeof THREE==='undefined')return;
+var T=THREE;
+function rnd(a,b){return a+Math.random()*(b-a)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function tex(w,h,draw,rx,ry,srgb){var c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);var t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;if(rx)t.repeat.set(rx,ry||rx);t.anisotropy=8;if(srgb!==false)t.encoding=T.sRGBEncoding;return t}
+/* ---------- coat textures ---------- */
+function speck(g,w,h,n,a){for(var i=0;i<n;i++){g.fillStyle='rgba('+(Math.random()<.5?'255,255,255':'0,0,0')+','+(Math.random()*a).toFixed(3)+')';g.fillRect(Math.random()*w,Math.random()*h,2,2)}}
+function blob(g,x,y,r,col){g.fillStyle=col;for(var k=0;k<9;k++){g.beginPath();g.arc(x+rnd(-r,r)*.8,y+rnd(-r,r)*.6,r*rnd(.4,.8),0,6.29);g.fill()}}
+function coatTex(c){return tex(1024,512,function(g,w,h){
+ g.fillStyle=c.base;g.fillRect(0,0,w,h);speck(g,w,h,24000,.02);var cs=g.createLinearGradient(0,0,0,h);cs.addColorStop(0,'rgba(0,0,0,.2)');cs.addColorStop(.45,'rgba(0,0,0,0)');cs.addColorStop(1,'rgba(255,240,220,.22)');g.fillStyle=cs;g.fillRect(0,0,w,h);
+ var type=c.type||'solid',i,x,y,r;
+ if(type==='pinto'||type==='sabino'){var n=type==='pinto'?7:4;for(i=0;i<n;i++){blob(g,rnd(0,w),type==='pinto'?rnd(40,h-40):rnd(h*.55,h),rnd(60,140),c.patch)}}
+ if(type==='leopard'){g.fillStyle=c.patch;g.fillRect(0,0,w,h);speck(g,w,h,20000,.05);for(i=0;i<420;i++){x=Math.random()*w;y=Math.random()*h;r=rnd(5,13);g.fillStyle=c.base;g.beginPath();g.ellipse(x,y,r,r*rnd(.8,1.2),0,0,6.29);g.fill()}}
+ if(type==='roan'||type==='flea'){var cnt=type==='roan'?9000:2600;for(i=0;i<cnt;i++){g.fillStyle=type==='roan'?(Math.random()<.7?c.patch:'rgba(255,255,255,.5)'):c.patch;var s=type==='roan'?rnd(1,3):rnd(2,5);g.globalAlpha=type==='roan'?.55:.8;g.fillRect(Math.random()*w,Math.random()*h,s,s*rnd(1,2))}g.globalAlpha=1}
+ var dp=c.dapple||0,n2=Math.round(1100*dp);
+ for(i=0;i<n2;i++){x=Math.random()*w;y=Math.random()*h;r=rnd(10,26);var gr=g.createRadialGradient(x,y,1,x,y,r);gr.addColorStop(0,c.hi);gr.addColorStop(.62,c.hi);gr.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.3;g.fillStyle=gr;g.beginPath();g.arc(x,y,r*1.3,0,6.29);g.fill();g.globalAlpha=.1;g.strokeStyle=c.lo;g.lineWidth=6;g.beginPath();g.arc(x,y,r*1.1,0,6.29);g.stroke()}
+ g.globalAlpha=1},1,1)}
+var FUR=tex(256,256,function(g,w,h){g.fillStyle='#808080';g.fillRect(0,0,w,h);for(var i=0;i<9000;i++){var v=Math.round(rnd(90,170));g.fillStyle='rgb('+v+','+v+','+v+')';g.fillRect(Math.random()*w,Math.random()*h,1,rnd(2,5))}},3,3,false);
+function blkTex(kind,c){return tex(256,256,function(g,w,h){
+ g.fillStyle=c[0];g.fillRect(0,0,w,h);var x,y;
+ if(kind==='stripe'){for(y=0;y<h;y+=32){g.fillStyle=c[1];g.fillRect(0,y+8,w,10);g.fillStyle=c[2];g.fillRect(0,y+22,w,4)}}
+ else if(kind==='check'){for(y=0;y<h;y+=32)for(x=0;x<w;x+=32){if(((x+y)/32)%2===0){g.fillStyle=c[1];g.fillRect(x,y,32,32)}}g.fillStyle=c[2];g.fillRect(0,0,w,5);g.fillRect(0,h-5,w,5)}
+ else if(kind==='diamond'){for(y=0;y<h;y+=64)for(x=0;x<w;x+=64){g.fillStyle=c[1];g.beginPath();g.moveTo(x+32,y+4);g.lineTo(x+60,y+32);g.lineTo(x+32,y+60);g.lineTo(x+4,y+32);g.closePath();g.fill();g.fillStyle=c[2];g.beginPath();g.arc(x+32,y+32,7,0,6.29);g.fill()}}
+ else if(kind==='crest'){for(y=0;y<h;y+=128)for(x=0;x<w;x+=128){g.fillStyle=c[1];g.beginPath();g.arc(x+64,y+64,42,0,6.29);g.fill();g.fillStyle=c[0];g.beginPath();g.arc(x+64,y+64,30,0,6.29);g.fill();g.fillStyle=c[2];g.beginPath();g.moveTo(x+64,y+38);g.lineTo(x+74,y+60);g.lineTo(x+96-10,y+60);g.lineTo(x+78,y+74);g.lineTo(x+84,y+94);g.lineTo(x+64,y+82);g.lineTo(x+44,y+94);g.lineTo(x+50,y+74);g.lineTo(x+32,y+60);g.lineTo(x+54,y+60);g.closePath();g.fill()}}
+ else if(kind==='mail'){for(y=0;y<h;y+=14)for(x=0;x<w;x+=14){g.strokeStyle=c[1];g.lineWidth=2;g.beginPath();g.arc(x+(y/14%2)*7,y,6,0,6.29);g.stroke()}}
+ else if(kind==='scale'){for(y=0;y<h;y+=18)for(x=0;x<w;x+=22){g.fillStyle=((x+y)/18)%2?c[0]:c[1];g.beginPath();g.arc(x+(y/18%2)*11,y,12,0,3.14);g.fill();g.strokeStyle=c[2];g.lineWidth=1.5;g.stroke()}}
+ g.fillStyle=c[2];g.fillRect(0,0,w,6);g.fillRect(0,h-6,w,6);
+ for(var i=0;i<3500;i++){g.fillStyle='rgba(0,0,0,'+(Math.random()*.1)+')';g.fillRect(Math.random()*w,Math.random()*h,1,2)}},1,1)}
+var LEATHT={};
+function leatherTex(c){if(LEATHT[c])return LEATHT[c];return LEATHT[c]=tex(128,128,function(g,w,h){g.fillStyle=c;g.fillRect(0,0,w,h);for(var i=0;i<2500;i++){g.fillStyle='rgba('+(Math.random()<.5?'255,220,180':'0,0,0')+','+(Math.random()*.08)+')';g.fillRect(Math.random()*w,Math.random()*h,2,2)}},2,2)}
+function M(col,o){return new T.MeshStandardMaterial(Object.assign({color:col,roughness:.85,metalness:0},o||{}))}
+/* ---------- geometry helpers ---------- */
+function add(g,m,x,y,z){m.position.set(x||0,y||0,z||0);m.castShadow=true;m.receiveShadow=true;g.add(m);return m}
+function ell(g,rx,ry,rz,mat,x,y,z,rot){var m=new T.Mesh(new T.SphereGeometry(1,36,26),mat);m.scale.set(rx,ry,rz);if(rot)m.rotation.set(rot[0]||0,rot[1]||0,rot[2]||0);return add(g,m,x,y,z)}
+function limb(g,a,b,r1,r2,mat){var A=new T.Vector3(a[0],a[1],a[2]),B=new T.Vector3(b[0],b[1],b[2]),d=B.clone().sub(A),L=d.length();var m=new T.Mesh(new T.CylinderGeometry(r2,r1,L,24,1),mat);m.position.copy(A.clone().add(B).multiplyScalar(.5));m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize());m.castShadow=m.receiveShadow=true;g.add(m);return m}
+function bez(p0,p1,p2,p3,t){var u=1-t;return [u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]]}
+function box(g,w,h,d,mat,x,y,z,rot){var m=new T.Mesh(new T.BoxGeometry(w,h,d),mat);if(rot)m.rotation.set(rot[0]||0,rot[1]||0,rot[2]||0);return add(g,m,x,y,z)}
+function cap(g,rx,ry,rz,mat,x,y,z,th,ps,pl){if(!mat)return null;mat.side=THREE.DoubleSide;var m=new THREE.Mesh(new THREE.SphereGeometry(1,44,30,ps||0,pl||Math.PI*2,0,th),mat);m.scale.set(rx,ry,rz);return add(g,m,x,y,z)}
+function tor(g,R,r,mat,x,y,z,rot){var m=new T.Mesh(new T.TorusGeometry(R,r,8,24),mat);if(rot)m.rotation.set(rot[0]||0,rot[1]||0,rot[2]||0);return add(g,m,x,y,z)}
+
+function hsh(a,b,c){var h=Math.sin(a*127.1+b*311.7+c*74.7)*43758.5453;return h-Math.floor(h)}
+function vn(x,y,z){var xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),w=zf*zf*(3-2*zf);
+ function g(a,b,c){return hsh(xi+a,yi+b,zi+c)}
+ var x00=g(0,0,0)+(g(1,0,0)-g(0,0,0))*u,x10=g(0,1,0)+(g(1,1,0)-g(0,1,0))*u,x01=g(0,0,1)+(g(1,0,1)-g(0,0,1))*u,x11=g(0,1,1)+(g(1,1,1)-g(0,1,1))*u;
+ var y0=x00+(x10-x00)*v,y1=x01+(x11-x01)*v;return y0+(y1-y0)*w}
+function ss(a,b,x){var t=(x-a)/(b-a);t=t<0?0:t>1?1:t;return t*t*(3-2*t)}
+function lin(h){var c=new T.Color(h);return [Math.pow(c.r,2.2),Math.pow(c.g,2.2),Math.pow(c.b,2.2)]}
+function mixc(a,b,t){a[0]+=(b[0]-a[0])*t;a[1]+=(b[1]-a[1])*t;a[2]+=(b[2]-a[2])*t}
+function paint(geo,F,sp){
+ var NA=geo.attributes.normal;
+ var c=sp.coat,P=geo.attributes.position,n=P.count,col=new Float32Array(n*3),ho=F.ho;
+ var base=lin(c.base),hi=lin(c.hi||c.base),lo=lin(c.lo||c.base),patch=lin(c.patch||'#f0e8dc'),legc=lin(sp.leg||c.base),white=lin('#f4efe6'),muz=lin(sp.muz||'#3a302d'),hoofc=lin(sp.hoof||'#1b1410');
+ var sock=sp.socks||[0,0,0,0],type=c.type||'solid',dp=c.dapple||0,face=sp.face||'none',i;
+ for(i=0;i<n;i++){var x=P.getX(i),y=P.getY(i),z=P.getZ(i),k=base.slice();
+  if(dp){var d=vn(x*11,y*11,z*11)-.5+(vn(x*27,y*27,z*27)-.5)*.5;mixc(k,d>0?hi:lo,Math.min(1,Math.abs(d)*dp*1.4))}
+  if(type==='pinto'){var q=vn(x*1.7+3,y*1.7,z*1.7+1)+(vn(x*5,y*5,z*5)-.5)*.2;mixc(k,patch,ss(.52,.62,q))}
+  else if(type==='sabino'){var q2=vn(x*1.9+7,y*1.9,z*1.9)+(vn(x*5,y*5,z*5)-.5)*.2;mixc(k,patch,ss(.52,.62,q2)*ss(1.35,1.1,y))}
+  else if(type==='tobiano'){var hd0=Math.hypot(x-ho[0],y-ho[1]);var q3=vn(x*1.5+2,y*.8,z*1.3)+(vn(x*6,y*6,z*6)-.5)*.12+ss(1.05,.55,y)*.7-ss(.9,.4,hd0)*.6+(c.white||0);mixc(k,patch,ss(.52,.57,q3))}
+  else if(type==='leopard'){k=patch.slice();var sp2=vn(x*13,y*13,z*13);mixc(k,base,ss(.4,.34,sp2))}
+  else if(type==='roan'){mixc(k,patch,.18+.5*ss(.55,.9,hsh(i,3,7)))}
+  else if(type==='flea'){mixc(k,patch,ss(.86,.9,hsh(i,5,9))*.9)}
+  /* belly lighter, back darker */
+  var body_=ss(1.0,.75,Math.abs(z)*2+Math.abs(x)*.2);
+  mixc(k,[0,0,0],ss(1.55,2.0,y)*ss(.95,.7,x)*ss(-1.1,-.9,x)*.16)
+  mixc(k,[1,.93,.85],ss(1.4,1.15,y)*ss(1.0,1.1,y)*ss(.95,.6,Math.abs(x))*ss(.34,.18,Math.abs(z))*.05)
+  /* legs fade to leg colour, socks, hoof */
+  if(y<1.1){mixc(k,legc,ss(1.05,.55,y));var li=(x>0?0:2)+(z>0?0:1);if(sock[li]){var yj=y+(vn(x*38,y*38,z*38)-.5)*.07;mixc(k,white,ss(.54,.36,yj)*.97)}}
+  if(y<.1)mixc(k,hoofc,ss(.1,.07,y));
+  /* head */
+  var hx=(x-ho[0]),hy=(y-ho[1]);
+  if(Math.hypot(hx,hy)<1.8&&x>ho[0]-.4){var h=F.head(x,y,z),lx=h[0],ly=h[1],lz=Math.abs(h[2]);
+   mixc(k,muz,ss(.5,.64,lx));
+   if(face!=='none'){var w=0,lz0=lz;lz=lz+(vn(lx*30,ly*30,lz*30)-.5)*.03;var bw=ss(.08,.04,lz)*ss(.0,.04,ly),bl=bw*ss(.08,.16,lx)*ss(.64,.52,lx),st=ss(.06,.04,lz)*ss(.06,.1,ly)*ss(.08,.14,lx)*ss(.26,.2,lx),sn=ss(.07,.05,lz)*ss(.46,.52,lx)*ss(.7,.62,lx)*ss(-.01,.05,ly);
+    if(face==='blaze')w=bl;else if(face==='star')w=st*1.0;else if(face==='snip')w=sn;else if(face==='stripe')w=Math.max(ss(.035,.02,lz)*ss(.0,.04,ly)*ss(.08,.16,lx)*ss(.64,.52,lx),st);
+    mixc(k,white,w*.97)}}
+  if(NA){var nx=NA.getX(i),ny=NA.getY(i),nz=NA.getZ(i),a1=F.f(x+nx*.05,y+ny*.05,z+nz*.05)/.05,a2=F.f(x+nx*.14,y+ny*.14,z+nz*.14)/.14;var ao=Math.max(0,Math.min(1,(a1*.5+a2*.5)));ao=.45+.55*ao;k[0]*=ao;k[1]*=ao;k[2]*=ao}
+  if(Math.hypot(x-ho[0],y-ho[1])<1.8){var hh2=F.head(x,y,z);var dn=Math.hypot((hh2[0]-.72)/.04,(hh2[1]+.045)/.034,(Math.abs(hh2[2])-.058)/.04);if(dn<1.6)mixc(k,[.02,.015,.012],ss(1.6,.9,dn))}
+  col[i*3]=k[0];col[i*3+1]=k[1];col[i*3+2]=k[2]}
+ geo.setAttribute('color',new T.BufferAttribute(col,3))}
+/* ---------- the horse ---------- */
+function build(sp,res,rigOn){
+ var c=sp.coat,b=sp.build||{},tk=sp.tack||{},tex1=[],G=new T.Group(),parts={wings:[]};G.userData={parts:parts,tex:tex1};
+  var HAIR=tex(256,256,function(g,w,h){g.fillStyle='#808080';g.fillRect(0,0,w,h);for(var q=0;q<5000;q++){var v=Math.round(rnd(105,150));g.fillStyle='rgb('+v+','+v+','+v+')';g.fillRect(Math.random()*w,Math.random()*h,1,rnd(3,7))}},1,1,false);tex1.push(HAIR);
+ var coat=new T.MeshPhysicalMaterial({color:'#fff',vertexColors:true,roughness:.6,clearcoat:.12,clearcoatRoughness:.55,sheen:new T.Color(.16,.14,.12),bumpMap:HAIR,bumpScale:.0012,emissive:c.glow||'#000',emissiveIntensity:c.glow?.35:0});
+ var lgT=tex(8,128,function(g,w,h){var gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,c.base);gr.addColorStop(.5,sp.leg||c.base);gr.addColorStop(1,sp.leg||c.base);g.fillStyle=gr;g.fillRect(0,0,w,h)},1,1);tex1.push(lgT);var leg=M('#fff',{map:lgT,roughness:.82}),white=M('#f2eee6',{roughness:.8}),mane=M(sp.mane,{roughness:.92,emissive:sp.maneGlow||'#000',emissiveIntensity:sp.maneGlow?.55:0}),
+     mane2=M(sp.mane2||sp.mane,{roughness:.92,emissive:sp.maneGlow||'#000',emissiveIntensity:sp.maneGlow?.55:0}),muz=M(sp.muz||'#3a302d',{roughness:.8}),hoof=M(sp.hoof||'#1b1410',{roughness:.5}),
+     eye=M('#0d0907',{roughness:.15,metalness:.1}),iris=M(sp.iris||'#4a2a14',{roughness:.3,emissive:sp.eyeGlow||'#000',emissiveIntensity:sp.eyeGlow?1:0});
+ var lc=tk.leather||'#5b3a22',leather=M('#fff',{map:leatherTex(lc),roughness:.55}),bt=M(tk.bridle||'#2b1a10',{roughness:.5});
+ var metal=M(tk.metal==='gold'?'#e0b43c':tk.metal==='steel'?'#c7cdd6':'#9aa0a8',{metalness:.92,roughness:.28});
+ var blanket=null;if(tk.kind&&tk.kind!=='wild'&&tk.kind!=='halter'&&tk.kind!=='saddle'){var bx=blkTex(tk.pat||'stripe',tk.bl||['#2f5a27','#5f9a3e','#1d3c19']);tex1.push(bx);blanket=M('#fff',{map:bx,roughness:.95})}
+ var wrapMat=tk.boots?M(tk.boots,{roughness:.6}):(blanket||leg);
+ var body=new T.Group();G.add(body);parts.body=body;
+ var bu=b.bulk||1,stM=null,trM=null;
+ if(tk.kind==='war'){stM=M(tk.armor||'#c7cdd6',{metalness:.9,roughness:.3});trM=M(tk.trim||'#e0b43c',{metalness:.9,roughness:.3})}
+ var F=HSDF.makeField(sp),mesh=HSURF.surfaceNets(F.f,F.bounds[0],F.bounds[1],res||.03);
+ var geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(mesh.pos,3));geo.setIndex(new T.BufferAttribute(new Uint32Array(mesh.idx),1));
+ geo.computeVertexNormals();paint(geo,F,sp);(function(){var P=geo.attributes.position,uv=new Float32Array(P.count*2);for(var q=0;q<P.count;q++){uv[q*2]=(P.getX(q)+P.getZ(q)*.6)*2.4;uv[q*2+1]=P.getY(q)*2.4}geo.setAttribute('uv',new T.BufferAttribute(uv,2))})();var skin=new T.Mesh(geo,coat);skin.castShadow=skin.receiveShadow=true;body.add(skin);
+ var tb=new T.Group();tb.position.y=.5;tb.scale.set(1,.82,.8);body.add(tb);
+ var nk=b.neckThick||1,i,t,p,r;
+ for(i=0;i<=26;i++){t=i/26;p=F.neckAt(t);r=p[2];
+  if(stM&&tk.neck!==false&&i%3!==2){var ring=ell(body,r*1.14,r*1.3,r*1.0,i%3===0?stM:trM,p[0],p[1],0)}
+  if(sp.maneStyle!=='none'){var side=(i%2?1:-1)*.045,ms=sp.maneStyle,mm=(i%3===0&&sp.mane2)?mane2:mane;
+   if(ms==='short'){ell(body,.045,.045,.03,mm,p[0]-.02,p[1]+r*.95,0)}
+   else if(ms==='braid'){ell(body,.045,.045,.045,mm,p[0]-.03,p[1]+r*.98,0);if(i%2===0)tor(body,.035,.008,M(sp.ribbon||'#c23b3b'),p[0]-.03,p[1]+r*.98,0,[0,1.57,0])}
+   else{var wild=ms==='wild',top=p[1]+r*1.12,zs=r*.82;
+    for(var q=0;q<5;q++){var sd=wild?(q%2?-1:1):1,L=(wild?.45:.38)+Math.random()*.16+(wild?0:.08*Math.sin(t*3)),jx=(Math.random()-.5)*.03,mq=(q===2&&sp.mane2)?mane2:mm;
+     var pts=[new T.Vector3(p[0]-.02+jx,top+.015,sd*.01),new T.Vector3(p[0]-.04+jx,top-.01,sd*(zs*.75+.02)),new T.Vector3(p[0]-.07+jx,top-L*.45,sd*(zs+.035)),new T.Vector3(p[0]-.09+jx,top-L,sd*(zs+.02+(wild?.05*Math.random():0)))];
+     var st=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),10,.021-q*.002,5,false),mq);st.castShadow=true;body.add(st)}}}}
+ var head=new T.Group();head.position.set(F.ho[0],F.ho[1],0);head.rotation.z=-F.HR;body.add(head);parts.head=head;parts.headBase=-F.HR;
+ head.scale.set(F.hs,F.hh,1);
+ var hct=coatTex(c);tex1.push(hct);var hcoat=new T.MeshPhysicalMaterial({color:'#fff',map:hct,roughness:.86,emissive:c.glow||'#000',emissiveIntensity:c.glow?.35:0});
+ var zE=F.headSurfZ(.17,.065),zN=F.headSurfZ(.71,-.04);
+ [1,-1].forEach(function(s){
+  var eg=new T.Group();eg.position.set(.17,.068,s*zE);eg.rotation.set(0,0,.12);head.add(eg);
+  var ball=new T.MeshPhysicalMaterial({color:sp.iris||'#3a1e0e',roughness:.08,clearcoat:1,clearcoatRoughness:.03,emissive:sp.eyeGlow||'#000',emissiveIntensity:sp.eyeGlow?1:0});
+  ell(eg,.058,.04,.016,M('#2a2220',{roughness:.7}),0,0,s*-.004);
+  ell(eg,.048,.032,.02,ball,0,-.002,0);
+  ell(eg,.024,.009,.006,M('#050302',{roughness:.1}),.002,-.002,s*.016);
+  ell(eg,.008,.006,.003,M('#fff',{emissive:'#fff',emissiveIntensity:.7}),.016,.012,s*.019);
+  var lid=ell(eg,.056,.022,.022,hcoat,-.002,.026,s*.003,[0,0,-.04]);
+  ell(eg,.05,.012,.016,hcoat,.0,-.03,s*.002);
+  for(var q=0;q<7;q++){var lx=-.034+q*.012;limb(eg,[lx,.04,s*.014],[lx+.012,.052,s*.03],.0022,.0012,M('#120c0a',{roughness:.6}))}
+  var ear=new T.Mesh(new T.ConeGeometry(.045,.2,14),hcoat);ear.position.set(-.04,.2,s*.085);ear.rotation.set(s*.25,0,-.25);ear.castShadow=true;head.add(ear);parts['ear'+(s>0?'R':'L')]=ear;
+  var ein=new T.Mesh(new T.ConeGeometry(.028,.15,10),M('#3a2a28'));ein.position.set(-.035,.19,s*.09);ein.rotation.copy(ear.rotation);head.add(ein)});
+ if(sp.maneStyle!=='none'&&sp.maneStyle!=='short'){var fc=F.headCross(-.02);for(var q=0;q<5;q++){var fz=(q-2)*.018,pts=[new T.Vector3(-.06,fc.top+.01,fz),new T.Vector3(.04,fc.top+.03,fz*1.2),new T.Vector3(.16,F.headCross(.16).top+.01,fz*1.5),new T.Vector3(.24+q*.01,F.headCross(.24).top-.01,fz*1.7)];var st=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),10,.014,5,false),q%2&&sp.mane2?mane2:mane);head.add(st)}}
+ /* bridle or halter */
+ if(tk.kind!=='wild'){var halter=tk.kind==='halter',hb=halter?M(tk.bridle||'#a03232',{roughness:.7}):bt;
+  function band(lx,o){var cs=F.headCross(lx),ry=(cs.top-cs.bot)/2+o,rz=cs.zw+o,pts=[];for(var q=0;q<24;q++){var a=q/24*Math.PI*2;pts.push(new T.Vector3(lx,cs.mid+Math.cos(a)*ry,Math.sin(a)*rz))}var m=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts,true),48,.011,6,true),hb);m.castShadow=true;head.add(m);return cs}
+  var nbc=band(.5,.01),cbc=band(-.03,.012);
+  [-1,1].forEach(function(s){var z1=F.headSurfZ(.48,nbc.mid)+.012,z2=F.headSurfZ(.0,cbc.mid+.02)+.014,z3=F.headSurfZ(.3,nbc.mid+.01)+.012;
+   var ch=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(.5,nbc.mid,s*z1),new T.Vector3(.3,nbc.mid+.02,s*z3),new T.Vector3(.0,cbc.mid+.02,s*z2)]),16,.01,5,false),hb);head.add(ch);
+   if(!halter){var zr=F.headSurfZ(.56,-.1)+.016;tor(head,.022,.006,metal,.56,-.1,s*zr,[0,0,0])}});
+  if(halter){var rope=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(.5,-.12,0),new T.Vector3(.5,-.3,.02),new T.Vector3(.45,-.6,.05),new T.Vector3(.35,-.9,.02)]),20,.014,6,false),M('#d9c8a0'));rope.castShadow=true;head.add(rope)}}
+ /* fantasy bits */
+ if(sp.horn){var hm=M(sp.horn,{roughness:.2,metalness:.2,emissive:sp.horn,emissiveIntensity:.25});for(i=0;i<6;i++){var hc=new T.Mesh(new T.CylinderGeometry(.038-(i+1)*.0055,.038-i*.0055,.1,14),hm);hc.position.set(.14+Math.sin(1.05)*(.05+i*.092),.3+Math.cos(1.05)*(.05+i*.092),0);hc.rotation.z=-1.05;hc.castShadow=true;head.add(hc)}}
+ if(sp.wings){[1,-1].forEach(function(s){var w=new T.Group();w.position.set(.3,1.95,s*.26);body.add(w);parts.wings.push({g:w,s:s});var fm=M(sp.wings,{roughness:.6,emissive:sp.wingGlow||'#000',emissiveIntensity:sp.wingGlow?.3:0});
+  for(var k=0;k<11;k++){var f=ell(w,.62-k*.025,.035,.14,fm,-.3-k*.03,.12+k*.075,s*(.5+k*.07),[0,s*(-.45+k*.04),s*(.5-k*.07)]);f.rotation.order='ZYX'}
+  ell(w,.2,.12,.1,fm,-.1,.0,s*.12)})}
+ /* tail */
+ var hairDock=M(sp.mane,{roughness:.9});var tail=new T.Group();tail.position.set(-1.0,1.84,0);G.add(tail);parts.tail=tail;
+ var ts=sp.tailStyle||'long',tl={stub:.18,short:.45,long:.95,flow:1.15,sweep:1.5,braid:.95}[ts]||.95;
+ for(i=0;i<=5;i++){t=i/5;ell(tail,.05-.015*t,.06,.05-.015*t,coat.clone?hairDock:hairDock,-.02-.05*t,-.02-t*.22,0)}
+ var nS=ts==='stub'?8:40;for(i=0;i<nS;i++){var an=i/nS*Math.PI*2,rr2=.025+.02*Math.random(),L2=tl*(.75+.35*Math.random()),sw=ts==='sweep'?.25:.12,ox=Math.cos(an)*rr2,oz=Math.sin(an)*rr2;
+  var pts=[new T.Vector3(-.05+ox*.4,-.1,oz*.4),new T.Vector3(-.12+ox,-.1-L2*.3,oz*1.6),new T.Vector3(-.13-sw*.5+ox*1.4,-.1-L2*.65,oz*2.2),new T.Vector3(-.1-sw+ox*1.8,-.1-L2,oz*2.6)];
+  var st=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),12,.024-.006*Math.random(),5,false),i%3===0&&sp.mane2?mane2:mane);st.castShadow=true;tail.add(st)}
+ if(ts==='braid'){for(i=0;i<5;i++)tor(tail,.05,.01,M(sp.ribbon||'#c23b3b'),-.05-.05*i,-.2-i*.15,0,[0,1.57,0])}
+ /* legs */
+ var sock=sp.socks||[0,0,0,0],fth=b.feather||0;
+ function extras(g,x,z,wx,fore,rest){
+  if(tk.boots||(tk.kind&&tk.kind!=='wild'&&tk.kind!=='halter'&&tk.kind!=='saddle'&&tk.wraps!==false)){var bc=fore?[.625,.4,0]:rest?[-.745,.47,.24]:[-.77,.44,.115];var wr=new T.Mesh(new T.CylinderGeometry(.074,.07,.3,24),wrapMat);wr.position.set(bc[0],bc[1],z);wr.rotation.z=bc[2];wr.castShadow=true;g.add(wr);var bnd=new T.Mesh(new T.TorusGeometry(.073,.008,6,24),M('#1a120c',{roughness:.5}));bnd.position.set(bc[0],bc[1]+.1,z);bnd.rotation.set(Math.PI/2,0,0);g.add(bnd)}
+  for(var f=0;f<fth;f++)ell(g,.05,.1+.02*f,.05,mane2,x+f*.02-.02,.12,z+(f-1)*.03);
+  var h=new T.Mesh(new T.CylinderGeometry(.07,.08,.1,22),hoof);h.position.set(x+.015,.05,z);if(rest){h.position.set(-.622,.09,z);h.rotation.z=.43}h.castShadow=true;g.add(h)}
+ var PV=[{h:[.6,1.22],k:[.625,.64],f:1},{h:[.6,1.22],k:[.625,.64],f:1},{h:[-.62,1.26],k:[-.8,.72],f:0},{h:[-.62,1.26],k:[-.8,.72],f:0}],LGS=[];
+ function LG(i){var pv=PV[i],hg=new T.Group();hg.position.set(pv.h[0],pv.h[1],0);body.add(hg);var kg=new T.Group();kg.position.set(pv.k[0]-pv.h[0],pv.k[1]-pv.h[1],0);hg.add(kg);var og=new T.Group();og.position.set(-pv.k[0],-pv.k[1],0);kg.add(og);LGS[i]={hip:hg,knee:kg};return og}
+ extras(LG(0),.65,.155,.625,true);extras(LG(1),.65,-.155,.625,true);extras(LG(2),-.73,.2,-.766,false);extras(LG(3),-.73,-.2,-.766,false,true);
+ if(rigOn){var PA=geo.attributes.position,B0=PA.array.slice(),LV=[[],[],[],[]],q;
+  for(q=0;q<PA.count;q++){var vx=B0[q*3],vy=B0[q*3+1],vz=B0[q*3+2];if(Math.abs(vz)<.03)continue;var li=(vx>0?0:2)+(vz>0?0:1),pv=PV[li];
+   var wh=pv.f?ss(1.18,.9,vy):ss(1.22,.95,vy);if(wh<=0||Math.abs(vx-pv.h[0])>.45)continue;LV[li].push(q,wh,pv.f?ss(.72,.6,vy):ss(.8,.68,vy))}
+  var last='';
+  G.userData.rig={legs:null,update:function(){var L=this.legs;if(!L)return;var key='',A=[];for(var i=0;i<4;i++){var u=L[i].userData,H=-(u.up.rotation.x||0),K=(PV[i].f?-1:1)*(u.kn.rotation.x||0);A.push([H,K]);key+=H.toFixed(3)+K.toFixed(3)}
+   if(key===last)return;last=key;var arr=PA.array;
+   for(i=0;i<4;i++){var pv=PV[i],H=A[i][0],K=A[i][1],V=LV[i];LGS[i].hip.rotation.z=H;LGS[i].knee.rotation.z=K;
+    for(var j=0;j<V.length;j+=3){var o=V[j]*3,x=B0[o],y=B0[o+1],wk=V[j+2],wh=V[j+1],a,cs,sn,dx,dy;
+     if(wk>0){a=K*wk;cs=Math.cos(a);sn=Math.sin(a);dx=x-pv.k[0];dy=y-pv.k[1];x=pv.k[0]+dx*cs-dy*sn;y=pv.k[1]+dx*sn+dy*cs}
+     a=H*wh;cs=Math.cos(a);sn=Math.sin(a);dx=x-pv.h[0];dy=y-pv.h[1];arr[o]=pv.h[0]+dx*cs-dy*sn;arr[o+1]=pv.h[1]+dx*sn+dy*cs}}
+   PA.needsUpdate=true;geo.computeVertexNormals()}};
+  skin.onBeforeRender=function(){G.userData.rig.update()}}
+ /* tack */
+ var kind=tk.kind;
+ if(kind&&kind!=='wild'&&kind!=='halter'){
+  var big=kind==='royal'||kind==='war';
+  if(big){cap(tb,.99,.56*bu,.51*bu,blanket,.02,1.22,0,2.3);cap(tb,.58,.6*bu,.52*bu,blanket,-.55,1.28,0,2.0);if(kind==='royal')cap(tb,.5,.63,.45*bu,blanket,.58,1.24,0,1.75)}else cap(tb,.62,.56*bu,.5*bu,blanket,.12,1.22,0,1.9);
+  if(kind==='western'){
+   ell(tb,.38,.07,.22,leather,.12,1.77,0);ell(tb,.06,.12,.1,leather,.42,1.86,0);ell(tb,.07,.12,.17,leather,-.2,1.86,0);
+   var hn=new T.Mesh(new T.CylinderGeometry(.03,.04,.1,12),leather);hn.position.set(.43,1.95,0);hn.castShadow=true;tb.add(hn);
+   cap(tb,.38,.59*bu,.53*bu,leather,.12,1.22,0,1.2)}
+  else{ell(tb,.34,.06,.2,leather,.12,1.76,0);ell(tb,.06,.1,.1,leather,.42,1.8,0);ell(tb,.07,.1,.17,leather,-.18,1.82,0)}
+  cap(tb,.44,.54*bu,.48*bu,leather,.12,1.22,0,1.15);[-1,1].forEach(function(s){limb(tb,[.1,1.74,s*.3],[.1,1.18,s*.55],.012,.012,leather);tor(tb,.065,.012,metal,.1,1.1,s*.55,[0,Math.PI/2,0]);limb(tb,[.32,1.2,s*.52],[.34,.96,s*.5],.012,.012,leather)});
+  [-1,1].forEach(function(s){var mx=F.ho[0]+F.hs*.56*Math.cos(F.HR)+F.hh*-.1*Math.sin(F.HR),my=F.ho[1]-F.hs*.56*Math.sin(F.HR)+F.hh*-.1*Math.cos(F.HR),n6=F.neckAt(.65),n3=F.neckAt(.3);
+   var pts=[new T.Vector3(mx,my,s*.1),new T.Vector3(n6[0]+.05,n6[1]-.05,s*(n6[2]*.82+.06)),new T.Vector3(n3[0],n3[1]+.02,s*(n3[2]*.82+.06)),new T.Vector3(.5,2.0,s*.06)];
+   var tube=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),30,.01,6,false),bt);tube.castShadow=true;body.add(tube)});
+  if(kind==='war'){var st=stM,tr=trM;
+   cap(tb,.5,.63,.45*bu,st,.58,1.24,0,3.14,Math.PI/2,Math.PI);cap(tb,.52,.65,.46*bu,tr,.58,1.24,0,.85,Math.PI/2,Math.PI);
+   ell(head,.34,.035,.1,st,.34,.06,0,[0,0,.04]);ell(head,.08,.03,.06,tr,.17,.14,0);ell(head,.05,.15,.06,tr,.1,.24,0,[0,0,.4]);ell(head,.04,.1,.05,tr,.0,.22,0,[0,0,.2]);
+   cap(tb,.58,.6*bu,.52*bu,st,-.55,1.28,0,1.25,-Math.PI/2,Math.PI);cap(tb,.6,.62*bu,.54*bu,tr,-.55,1.28,0,.45,-Math.PI/2,Math.PI)}}
+ if(tk.breast){var bp=[],zz;for(var q=0;q<=10;q++){zz=-.3+q*.06;var yy=1.48-.12*Math.cos(zz/.3*1.4);var a0=.2,a1=1.2,m2;for(var r2=0;r2<20;r2++){m2=(a0+a1)/2;if(F.f(m2,yy,zz)<0)a0=m2;else a1=m2}bp.push(new T.Vector3(a0+.014,yy,zz*1.03))}
+  var bpm=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(bp),40,.018,6,false),leather);bpm.castShadow=true;body.add(bpm);
+  var ctr=bp[5];tor(body,.035,.008,metal,ctr.x+.01,ctr.y,0,[0,Math.PI/2,0]);
+  [-1,1].forEach(function(s){var e=bp[s<0?0:10],zs2=.0;var a0=0,a1=.7,m3;for(var r3=0;r3<20;r3++){m3=(a0+a1)/2;if(F.f(.3,1.7,m3)<0)a0=m3;else a1=m3}
+   var st=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([e,new T.Vector3(.45,1.6,s*(a0+.02)),new T.Vector3(.3,1.72,s*(a0+.015))]),16,.016,6,false),leather);body.add(st)})}
+ body.userData={};
+ if(sp.scale){G.scale.set(sp.scale[0],sp.scale[1],sp.scale[2])}
+ G.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+ return G;
+}
+function disposeHorse(g){if(!g)return;g.traverse(function(o){if(o.isMesh){o.geometry.dispose();var m=o.material;if(m&&m.dispose)m.dispose()}});(g.userData.tex||[]).forEach(function(t){t.dispose()})}
+window.HorseLab={build:build,dispose:disposeHorse,M:M,tex:tex,rnd:rnd};
+})();
+
+;
+(function(){
+var K=function(pat,bl,o){return Object.assign({kind:'ranch',pat:pat,bl:bl},o||{})};
+var HV={bulk:1.2,neckThick:1.25,head:1.1,feather:2,arch:0};
+window.ARB_HORSES=[
+ {n:'Rose Dapple Grey',d:'The study horse: dappled coat, dark legs, green striped wraps.',coat:{type:'solid',base:'#8a7a74',hi:'#b6a8a0',lo:'#4e423f',dapple:1},leg:'#2e2523',mane:'#241d1b',muz:'#3a302d',tack:K('stripe',['#2f5a27','#5f9a3e','#1d3c19'])},
+ {n:'Midnight Bay',d:'Deep red-brown bay with a white blaze and a crimson check blanket.',coat:{base:'#7a3f22',hi:'#945230',lo:'#4a2210',dapple:.3},leg:'#1a1210',mane:'#140e0b',muz:'#2a1d17',face:'blaze',tack:K('check',['#8a1f1f','#e8d8b8','#4a0f0f'])},
+ {n:'Chestnut Flame',d:'Bright chestnut with a flaxen mane, white socks and a western saddle.',coat:{base:'#a8552a',hi:'#c8743c',lo:'#6e3015',dapple:.25},leg:'#8f4623',socks:[1,0,1,0],mane:'#e3b36a',mane2:'#c98f48',muz:'#6e3a1e',face:'stripe',tack:K('diamond',['#b5441f','#f0d9a0','#7a2a10'],{kind:'western',leather:'#7a4a2a'})},
+ {n:'Black Knight',d:'Jet-black war horse in steel plate with gold trim and red ribbons.',coat:{base:'#2a2628',hi:'#403a3c',lo:'#141213',dapple:.25},leg:'#141213',mane:'#0e0c0d',maneStyle:'braid',ribbon:'#8a1f1f',muz:'#1c1819',build:{bulk:1.05,head:1.05},scale:[1.03,1.03,1.05],tack:K('crest',['#1c1c24','#8a1f1f','#e0b43c'],{kind:'war',armor:'#c7cdd6',trim:'#e0b43c',bridle:'#1a1a1a',metal:'steel'})},
+ {n:'Palomino Dawn',d:'Golden coat, pale mane and a blue and gold royal blanket.',coat:{base:'#d8a24a',hi:'#e7bb6a',lo:'#a8772a',dapple:.35},leg:'#cf9a40',mane:'#f4ead2',mane2:'#e8dcbc',muz:'#8a5a2a',face:'star',tack:K('diamond',['#1f3f8a','#e0b43c','#f4ead2'],{kind:'royal',metal:'gold',bridle:'#6a4a1a'})},
+ {n:'Snow Arabian',d:'Slim, elegant white Arabian with a flowing mane and teal silks.',coat:{base:'#e6e2dc',hi:'#ffffff',lo:'#b8b2a8',dapple:.3},leg:'#d8d3c9',muz:'#6a5a58',mane:'#f4f1ea',tailStyle:'flow',build:{refined:1,bulk:.92,head:.92,arch:1},scale:[.97,1.02,.9],iris:'#2a1a10',tack:K('crest',['#0e6a7a','#e0b43c','#f4f1ea'],{kind:'royal',metal:'gold',bridle:'#1a4a52'})},
+ {n:'Paint Pinto',d:'Brown and white patches, white socks and a sky-blue western blanket.',coat:{type:'pinto',base:'#6a3a22',patch:'#f2eee6'},leg:'#6a3a22',socks:[1,1,0,1],mane:'#2a1a12',mane2:'#f2eee6',face:'blaze',tack:K('stripe',['#2a6a8a','#f2eee6','#1a3f5a'],{kind:'western',leather:'#6b4a2a'})},
+ {n:'Appaloosa Leopard',d:'Cream coat with dark spots, a pink muzzle and a short mane.',coat:{type:'leopard',base:'#3a2a22',patch:'#f1e9da'},leg:'#cdbfa8',mane:'#3a2a22',mane2:'#e8dcc6',maneStyle:'short',muz:'#d8b8a8',tack:K('check',['#c8601f','#f0d9a0','#7a3a10'])},
+ {n:'Blue Roan',d:'Silvery blue speckled coat with dark points and a teal blanket.',coat:{type:'roan',base:'#3c4652',patch:'#cfd6de'},leg:'#1c2229',mane:'#1c2229',muz:'#232a31',face:'blaze',tack:K('stripe',['#1f7a7a','#7ac8c8','#0f4a4a'])},
+ {n:'Strawberry Roan',d:'Pink-red roan with a white star and a royal-blue check blanket.',coat:{type:'roan',base:'#a05a38',patch:'#f2d9c6'},leg:'#7a3c24',mane:'#6a3018',muz:'#5a2a18',face:'star',tack:K('check',['#3a4a8a','#f0e0b0','#1f2a5a'])},
+ {n:'Buckskin Desert',d:'Sandy gold coat with black legs and mane, in a blue diamond blanket.',coat:{base:'#c9a064',hi:'#dab67a',lo:'#8a6a38',dapple:.2},leg:'#1e1612',mane:'#1a120d',muz:'#2a1d17',face:'snip',tack:K('diamond',['#2a5a8a','#e0d4b0','#17345a'])},
+ {n:'Cremello Pearl',d:'Pale cream with pink skin, blue eyes and a plum royal blanket.',coat:{base:'#f0e4cc',hi:'#fff6e2',lo:'#d6c4a2',dapple:.2},leg:'#ecdfc6',muz:'#d8a8a0',mane:'#fbf4e4',iris:'#6aa0c8',tack:K('crest',['#8a3a6a','#f0d9a0','#5a1f44'],{kind:'royal',metal:'gold',bridle:'#5a1f44'})},
+ {n:'Dun Dorsal',d:'Tan dun with a roached mane, black legs and a rugged saddle.',coat:{base:'#b79a6a',hi:'#c9ad80',lo:'#7a6038',dapple:.15},leg:'#2a2018',mane:'#241a12',maneStyle:'short',tailStyle:'short',muz:'#3a2a1c',tack:K('stripe',['#6a4a2a','#d9b98a','#3a2a18'],{kind:'western',leather:'#5a3a20'})},
+ {n:'Flea-Bitten Grey',d:'White-grey flecked with rust, braided mane with purple ribbons.',coat:{type:'flea',base:'#d8d4cc',patch:'#9a5a3a'},leg:'#bdb7ad',mane:'#e8e4dc',maneStyle:'braid',ribbon:'#6a3a8a',muz:'#6a5a58',tack:K('check',['#5a2f8a','#d8c8f0','#34195a'])},
+ {n:'Percheron Draft',d:'Heavy dark-grey draft horse with feathered hooves and gold braids.',coat:{base:'#4a4648',hi:'#6e6a6c',lo:'#2c2a2b',dapple:.8},leg:'#2a2728',mane:'#1a1819',maneStyle:'braid',ribbon:'#e0b43c',muz:'#2a2728',build:HV,scale:[1.06,1,1.22],tack:K('stripe',['#7a1f1f','#e0b43c','#3a0f0f'],{wraps:false})},
+ {n:'Clydesdale',d:'Tall bay with four white feathered socks and a bold white blaze.',coat:{base:'#7a3a1f',hi:'#965030',lo:'#4a2010',dapple:.3},leg:'#3a1a0f',socks:[1,1,1,1],mane:'#1e100a',maneStyle:'braid',ribbon:'#d93a3a',muz:'#2a1810',face:'blaze',build:HV,scale:[1.07,1.03,1.2],tack:K('check',['#1f4a8a','#e0b43c','#12285a'],{wraps:false})},
+ {n:'Thoroughbred Racer',d:'Lean, long-legged racer with racing silks in yellow and green.',coat:{base:'#6a3a22',hi:'#865030',lo:'#3e200f',dapple:.3},leg:'#1a1210',mane:'#140e0b',maneStyle:'short',tailStyle:'flow',muz:'#2a1d17',face:'star',build:{refined:1,bulk:.88,arch:1.2,head:1},scale:[1.03,1.1,.82],tack:K('check',['#f2c230','#1f7a3a','#111111'])},
+ {n:'Shetland Pony',d:'Small, shaggy pony with a wild mane and a red halter.',coat:{base:'#5a3a2a',hi:'#745040',lo:'#38201a',dapple:.2},leg:'#2a1a12',mane:'#1a120d',maneStyle:'wild',tailStyle:'flow',muz:'#2a1a12',face:'stripe',build:{bulk:1.2,neckThick:1.3,head:1.2},scale:[.62,.62,.7],tack:{kind:'halter',bridle:'#c23b3b'}},
+ {n:'Mustang Wild',d:'Untamed dun mustang with a tangled mane and no tack.',coat:{base:'#9a7a52',hi:'#b2916a',lo:'#5e4628',dapple:.25},leg:'#2a1e14',mane:'#1e150d',maneStyle:'wild',tailStyle:'flow',muz:'#2a1e14',tack:{kind:'wild'}},
+ {n:'Ghost Grey',d:'A glowing spectral horse with a mane of blue fire.',coat:{base:'#9fb7c8',hi:'#d6ecf8',lo:'#5a7a92',dapple:1,glow:'#6ac0ff'},leg:'#8ab0c8',mane:'#bfe6ff',maneGlow:'#4aa8ff',maneStyle:'wild',tailStyle:'flow',muz:'#7aa0b8',iris:'#9af',tack:{kind:'wild'}},
+ {n:'Unicorn',d:'Pearl-white unicorn with a golden horn and a pink and lilac mane.',coat:{base:'#f6f2f8',hi:'#ffffff',lo:'#d8cfe6',dapple:.3,glow:'#f0b8ff'},leg:'#efe8f4',muz:'#d8a8c8',mane:'#f4b8e0',mane2:'#b8c8ff',maneGlow:'#ff9ad8',tailStyle:'flow',horn:'#fff2c2',iris:'#8a5ac8',tack:{kind:'wild'}},
+ {n:'Pegasus',d:'White winged horse with a sky-blue mane and a gold halter.',coat:{base:'#f3f1ec',hi:'#ffffff',lo:'#cfcbc2',dapple:.2},leg:'#e8e4dc',muz:'#8a7a78',mane:'#9cc8f0',maneGlow:'#5aa0e8',tailStyle:'flow',wings:'#ffffff',wingGlow:'#9cc8ff',tack:{kind:'halter',bridle:'#e0b43c'}},
+ {n:'Ember Stallion',d:'Black stallion with a mane of fire and red-trimmed iron armour.',coat:{base:'#1e1a1c',hi:'#3a2a28',lo:'#0e0c0d',dapple:.3,glow:'#601800'},leg:'#120e10',mane:'#ff7a1a',mane2:'#ffcc33',maneGlow:'#ff5a00',tailStyle:'flow',muz:'#2a1a18',iris:'#ff9a2a',build:{bulk:1.05},tack:K('stripe',['#2a0f0a','#ff7a1a','#1a0a06'],{kind:'war',armor:'#4a3a3a',trim:'#ff7a1a',bridle:'#1a0a06'})},
+ {n:'Royal Charger',d:'Dapple-grey parade horse in a blue and gold crest caparison.',coat:{base:'#cfcac2',hi:'#e8e4dc',lo:'#8e8880',dapple:.9},leg:'#bdb7ad',mane:'#f4f1ea',maneStyle:'braid',ribbon:'#1f3f8a',muz:'#6a5a58',tack:K('crest',['#1f3f8a','#e0b43c','#f4f1ea'],{kind:'royal',metal:'gold',bridle:'#1f2a4a'})},
+ {n:'Desert Sand Arabian',d:'Sandy Arabian with a braided tail and a red and gold blanket.',coat:{base:'#d2b184',hi:'#e2c79c',lo:'#9a7a4c',dapple:.25},leg:'#c4a06f',mane:'#8a5a2a',tailStyle:'braid',ribbon:'#a8321f',muz:'#6a4a2a',build:{refined:1,bulk:.92,head:.92,arch:1},scale:[.97,1.02,.9],tack:K('diamond',['#a8321f','#e0b43c','#5a1a0f'],{kind:'royal',metal:'gold',bridle:'#5a1a0f'})},
+ {n:'Frost Palfrey',d:'Pale blue-grey dapple with an icy check blanket and silver tack.',coat:{base:'#c8ccd2',hi:'#e8ecf2',lo:'#8a93a0',dapple:1},leg:'#a8b0bc',mane:'#f4f8fc',muz:'#6a727e',face:'star',tack:K('check',['#cfe4f4','#5a8ab8','#1f3f66'],{metal:'steel',bridle:'#3a4a5a'})},
+ {n:'Forest Brown',d:'Sturdy dark brown with a white star and a mossy green blanket.',coat:{base:'#4a2e1f',hi:'#64402c',lo:'#2a170d',dapple:.3},leg:'#22150e',mane:'#18100b',muz:'#22150e',face:'star',build:{bulk:1.06},tack:K('diamond',['#2a5a2f','#8ab85a','#16341a'])},
+ {n:'Copper Sabino',d:'Copper coat with white belly patches, four socks and a flaxen mane.',coat:{type:'sabino',base:'#a8552a',patch:'#f2eee6',dapple:.15,hi:'#c8743c',lo:'#6e3015'},leg:'#a8552a',socks:[1,1,1,1],mane:'#f0d9a0',mane2:'#c98f48',face:'blaze',muz:'#6e3a1e',tack:K('stripe',['#b5441f','#f0d9a0','#7a2a10'])},
+ {n:'Skewbald Gold',d:'Gold and white patchwork horse with red ribbons and a gold-edged blanket.',coat:{type:'pinto',base:'#d8a24a',patch:'#f2eee6'},leg:'#d8a24a',mane:'#f2eee6',maneStyle:'braid',ribbon:'#d93a3a',muz:'#8a5a2a',tack:K('check',['#8a1f1f','#e0b43c','#4a0f0f'],{kind:'royal',metal:'gold',bridle:'#4a0f0f'})},
+ {n:'Gilded War Charger',d:'Dark charger in gold plate with a crimson crest caparison.',coat:{base:'#2e2a2c',hi:'#48403f',lo:'#161214',dapple:.5},leg:'#1a1618',mane:'#e0c060',maneStyle:'braid',ribbon:'#8a1f1f',muz:'#1e1a1c',build:{bulk:1.05},scale:[1.03,1.03,1.05],tack:K('crest',['#6a0f0f','#e0b43c','#2a0505'],{kind:'war',armor:'#e0b43c',trim:'#8a1f1f',metal:'gold',bridle:'#2a0505'})},
+ {n:'Smoky Black',d:'Smoke-grey dapple with a two-tone silver and charcoal mane.',coat:{base:'#3e383a',hi:'#5a5256',lo:'#1e1a1c',dapple:.9},leg:'#1c1819',mane:'#9aa0a8',mane2:'#4a464a',muz:'#1c1819',face:'star',tack:K('stripe',['#202028','#a8b0bc','#101016'])},
+ {n:'Moon Silver',d:'Chocolate silver dapple with a pale mane and a midnight-blue blanket.',coat:{base:'#6a5048',hi:'#8a6e64',lo:'#3e2a24',dapple:.9},leg:'#4e3a34',mane:'#f1e9d8',mane2:'#d8ccb4',tailStyle:'flow',muz:'#3e2a24',face:'star',tack:K('stripe',['#2a3a6a','#c8d0e8','#161f3f'],{kind:'royal',metal:'steel',bridle:'#161f3f'})}
+];
+
+var AR=['الأَشْهَبُ الوَرْدِيُّ','الكُمَيْتُ الأَغَرُّ','لَهِيبٌ','الأَدْهَمُ المُدَرَّعُ','الفَجْرُ الذَّهَبِيُّ','الجَوَادُ الثَّلْجِيُّ','المُلَمَّعُ','الأَبْرَشُ','الأَزْرَقُ','الوَرْدُ','الأَصْفَرُ الصَّحْرَاوِيُّ','اللُّؤْلُؤِيُّ','الأَغْبَرُ','الأَشْهَبُ المُبَرْقَشُ','الجَبَلُ','العِمْلَاقُ','السَّابِقُ','المُهْرُ','الجَامِحُ','الشَّبَحُ','الفَرَسُ ذُو القَرْنِ','الحِصَانُ المُجَنَّحُ','الجَمْرَةُ','الجَوَادُ المَلَكِيُّ','الرَّمْلِيُّ','حَارِسُ المَلِكِ','الحَدِيدِيُّ','الفَارِسُ الفِضِّيُّ','الأَبْلَقُ الذَّهَبِيُّ','المُذَهَّبُ','البُرُونْزِيُّ','القَمَرِيُّ'];
+/* body shapes and tails: 1-based index */
+var BS={
+ 2:{build:{bulk:.86,lean:1,neckLen:1.1,arch:.5},scale:[1.02,1.1,.84],tailStyle:'flow'},
+ 3:{build:{bulk:1.12,chest:1.2,rump:1.2,neckLen:.9},scale:[.94,.97,1.08],tailStyle:'short'},
+ 4:{build:{bulk:1.1,chest:1.15,head:1.05},scale:[1.05,1.05,1.15],tailStyle:'long'},
+ 5:{build:{arch:1,neckLen:1.05},scale:[1,1.02,.96],tailStyle:'sweep'},
+ 6:{build:{refined:1,bulk:.9,head:.92,arch:1.2,neckLen:1.1},scale:[.97,1.03,.88],tailStyle:'sweep'},
+ 7:{build:{bulk:1.25,belly:1.3,neckLen:.85},scale:[.88,.95,1.12],tailStyle:'short'},
+ 8:{build:{bulk:1.0},scale:[1,1,1],tailStyle:'short'},
+ 9:{build:{bulk:.9},scale:[1.14,1,.9],tailStyle:'long'},
+ 10:{build:{bulk:1.3,belly:1.6,neckLen:.8,neckThick:1.2},scale:[.9,.92,1.2],tailStyle:'stub'},
+ 11:{build:{bulk:1.04},scale:[1,1,1],tailStyle:'long'},
+ 12:{build:{refined:1,bulk:.88,neckLen:1.15,arch:1.3,lean:1},scale:[1,1.06,.86],tailStyle:'sweep'},
+ 13:{build:{bulk:1.12,chest:1.15,neckLen:.85,neckThick:1.15},scale:[.88,.93,1.12],tailStyle:'short'},
+ 14:{build:{bulk:.78,lean:1,neckLen:1.05},scale:[1,1.02,.8],tailStyle:'short'},
+ 15:{tailStyle:'long'},
+ 16:{build:{bulk:1.2,neckThick:1.25,head:1.12,feather:3,chest:1.15},scale:[1.1,1.18,1.22],tailStyle:'long'},
+ 17:{build:{refined:1,bulk:.82,lean:1,neckLen:1.12,arch:.8},scale:[1.08,1.15,.76],tailStyle:'flow'},
+ 18:{build:{bulk:1.3,belly:1.5,neckThick:1.3,head:1.2,neckLen:.8},scale:[.62,.62,.8],tailStyle:'flow'},
+ 19:{build:{bulk:.92,lean:1},scale:[1,1,.88],tailStyle:'flow'},
+ 20:{build:{bulk:.78,lean:1,neckLen:1.12,arch:1},scale:[1.03,1.13,.78],tailStyle:'sweep'},
+ 21:{build:{refined:1,arch:1.3,neckLen:1.12,bulk:.94},scale:[1,1.06,.9],tailStyle:'sweep'},
+ 22:{build:{bulk:.96,chest:1.15,arch:.7},scale:[1.04,1.04,.96],tailStyle:'flow'},
+ 24:{build:{bulk:1.04,arch:.8},scale:[1,1,1.02],tailStyle:'braid'},
+ 25:{build:{refined:1,bulk:.9,arch:1.1,neckLen:1.08},scale:[.98,1.03,.88],tailStyle:'braid'},
+ 29:{build:{bulk:1.22,belly:1.4,neckLen:.9},scale:[.92,.94,1.16],tailStyle:'short'},
+ 32:{build:{bulk:1},scale:[1,1,1],tailStyle:'long'}
+};
+var WAR={
+ 26:{n:'Royal Guard',d:'Blue and gold plate for the king\'s own guard.',coat:{base:'#6a5a4a',hi:'#85735f',lo:'#3e3228',dapple:.4},leg:'#2a2018',mane:'#e8e4dc',maneStyle:'braid',ribbon:'#1f3f8a',muz:'#3a2a1c',build:{bulk:1.1,chest:1.15},scale:[1.04,1.05,1.12],tailStyle:'braid',tack:{kind:'war',pat:'crest',bl:['#1f3f8a','#e0b43c','#0f2050'],armor:'#2a4a9a',trim:'#e0b43c',metal:'gold',bridle:'#0f2050'}},
+ 27:{n:'Iron Destrier',d:'A dark iron-grey destrier under a chain-mail caparison.',coat:{base:'#4a4c52',hi:'#62646c',lo:'#2a2b30',dapple:.8},leg:'#1e1f23',mane:'#16161a',maneStyle:'short',muz:'#232328',build:{bulk:1.15,chest:1.2,neckThick:1.15},scale:[1.04,1.06,1.18],tailStyle:'long',tack:{kind:'war',pat:'mail',bl:['#5a6068','#b8c0c8','#2a2e34'],armor:'#9aa0a8',trim:'#4a4e56',metal:'steel',bridle:'#1a1a1a'}},
+ 28:{n:'Silver Crusader',d:'White charger in polished silver mail and plate.',coat:{base:'#dcd8d0',hi:'#f2eee6',lo:'#a8a49a',dapple:.5},leg:'#c4c0b6',mane:'#f4f1ea',muz:'#6a5a58',face:'star',build:{bulk:1.05,chest:1.1,arch:.6},scale:[1.03,1.06,1.06],tailStyle:'flow',tack:{kind:'war',pat:'mail',bl:['#e8ecf0','#aab2bc','#8a1f1f'],armor:'#e4e8ee',trim:'#c0c8d2',metal:'steel',bridle:'#3a3a40'}},
+ 31:{n:'Bronze Legionary',d:'Stocky warhorse in overlapping bronze scale armour.',coat:{base:'#7a5a3a',hi:'#946c46',lo:'#4a3420',dapple:.3},leg:'#3a2818',mane:'#2a1a10',maneStyle:'short',muz:'#2a1a10',build:{bulk:1.18,chest:1.15,neckThick:1.2,neckLen:.9},scale:[.97,1,1.2],tailStyle:'short',tack:{kind:'war',pat:'scale',bl:['#9a6a2a','#c08a3a','#5a3a14'],armor:'#b07a30',trim:'#7a4a18',metal:'gold',bridle:'#3a2410'}}
+};
+var AREAS=[4,23,30,26,27,28,31];
+window.ARB_HORSES.forEach(function(h,i){var k=i+1;if(WAR[k])window.ARB_HORSES[i]=WAR[k]});
+window.ARB_HORSES.forEach(function(h,i){var k=i+1;h.ar=AR[i];var o=BS[k];if(o){if(o.build)h.build=o.build;if(o.scale)h.scale=o.scale;if(o.tailStyle)h.tailStyle=o.tailStyle}});
+window.ARB_HORSES.push({n:'Dark Steed',ar:'الفَرَسُ الأَدْهَمُ',d:'A tall near-black horse with glowing red eyes, a worn leather saddle and a dark bridle.',coat:{base:'#2b2438',hi:'#403652',lo:'#171221',dapple:.3},leg:'#1b1626',hoof:'#6c7488',mane:'#14101c',maneStyle:'long',muz:'#1d1826',iris:'#ff2a1a',eyeGlow:'#ff2a1a',tailStyle:'flow',build:{bulk:1.02,arch:1,neckLen:1.05},scale:[1.02,1.05,1]});
+/* knights: add a plume and neck plates on the war horses; blankets only on these four; every other horse is bare */
+var DRESSED=[1,5,7,24,25];
+window.ARB_HORSES.forEach(function(h,i){var k=i+1;if(h.tack&&h.tack.kind==='war')return;if(DRESSED.indexOf(k)<0)h.tack={kind:'saddle',leather:['#5b3a22','#7a4a2a','#3b2416','#8a5a30','#4a2a1c'][k%5]}});
+/* keep every body realistic: no horse is rounder than a sturdy draft horse */
+window.ARB_HORSES.forEach(function(h){var b=h.build=Object.assign({},h.build||{});
+ if(b.bulk)b.bulk=Math.min(b.bulk,1.1);if(b.belly)b.belly=Math.min(1+(b.belly-1)*.35,1.12);if(b.neckThick)b.neckThick=Math.min(b.neckThick,1.15);if(b.chest)b.chest=Math.min(b.chest,1.12);if(b.rump)b.rump=Math.min(b.rump,1.1);
+ if(h.scale){var z=h.scale[2];h.scale=[h.scale[0],h.scale[1],z>1?1+(z-1)*.5:z]}});
+
+/* the six horses from the reference set, and the same tack style on everyone */
+var SIX=[
+ {n:'Brown Pinto',ar:'الكُمَيْتُ الأَبْلَقُ',d:'Rich brown and white pinto with a dark western saddle and boots.',coat:{type:'tobiano',base:'#6b3a22',hi:'#83492c',lo:'#4a2614',patch:'#f1ede7',dapple:.15},leg:'#6b3a22',mane:'#17100c',mane2:'#2a1a12',face:'blaze',tailStyle:'flow'},
+ {n:'Black Pinto',ar:'الأَدْهَمُ الأَبْلَقُ',d:'Black and white pinto with a long black mane.',coat:{type:'tobiano',base:'#1d1a1d',hi:'#2c282c',lo:'#100e10',patch:'#f1ede7',dapple:.1},leg:'#1d1a1d',mane:'#0d0b0d',mane2:'#1d1a1d',face:'blaze',tailStyle:'flow'},
+ {n:'White Horse',ar:'الأَشْهَبُ',d:'White horse with soft brown-grey patches and a pale mane.',coat:{type:'pinto',base:'#efebe4',hi:'#f6f2ec',lo:'#cfc8bd',patch:'#7a6658'},leg:'#efebe4',mane:'#ebe5da',mane2:'#d8d0c4',muz:'#9a8478',face:'blaze',tailStyle:'flow'},
+ {n:'Palomino Pinto',ar:'الأَصْفَرُ الأَبْلَقُ',d:'Golden palomino and white pinto with a flaxen mane.',coat:{type:'tobiano',base:'#d39c56',hi:'#e4b36e',lo:'#a8763a',patch:'#f3eee6',dapple:.15},leg:'#d39c56',mane:'#efe0bc',mane2:'#dcc79a',muz:'#6a4a32',face:'blaze',tailStyle:'flow'},
+ {n:'Chestnut Pinto',ar:'الأَشْقَرُ الأَبْلَقُ',d:'Bright chestnut and white pinto with a red mane.',coat:{type:'tobiano',base:'#a3461d',hi:'#bb5a2a',lo:'#742e10',patch:'#f1ede7',dapple:.15},leg:'#a3461d',mane:'#86361a',mane2:'#a3461d',face:'blaze',tailStyle:'flow'},
+ {n:'Pinto',ar:'الأَبْلَقُ',d:'Classic black and white pinto, mostly white with a dark head.',coat:{type:'tobiano',base:'#1d1a1d',hi:'#2c282c',lo:'#100e10',patch:'#f1ede7',white:.15},leg:'#1d1a1d',mane:'#0d0b0d',mane2:'#f1ede7',face:'blaze',tailStyle:'flow'}];
+SIX.forEach(function(h,i){h.socks=[1,1,1,1];h.maneStyle='long';h.build={bulk:1.06,neckThick:1.08,arch:.8};h.scale=[1,1,1.04];window.ARB_HORSES[i]=h});
+window.ARB_HORSES.forEach(function(h){if(h.tack&&h.tack.kind==='war'){h.tack.breast=true;return}
+ h.tack={kind:'western',pat:'stripe',bl:['#2a1d16','#33241a','#1a120c'],leather:'#3b2416',bridle:'#3b2416',metal:'steel',breast:true,boots:'#3a2a20'};
+ if(h.maneStyle==='short'||h.maneStyle==='braid'){}else h.maneStyle=h.maneStyle==='wild'?'wild':'long';
+ if(!h.tailStyle||h.tailStyle==='short'||h.tailStyle==='long')h.tailStyle='flow'});
+})();
+</script>
+<script>
 (function(){
 'use strict';
 var STAGES=[{n:1,ar:'المُبْتَدِئ',en:'Beginner'},{n:2,ar:'المُتَوَسِّط',en:'Intermediate'},{n:3,ar:'المُتَقَدِّم',en:'Advanced'}];
@@ -2972,7 +3383,40 @@ var ITEMS={
     {id:'m123',ar:'نَاقَةُ المَجَاهِيمِ',en:'Majahim Camel',price:850,time:4,xp:1.8,kind:'camel',col:'#3A2E28',dk:'#1E1712',mane:'#120C08',blanket:'#C9A227',d:'The great black camels of Najd, prized for their size.'},
     {id:'m124',ar:'الفَرَسُ الهَدْبَاءُ',en:'Hadban Mare',price:1000,time:4,xp:2,kind:'mare',col:'#C46A3A',dk:'#7A3A18',mane:'#F3E3C0',blanket:'#1F5E8C',gold:1,d:'A chestnut mare of the Hadban strain with a pale mane.'},
     {id:'m125',ar:'نَاقَةُ المَغَاتِيرِ',en:'Maghatir Camel',price:1250,time:4,xp:2.2,kind:'camel',col:'#F4EEE2',dk:'#C8BDA8',mane:'#B8AA90',blanket:'#7A1F3D',d:'The famous white camels of the Arabian Peninsula.'},
-    {id:'m126',ar:'الحِصَانُ المُعَنَّقِيُّ',en:'Muniqi Racer',price:1550,time:5,xp:2.4,kind:'horse',col:'#2A1C14',dk:'#120B07',mane:'#050302',blanket:'#D9A21B',d:'A black Muniqi, the fastest racing strain of the desert.'}],
+    {id:'m126',ar:'الحِصَانُ المُعَنَّقِيُّ',en:'Muniqi Racer',price:1550,time:5,xp:2.4,kind:'horse',col:'#2A1C14',dk:'#120B07',mane:'#050302',blanket:'#D9A21B',d:'A black Muniqi, the fastest racing strain of the desert.'},
+    {id:'mh1',ar:'الكُمَيْتُ الأَبْلَقُ',en:"Brown Pinto",price:350,time:2,xp:1.3,kind:'horse',col:'#6b3a22',dk:'#4a2614',mane:'#17100c',blanket:'#3B2416',hl:0,d:"Rich brown and white pinto with a dark western saddle and boots."},
+    {id:'mh2',ar:'الأَدْهَمُ الأَبْلَقُ',en:"Black Pinto",price:450,time:2,xp:1.36,kind:'horse',col:'#1d1a1d',dk:'#100e10',mane:'#0d0b0d',blanket:'#3B2416',hl:1,d:"Black and white pinto with a long black mane."},
+    {id:'mh3',ar:'الأَشْهَبُ',en:"White Horse",price:540,time:2,xp:1.42,kind:'horse',col:'#efebe4',dk:'#cfc8bd',mane:'#ebe5da',blanket:'#3B2416',hl:2,d:"White horse with soft brown-grey patches and a pale mane."},
+    {id:'mh4',ar:'الأَصْفَرُ الأَبْلَقُ',en:"Palomino Pinto",price:640,time:2,xp:1.48,kind:'horse',col:'#d39c56',dk:'#a8763a',mane:'#efe0bc',blanket:'#3B2416',hl:3,d:"Golden palomino and white pinto with a flaxen mane."},
+    {id:'mh5',ar:'الأَشْقَرُ الأَبْلَقُ',en:"Chestnut Pinto",price:730,time:2,xp:1.54,kind:'horse',col:'#a3461d',dk:'#742e10',mane:'#86361a',blanket:'#3B2416',hl:4,d:"Bright chestnut and white pinto with a red mane."},
+    {id:'mh6',ar:'الأَبْلَقُ',en:"Pinto",price:830,time:2,xp:1.6,kind:'horse',col:'#1d1a1d',dk:'#100e10',mane:'#0d0b0d',blanket:'#3B2416',hl:5,d:"Classic black and white pinto, mostly white with a dark head."},
+    {id:'mh7',ar:'المُلَمَّعُ',en:"Paint Pinto",price:920,time:3,xp:1.66,kind:'horse',col:'#6a3a22',dk:'#6a3a22',mane:'#2a1a12',blanket:'#3B2416',hl:6,d:"Brown and white patches, white socks and a sky-blue western blanket."},
+    {id:'mh8',ar:'الأَبْرَشُ',en:"Appaloosa Leopard",price:1020,time:3,xp:1.72,kind:'horse',col:'#3a2a22',dk:'#3a2a22',mane:'#3a2a22',blanket:'#3B2416',hl:7,d:"Cream coat with dark spots, a pink muzzle and a short mane."},
+    {id:'mh9',ar:'الأَزْرَقُ',en:"Blue Roan",price:1110,time:3,xp:1.78,kind:'horse',col:'#3c4652',dk:'#3c4652',mane:'#1c2229',blanket:'#3B2416',hl:8,d:"Silvery blue speckled coat with dark points and a teal blanket."},
+    {id:'mh10',ar:'الوَرْدُ',en:"Strawberry Roan",price:1210,time:3,xp:1.84,kind:'horse',col:'#a05a38',dk:'#a05a38',mane:'#6a3018',blanket:'#3B2416',hl:9,d:"Pink-red roan with a white star and a royal-blue check blanket."},
+    {id:'mh11',ar:'الأَصْفَرُ الصَّحْرَاوِيُّ',en:"Buckskin Desert",price:1300,time:3,xp:1.9,kind:'horse',col:'#c9a064',dk:'#8a6a38',mane:'#1a120d',blanket:'#3B2416',hl:10,d:"Sandy gold coat with black legs and mane, in a blue diamond blanket."},
+    {id:'mh12',ar:'اللُّؤْلُؤِيُّ',en:"Cremello Pearl",price:1400,time:3,xp:1.96,kind:'horse',col:'#f0e4cc',dk:'#d6c4a2',mane:'#fbf4e4',blanket:'#3B2416',hl:11,d:"Pale cream with pink skin, blue eyes and a plum royal blanket."},
+    {id:'mh13',ar:'الأَغْبَرُ',en:"Dun Dorsal",price:1490,time:4,xp:2.02,kind:'horse',col:'#b79a6a',dk:'#7a6038',mane:'#241a12',blanket:'#3B2416',hl:12,d:"Tan dun with a roached mane, black legs and a rugged saddle."},
+    {id:'mh14',ar:'الأَشْهَبُ المُبَرْقَشُ',en:"Flea-Bitten Grey",price:1590,time:4,xp:2.08,kind:'horse',col:'#d8d4cc',dk:'#d8d4cc',mane:'#e8e4dc',blanket:'#3B2416',hl:13,d:"White-grey flecked with rust, braided mane with purple ribbons."},
+    {id:'mh15',ar:'الجَبَلُ',en:"Percheron Draft",price:1680,time:4,xp:2.14,kind:'horse',col:'#4a4648',dk:'#2c2a2b',mane:'#1a1819',blanket:'#3B2416',hl:14,d:"Heavy dark-grey draft horse with feathered hooves and gold braids."},
+    {id:'mh16',ar:'العِمْلَاقُ',en:"Clydesdale",price:1780,time:4,xp:2.2,kind:'horse',col:'#7a3a1f',dk:'#4a2010',mane:'#1e100a',blanket:'#3B2416',hl:15,d:"Tall bay with four white feathered socks and a bold white blaze."},
+    {id:'mh17',ar:'السَّابِقُ',en:"Thoroughbred Racer",price:1870,time:4,xp:2.26,kind:'horse',col:'#6a3a22',dk:'#3e200f',mane:'#140e0b',blanket:'#3B2416',hl:16,d:"Lean, long-legged racer with racing silks in yellow and green."},
+    {id:'mh18',ar:'المُهْرُ',en:"Shetland Pony",price:1970,time:4,xp:2.32,kind:'horse',col:'#5a3a2a',dk:'#38201a',mane:'#1a120d',blanket:'#3B2416',hl:17,d:"Small, shaggy pony with a wild mane and a red halter."},
+    {id:'mh19',ar:'الجَامِحُ',en:"Mustang Wild",price:2060,time:5,xp:2.38,kind:'horse',col:'#9a7a52',dk:'#5e4628',mane:'#1e150d',blanket:'#3B2416',hl:18,d:"Untamed dun mustang with a tangled mane and no tack."},
+    {id:'mh20',ar:'الشَّبَحُ',en:"Ghost Grey",price:2160,time:5,xp:2.44,kind:'horse',col:'#9fb7c8',dk:'#5a7a92',mane:'#bfe6ff',blanket:'#3B2416',hl:19,d:"A glowing spectral horse with a mane of blue fire."},
+    {id:'mh21',ar:'الفَرَسُ ذُو القَرْنِ',en:"Unicorn",price:2250,time:5,xp:2.5,kind:'horse',col:'#f6f2f8',dk:'#d8cfe6',mane:'#f4b8e0',blanket:'#3B2416',hl:20,d:"Pearl-white unicorn with a golden horn and a pink and lilac mane."},
+    {id:'mh22',ar:'الحِصَانُ المُجَنَّحُ',en:"Pegasus",price:2350,time:5,xp:2.56,kind:'horse',col:'#f3f1ec',dk:'#cfcbc2',mane:'#9cc8f0',blanket:'#3B2416',hl:21,d:"White winged horse with a sky-blue mane and a gold halter."},
+    {id:'mh23',ar:'الجَمْرَةُ',en:"Ember Stallion",price:2440,time:5,xp:2.62,kind:'horse',col:'#1e1a1c',dk:'#0e0c0d',mane:'#ff7a1a',blanket:'#3B2416',hl:22,d:"Black stallion with a mane of fire and red-trimmed iron armour."},
+    {id:'mh24',ar:'الجَوَادُ المَلَكِيُّ',en:"Royal Charger",price:2540,time:5,xp:2.68,kind:'horse',col:'#cfcac2',dk:'#8e8880',mane:'#f4f1ea',blanket:'#3B2416',hl:23,d:"Dapple-grey parade horse in a blue and gold crest caparison."},
+    {id:'mh25',ar:'الرَّمْلِيُّ',en:"Desert Sand Arabian",price:2630,time:6,xp:2.74,kind:'horse',col:'#d2b184',dk:'#9a7a4c',mane:'#8a5a2a',blanket:'#3B2416',hl:24,d:"Sandy Arabian with a braided tail and a red and gold blanket."},
+    {id:'mh26',ar:'حَارِسُ المَلِكِ',en:"Royal Guard",price:2730,time:6,xp:2.8,kind:'horse',col:'#6a5a4a',dk:'#3e3228',mane:'#e8e4dc',blanket:'#3B2416',hl:25,d:"Blue and gold plate for the king's own guard."},
+    {id:'mh27',ar:'الحَدِيدِيُّ',en:"Iron Destrier",price:2820,time:6,xp:2.86,kind:'horse',col:'#4a4c52',dk:'#2a2b30',mane:'#16161a',blanket:'#3B2416',hl:26,d:"A dark iron-grey destrier under a chain-mail caparison."},
+    {id:'mh28',ar:'الفَارِسُ الفِضِّيُّ',en:"Silver Crusader",price:2920,time:6,xp:2.92,kind:'horse',col:'#dcd8d0',dk:'#a8a49a',mane:'#f4f1ea',blanket:'#3B2416',hl:27,d:"White charger in polished silver mail and plate."},
+    {id:'mh29',ar:'الأَبْلَقُ الذَّهَبِيُّ',en:"Skewbald Gold",price:3010,time:6,xp:2.98,kind:'horse',col:'#d8a24a',dk:'#d8a24a',mane:'#f2eee6',blanket:'#3B2416',hl:28,d:"Gold and white patchwork horse with red ribbons and a gold-edged blanket."},
+    {id:'mh30',ar:'المُذَهَّبُ',en:"Gilded War Charger",price:3110,time:6,xp:3.04,kind:'horse',col:'#2e2a2c',dk:'#161214',mane:'#e0c060',blanket:'#3B2416',hl:29,d:"Dark charger in gold plate with a crimson crest caparison."},
+    {id:'mh31',ar:'البُرُونْزِيُّ',en:"Bronze Legionary",price:3200,time:7,xp:3.1,kind:'horse',col:'#7a5a3a',dk:'#4a3420',mane:'#2a1a10',blanket:'#3B2416',hl:30,d:"Stocky warhorse in overlapping bronze scale armour."},
+    {id:'mh32',ar:'القَمَرِيُّ',en:"Moon Silver",price:3300,time:7,xp:3.16,kind:'horse',col:'#6a5048',dk:'#3e2a24',mane:'#f1e9d8',blanket:'#3B2416',hl:31,d:"Chocolate silver dapple with a pale mane and a midnight-blue blanket."},
+    {id:'mh33',ar:'الفَرَسُ الأَدْهَمُ',en:"Dark Steed",price:3390,time:7,xp:3.22,kind:'horse',col:'#2b2438',dk:'#171221',mane:'#14101c',blanket:'#3B2416',hl:32,d:"A tall near-black horse with glowing red eyes, a worn leather saddle and a dark bridle."}],
   char:[
     {id:'c0',ar:'الدَّلِيلُ',en:'The Desert Guide',price:0,t:'ghutra',d:'Knows every track across the sands, and the way to every lesson.',wear:'url(#gCloth)'},
     {id:'c1',ar:'الفَارِسَةُ',en:'The Horsewoman',price:150,t:'hijab',girl:1,d:'Rides and fights like the heroine Khawla bint al-Azwar.',wear:'#6C4A8A'},
@@ -3159,6 +3603,8 @@ ITEMS[k]=a.filter(function(x){return !CAT[k].test(x.id)||pick[x.id]})})})();
 ITEMS.weapon=ITEMS.weapon.filter(function(x){return ['w120','w124','w126','w128','w131'].indexOf(x.id)<0});
 /* only what people really ride: horses, camels, the donkey, the ostrich, the elephant and the chariot (no wolves, big cats, hounds, rhinos, spiders, flying horses or carpets, birds of legend or dragons) */
 ITEMS.mount=ITEMS.mount.filter(function(x){return /^(m0|)$/.test(x.id)||/^(horse|mare|camel|donkey|ostrich|elephant|chariot)$/.test(x.kind||'')});
+/* the old horses are replaced by the Horse Study horses (hl) */
+ITEMS.mount=ITEMS.mount.filter(function(x){return !/^(horse|mare|pegasus)$/.test(x.kind||'')||x.hl!=null});
 Object.keys(ITEMS).forEach(function(k){ITEMS[k].sort(function(a,b){return a.price-b.price});ITEMS[k].forEach(function(it,i){it.rar=Math.min(4,Math.floor(i*5/ITEMS[k].length))})});
 var CATS=[['weapon','Weapons','الأَسْلِحَةُ'],['armour','Armour','الدُّرُوعُ'],['mount','Mounts','المَطَايَا'],['char','Characters','الشَّخْصِيَّاتُ'],['field','Battlefields','المَيَادِينُ']];
 var ENEMIES=[
@@ -3198,10 +3644,10 @@ var ENEMIES=[
 /* ---- human enemies: fighters in the shop's own gear, placed between the creatures ---- */
 var HUMANS=[
   /* riders: their mount is the fourth piece of gear */
-  ['wolf',{k:'h_rider',ar:'الفَارِسُ البَدَوِيُّ',en:'The Bedouin Rider',hp:150,hit:13,fx:'slash',bg:'dunes',gear:['w2','a1','c10','m2'],kit:['charge','swipe']}],
+  ['wolf',{k:'h_rider',ar:'الفَارِسُ البَدَوِيُّ',en:'The Bedouin Rider',hp:150,hit:13,fx:'slash',bg:'dunes',gear:['w2','a1','c10','mh1'],kit:['charge','swipe']}],
   ['tiger',{k:'h_camel',ar:'هَجَّانُ الغُزَاةِ',en:'The Camel Raider',hp:300,hit:20,fx:'slash',bg:'canyon',gear:['w4','a5','c4','m3'],kit:['arrow','charge'],ranged:1}],
-  ['elephant',{k:'h_cavalier',ar:'الفَارِسُ المَمْلُوكِيُّ',en:'The Mamluk Cavalier',hp:420,hit:26,fx:'slash',bg:'night',gear:['w8','a13','c117','m15'],kit:['charge','swipe','slam']}],
-  ['dragon',{k:'h_lancer',ar:'فَارِسُ الرُّمْحِ',en:'The Desert Lancer',hp:520,hit:31,fx:'slash',bg:'volcano',gear:['w5','a14','c122','m126'],kit:['charge','swipe']}],
+  ['elephant',{k:'h_cavalier',ar:'الفَارِسُ المَمْلُوكِيُّ',en:'The Mamluk Cavalier',hp:420,hit:26,fx:'slash',bg:'night',gear:['w8','a13','c117','mh2'],kit:['charge','swipe','slam']}],
+  ['dragon',{k:'h_lancer',ar:'فَارِسُ الرُّمْحِ',en:'The Desert Lancer',hp:520,hit:31,fx:'slash',bg:'volcano',gear:['w5','a14','c122','mh6'],kit:['charge','swipe']}],
   ['scorpion',{k:'h_thief',ar:'اللِّصُّ',en:'The Thief',hp:85,hit:10,fx:'slash',bg:'dunes',gear:['w1','a1','c116'],kit:['swipe','charge']}],
   ['hyena',{k:'h_highway',ar:'قَاطِعُ الطَّرِيقِ',en:'The Highwayman',hp:140,hit:13,fx:'slash',bg:'canyon',gear:['w2','a5','c10'],kit:['swipe','slam']}],
   ['bull',{k:'h_archer',ar:'رَامِي الغُزَاةِ',en:'The Raider Archer',hp:170,hit:14,fx:'slash',bg:'savanna',gear:['w4','a1','c4'],kit:['arrow','swipe'],ranged:1}],
@@ -3245,7 +3691,7 @@ var PEOPLE=[['النَّشَّالُ','The Pickpocket'],['المُشَاجِرُ
 })();
 /* "the Wolf", but "The Thief" (a name that already starts with The keeps it) */
 function theN(en,cap){return /^the /i.test(en)?(cap?en:'t'+en.slice(1)):(cap?'The ':'the ')+en}
-function humanGear(e){var g=e.gear;return {weapon:itemById(g[0])||ITEMS.weapon[0],armour:itemById(g[1])||ITEMS.armour[0],char:itemById(g[2])||ITEMS.char[0],mount:g[3]&&itemById(g[3])||null,field:ITEMS.field[0]}}
+function humanGear(e){var g=e.gear;return {weapon:itemById(g[0])||ITEMS.weapon[0],armour:itemById(g[1])||ITEMS.armour[0],char:itemById(g[2])||ITEMS.char[0],mount:g[3]&&(itemById(g[3])||ITEMS.mount.filter(function(x){return /^(horse|mare)$/.test(x.kind||'')})[0])||null,field:ITEMS.field[0]}}
 function humanSvg(e,cls){return fighterSvg(humanGear(e),'-5 0 175 170',cls||'foeart').replace('<svg ','<svg style="transform:scaleX(-1)" ')}
 var RARITY=[{n:'Common',c:'#7D879A'},{n:'Uncommon',c:'#2F9E6E'},{n:'Rare',c:'#2F7FD1'},{n:'Epic',c:'#8E44C9'},{n:'Legendary',c:'#D9A21B'}];
 
@@ -3257,6 +3703,7 @@ function shopState(){
   if(!s||!s.own||!s.eq){s=S.prog.shop={own:{w0:1,a0:1,m0:1,c0:1,f0:1},eq:{weapon:'w0',armour:'a0',mount:'m0',char:'c0',field:'f0'},wins:0}}
   s.own.f0=1;
   if(!s.eq.field||!itemById(s.eq.field))s.eq.field='f0';
+  var OLDH={m2:'mh1',m4:'mh3',m13:'mh22',m15:'mh2',m120:'mh1',m122:'mh3',m124:'mh5',m126:'mh6'};for(var oh in OLDH){if(s.own[oh]){s.own[OLDH[oh]]=1;delete s.own[oh]}if(s.eq.mount===oh)s.eq.mount=OLDH[oh]}
   ['weapon','armour','mount','char'].forEach(function(k){if(!itemById(s.eq[k]))s.eq[k]=k[0]+'0'});
   if(!s.beat)s.beat={};
   if(!s.beatK){s.beatK={};for(var i in s.beat)if(s.beat[i]&&OLD_FOES[+i])s.beatK[OLD_FOES[+i]]=1}
@@ -5003,7 +5450,7 @@ var COIN='<svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="1
 function catIcon(k){if(k==='field')return fieldIcon();
   if(k==='weapon')return '<svg viewBox="0 0 64 64" aria-hidden="true"><g transform="rotate(38 32 32)">'+WPN.sword.a+'</g></svg>';
   if(k==='armour')return '<svg viewBox="0 0 64 64" aria-hidden="true">'+armInner(itemById('a3'))+'</svg>';
-  if(k==='mount')return '<svg viewBox="0 4 160 116" aria-hidden="true">'+mountInner(itemById('m2'))+'</svg>';
+  if(k==='mount')return '<svg viewBox="0 4 160 116" aria-hidden="true">'+mountInner(itemById('mh1'))+'</svg>';
   return '<svg viewBox="50 22 60 60" aria-hidden="true">'+headSvg('ghutra')+'</svg>';
 }
 
@@ -6333,7 +6780,17 @@ var G3=(function(){
     B.userData.y0=B.position.y;
     return {root:R,body:B,head:H,neck:N,legs:legs,tail:tailG,eyes:[],seat:o.h+r*1.55};
   }
+  function hlMount(m,parent){
+    var sp=window.ARB_HORSES&&window.ARB_HORSES[m.hl];if(!sp||!window.HorseLab)return null;
+    var R=new T.Group(),W=new T.Group(),S=.68;R.add(W);W.rotation.y=-Math.PI/2;W.scale.setScalar(S);
+    var G=HorseLab.build(sp,.035,true);W.add(G);
+    var legs=[0,1,2,3].map(function(i){return {rotation:{x:0},userData:{up:{rotation:{x:0}},kn:{rotation:{x:0}},an:{rotation:{x:0}},a0:0,k0:0,f0:0,front:i<2}}});
+    if(G.userData.rig)G.userData.rig.legs=legs;
+    R.rotation.y=Math.PI;parent.add(R);
+    var pr=G.userData.parts,sy=sp.scale?sp.scale[1]:1;
+    return {root:R,body:pr.body,head:pr.head,legs:legs,tail:pr.tail?[pr.tail]:null,eyes:[],seat:1.98*S*sy}}
   function mountModel(m,parent){
+    if(m.hl!=null){var hq=hlMount(m,parent);if(hq)return hq}
     var k=m.kind,base=MOUNTQ[k],o;
     if(base){o={};for(var x in base)o[x]=base[x];if(m.col&&/^#/.test(m.col))o.col=m.col;if(m.mane&&/^#/.test(m.mane)&&(k==='horse'||k==='mare'||k==='pegasus')){o.hairMane=m.mane;o.tailCol=m.mane}
       if(k==='pegasus')o.wings='#F7F7FB';o.cat=CATS.test(k);if(m.dk&&/^#/.test(m.dk))o.dark=m.dk;var Q=/^(horse|mare|donkey|camel)$/.test(k)?equine(o,k==='mare'?'horse':k):quad(o);Q.root.rotation.y=Math.PI;parent.add(Q.root);

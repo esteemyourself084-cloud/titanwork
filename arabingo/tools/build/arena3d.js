@@ -419,7 +419,17 @@ var G3=(function(){
     B.userData.y0=B.position.y;
     return {root:R,body:B,head:H,neck:N,legs:legs,tail:tailG,eyes:[],seat:o.h+r*1.55};
   }
+  function hlMount(m,parent){
+    var sp=window.ARB_HORSES&&window.ARB_HORSES[m.hl];if(!sp||!window.HorseLab)return null;
+    var R=new T.Group(),W=new T.Group(),S=.68;R.add(W);W.rotation.y=-Math.PI/2;W.scale.setScalar(S);
+    var G=HorseLab.build(sp,.035,true);W.add(G);
+    var legs=[0,1,2,3].map(function(i){return {rotation:{x:0},userData:{up:{rotation:{x:0}},kn:{rotation:{x:0}},an:{rotation:{x:0}},a0:0,k0:0,f0:0,front:i<2}}});
+    if(G.userData.rig)G.userData.rig.legs=legs;
+    R.rotation.y=Math.PI;parent.add(R);
+    var pr=G.userData.parts,sy=sp.scale?sp.scale[1]:1;
+    return {root:R,body:pr.body,head:pr.head,legs:legs,tail:pr.tail?[pr.tail]:null,eyes:[],seat:1.98*S*sy}}
   function mountModel(m,parent){
+    if(m.hl!=null){var hq=hlMount(m,parent);if(hq)return hq}
     var k=m.kind,base=MOUNTQ[k],o;
     if(base){o={};for(var x in base)o[x]=base[x];if(m.col&&/^#/.test(m.col))o.col=m.col;if(m.mane&&/^#/.test(m.mane)&&(k==='horse'||k==='mare'||k==='pegasus')){o.hairMane=m.mane;o.tailCol=m.mane}
       if(k==='pegasus')o.wings='#F7F7FB';o.cat=CATS.test(k);if(m.dk&&/^#/.test(m.dk))o.dark=m.dk;var Q=/^(horse|mare|donkey|camel)$/.test(k)?equine(o,k==='mare'?'horse':k):quad(o);Q.root.rotation.y=Math.PI;parent.add(Q.root);
