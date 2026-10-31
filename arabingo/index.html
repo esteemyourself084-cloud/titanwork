@@ -1171,6 +1171,244 @@ kbd{display:inline-block;min-width:22px;padding:1px 6px;margin:0 2px;border-radi
 <div id="modal" hidden></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
+/* Camel Study mounts: one-skin camels built from a smooth field */
+/* Horse body as one smooth signed-distance field. Pure maths, no THREE. */
+(function(root){
+function smin(a,b,k){var h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k*.25}
+function clamp01(x){return x<0?0:x>1?1:x}
+function sstep(a,b,x){var t=clamp01((x-a)/(b-a));return t*t*(3-2*t)}
+function bez(p0,p1,p2,p3,t){var u=1-t;return [u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]]}
+function ell(cx,cy,cz,rx,ry,rz,k,h){return {t:0,cx:cx,cy:cy,cz:cz,rx:rx,ry:ry,rz:rz,k:k,h:!!h,R:Math.max(rx,ry,rz)}}
+function cone(a,b,r1,r2,k,zs){var dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],l2=dx*dx+dy*dy+dz*dz,rr=r1-r2,a2=l2-rr*rr;
+ return {t:1,ax:a[0],ay:a[1],az:a[2],bx:dx,by:dy,bz:dz,l2:l2,rr:rr,a2:a2,il2:1/l2,r1:r1,r2:r2,k:k,zs:zs||1,
+  mx:(a[0]+b[0])/2,my:(a[1]+b[1])/2,mz:(a[2]+b[2])/2,R:Math.sqrt(l2)/2+Math.max(r1,r2)}}
+function makeField(sp){
+ var b=sp.build||{},bu=b.bulk||1,nl=(b.neckLen||1)*1.25,nk=b.neckThick||1,hs=(b.head||1)*1.1,hh=(b.headH||1)*1.5,hm=b.humps||1,hz=b.hump||1;
+ var P0=[.55,1.6],B1=[1.08,1.46],B2=[.88,2.12],B3=[1.28,2.2];
+ function sc(p){return [P0[0]+(p[0]-P0[0])*nl,P0[1]+(p[1]-P0[1])*nl]}
+ var P1=sc(B1),P2=sc(B2),P3=sc(B3);
+ function nr(t){return (.15-.07*t)*nk}
+ var neck=[],i,t,pp;for(i=0;i<=10;i++){t=i/10;pp=bez(P0,P1,P2,P3,t);neck.push([pp[0],pp[1],nr(t)])}
+ var ho=[P3[0]+.05,P3[1]+.0],HR=.4,cH=Math.cos(HR),sH=Math.sin(HR);
+ var P=[],humps=[];
+ P.push(ell(0,1.5,0,.85,.36*bu,.28*bu,.2),ell(.38,1.44,0,.36,.36*bu,.26*bu,.18),ell(-.52,1.56,0,.32,.3*bu,.25*bu,.18),ell(.15,1.3,0,.5,.14*bu,.2*bu,.15));
+ if(hm===1){humps.push({x:-.05,y:1.92,rx:.46*hz,ry:.4*hz,rz:.23*hz})}
+ else{humps.push({x:-.42,y:1.94,rx:.3*hz,ry:.34*hz,rz:.2*hz});humps.push({x:.28,y:1.94,rx:.28*hz,ry:.32*hz,rz:.2*hz})}
+ humps.forEach(function(h){P.push(ell(h.x,h.y,0,h.rx,h.ry,h.rz,.25))});
+ for(i=0;i<10;i++)P.push(cone([neck[i][0],neck[i][1],0],[neck[i+1][0],neck[i+1][1],0],neck[i][2]*1.05,neck[i+1][2]*1.05,.07,.9));
+ P.push(ell(0,0,0,.14,.11,.1,.05,1),ell(.08,.04,0,.1,.08,.08,.05,1),ell(.24,-.02,0,.2,.085,.075,.05,1),ell(.44,-.045,0,.12,.09,.085,.05,1),ell(.5,-.08,0,.09,.06,.085,.04,1),ell(.47,-.13,0,.09,.045,.07,.04,1),ell(.14,-.1,0,.19,.07,.065,.05,1),ell(.02,-.07,0,.13,.09,.1,.05,1));
+ [[.15],[-.15]].forEach(function(l){var z=l[0];
+  P.push(ell(.4,1.3,z*.9,.12,.26,.11,.1),cone([.42,1.32,z],[.42,.66,z],.1,.058,.1),ell(.42,.66,z,.07,.085,.06,.05),cone([.42,.66,z],[.44,.12,z],.052,.04,.04),cone([.44,.12,z],[.45,.05,z],.05,.058,.03),ell(.47,.04,z,.1,.04,.075,.03))});
+ [[.16],[-.16]].forEach(function(l){var z=l[0];
+  P.push(ell(-.55,1.35,z*.95,.24,.34,.18*bu,.14),cone([-.6,1.3,z],[-.78,1.0,z],.16,.085,.14),cone([-.78,1.0,z],[-.9,.58,z],.085,.055,.08),ell(-.9,.58,z,.058,.08,.05,.05),cone([-.9,.58,z],[-.8,.1,z],.055,.04,.04),cone([-.8,.1,z],[-.78,.05,z],.05,.058,.03),ell(-.76,.04,z,.1,.04,.075,.03))});
+ var n=P.length;
+ function f(x,y,z){
+  var qx=x-ho[0],qy=y-ho[1],lx=(qx*cH-qy*sH)/hs,ly=(qx*sH+qy*cH)/hh,d=1e9,j,p,dp;
+  for(j=0;j<n;j++){p=P[j];
+   if(p.t===0){
+    var ex,ey,ez;if(p.h){ex=lx;ey=ly;ez=z}else{ex=x;ey=y;ez=z}
+    var u=(ex-p.cx),v=(ey-p.cy),w=(ez-p.cz);
+    if(d<1e8&&Math.abs(u)>p.R+d+p.k+.02&&0){continue}
+    var X=u/p.rx,Y=v/p.ry,Z=w/p.rz,k0=Math.sqrt(X*X+Y*Y+Z*Z);
+    if(d<1e8&&(k0-1)*Math.min(p.rx,p.ry,p.rz)>d+p.k)continue;
+    var k1=Math.sqrt((X/p.rx)*(X/p.rx)+(Y/p.ry)*(Y/p.ry)+(Z/p.rz)*(Z/p.rz));
+    dp=k1<1e-9?-Math.min(p.rx,p.ry,p.rz):k0*(k0-1)/k1;
+   }else{
+    var zz=z/p.zs,pax=x-p.ax,pay=y-p.ay,paz=zz-p.az;
+    var bx=p.bx,by=p.by,bz=p.bz,yy=pax*bx+pay*by+paz*bz,zc=yy-p.l2;
+    var cx=pax*p.l2-bx*yy,cy=pay*p.l2-by*yy,cz=paz*p.l2-bz*yy,x2=cx*cx+cy*cy+cz*cz,y2=yy*yy*p.l2,z2=zc*zc*p.l2;
+    var kk=(p.rr>0?1:-1)*p.rr*p.rr*x2;
+    if((zc>0?1:-1)*p.a2*z2>kk)dp=Math.sqrt(x2+z2)*p.il2-p.r2;
+    else if((yy>0?1:-1)*p.a2*y2<kk)dp=Math.sqrt(x2+y2)*p.il2-p.r1;
+    else dp=(Math.sqrt(x2*p.a2*p.il2)+yy*p.rr)*p.il2-p.r1;
+    dp*=p.zs;
+   }
+   d=d>1e8?dp:smin(d,dp,p.k);
+  }
+  return d;
+ }
+ function head(x,y,z){var qx=x-ho[0],qy=y-ho[1];return [(qx*cH-qy*sH)/hs,(qx*sH+qy*cH)/hh,z]}
+ function neckAt(t){var p=bez(P0,P1,P2,P3,t);return [p[0],p[1],nr(t)*1.1]}
+ function headSurfZ(lx,ly){var qx=hs*lx*cH+hh*ly*sH,qy=-hs*lx*sH+hh*ly*cH,x=ho[0]+qx,y=ho[1]+qy,lo=0,hi=.5,m,k;for(k=0;k<22;k++){m=(lo+hi)/2;if(f(x,y,m)<0)lo=m;else hi=m}return lo}
+ function toWorld(lx,ly){return [ho[0]+hs*lx*cH+hh*ly*sH,ho[1]-hs*lx*sH+hh*ly*cH]}
+ return {neckAt:neckAt,headSurfZ:headSurfZ,toWorld:toWorld,f:f,head:head,ho:ho,HR:HR,hs:hs,hh:hh,humps:humps,
+  bounds:[[-1.25,-.02,-.6],[1.5+(nl-1)*1.2+.9*hs,2.95+(nl-1)*.5,.6]]};
+}
+var api={makeField:makeField,sstep:sstep,smin:smin};
+if(typeof module!=='undefined')module.exports=api;else root.CSDF=api;
+})(this);
+
+;
+(function(){
+/* without the 3D library the models are simply not built; the 2D game carries on */
+if(typeof THREE==='undefined')return;
+var T=THREE;
+function rnd(a,b){return a+Math.random()*(b-a)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function tex(w,h,draw,rx,ry,srgb){var c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);var t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;if(rx)t.repeat.set(rx,ry||rx);t.anisotropy=8;if(srgb!==false)t.encoding=T.sRGBEncoding;return t}
+/* ---------- coat textures ---------- */
+function speck(g,w,h,n,a){for(var i=0;i<n;i++){g.fillStyle='rgba('+(Math.random()<.5?'255,255,255':'0,0,0')+','+(Math.random()*a).toFixed(3)+')';g.fillRect(Math.random()*w,Math.random()*h,2,2)}}
+function blob(g,x,y,r,col){g.fillStyle=col;for(var k=0;k<9;k++){g.beginPath();g.arc(x+rnd(-r,r)*.8,y+rnd(-r,r)*.6,r*rnd(.4,.8),0,6.29);g.fill()}}
+function coatTex(c){return tex(1024,512,function(g,w,h){
+ g.fillStyle=c.base;g.fillRect(0,0,w,h);speck(g,w,h,24000,.02);var cs=g.createLinearGradient(0,0,0,h);cs.addColorStop(0,'rgba(0,0,0,.2)');cs.addColorStop(.45,'rgba(0,0,0,0)');cs.addColorStop(1,'rgba(255,240,220,.22)');g.fillStyle=cs;g.fillRect(0,0,w,h);
+ var type=c.type||'solid',i,x,y,r;
+ if(type==='pinto'||type==='sabino'){var n=type==='pinto'?7:4;for(i=0;i<n;i++){blob(g,rnd(0,w),type==='pinto'?rnd(40,h-40):rnd(h*.55,h),rnd(60,140),c.patch)}}
+ if(type==='leopard'){g.fillStyle=c.patch;g.fillRect(0,0,w,h);speck(g,w,h,20000,.05);for(i=0;i<420;i++){x=Math.random()*w;y=Math.random()*h;r=rnd(5,13);g.fillStyle=c.base;g.beginPath();g.ellipse(x,y,r,r*rnd(.8,1.2),0,0,6.29);g.fill()}}
+ if(type==='roan'||type==='flea'){var cnt=type==='roan'?9000:2600;for(i=0;i<cnt;i++){g.fillStyle=type==='roan'?(Math.random()<.7?c.patch:'rgba(255,255,255,.5)'):c.patch;var s=type==='roan'?rnd(1,3):rnd(2,5);g.globalAlpha=type==='roan'?.55:.8;g.fillRect(Math.random()*w,Math.random()*h,s,s*rnd(1,2))}g.globalAlpha=1}
+ var dp=c.dapple||0,n2=Math.round(1100*dp);
+ for(i=0;i<n2;i++){x=Math.random()*w;y=Math.random()*h;r=rnd(10,26);var gr=g.createRadialGradient(x,y,1,x,y,r);gr.addColorStop(0,c.hi);gr.addColorStop(.62,c.hi);gr.addColorStop(1,'rgba(0,0,0,0)');g.globalAlpha=.3;g.fillStyle=gr;g.beginPath();g.arc(x,y,r*1.3,0,6.29);g.fill();g.globalAlpha=.1;g.strokeStyle=c.lo;g.lineWidth=6;g.beginPath();g.arc(x,y,r*1.1,0,6.29);g.stroke()}
+ g.globalAlpha=1},1,1)}
+var FUR=tex(256,256,function(g,w,h){g.fillStyle='#808080';g.fillRect(0,0,w,h);for(var i=0;i<9000;i++){var v=Math.round(rnd(90,170));g.fillStyle='rgb('+v+','+v+','+v+')';g.fillRect(Math.random()*w,Math.random()*h,1,rnd(2,5))}},3,3,false);
+function blkTex(kind,c){return tex(256,256,function(g,w,h){
+ g.fillStyle=c[0];g.fillRect(0,0,w,h);var x,y;
+ if(kind==='stripe'){for(y=0;y<h;y+=32){g.fillStyle=c[1];g.fillRect(0,y+8,w,10);g.fillStyle=c[2];g.fillRect(0,y+22,w,4)}}
+ else if(kind==='check'){for(y=0;y<h;y+=32)for(x=0;x<w;x+=32){if(((x+y)/32)%2===0){g.fillStyle=c[1];g.fillRect(x,y,32,32)}}g.fillStyle=c[2];g.fillRect(0,0,w,5);g.fillRect(0,h-5,w,5)}
+ else if(kind==='diamond'){for(y=0;y<h;y+=64)for(x=0;x<w;x+=64){g.fillStyle=c[1];g.beginPath();g.moveTo(x+32,y+4);g.lineTo(x+60,y+32);g.lineTo(x+32,y+60);g.lineTo(x+4,y+32);g.closePath();g.fill();g.fillStyle=c[2];g.beginPath();g.arc(x+32,y+32,7,0,6.29);g.fill()}}
+ else if(kind==='crest'){for(y=0;y<h;y+=128)for(x=0;x<w;x+=128){g.fillStyle=c[1];g.beginPath();g.arc(x+64,y+64,42,0,6.29);g.fill();g.fillStyle=c[0];g.beginPath();g.arc(x+64,y+64,30,0,6.29);g.fill();g.fillStyle=c[2];g.beginPath();g.moveTo(x+64,y+38);g.lineTo(x+74,y+60);g.lineTo(x+96-10,y+60);g.lineTo(x+78,y+74);g.lineTo(x+84,y+94);g.lineTo(x+64,y+82);g.lineTo(x+44,y+94);g.lineTo(x+50,y+74);g.lineTo(x+32,y+60);g.lineTo(x+54,y+60);g.closePath();g.fill()}}
+ else if(kind==='mail'){for(y=0;y<h;y+=14)for(x=0;x<w;x+=14){g.strokeStyle=c[1];g.lineWidth=2;g.beginPath();g.arc(x+(y/14%2)*7,y,6,0,6.29);g.stroke()}}
+ else if(kind==='scale'){for(y=0;y<h;y+=18)for(x=0;x<w;x+=22){g.fillStyle=((x+y)/18)%2?c[0]:c[1];g.beginPath();g.arc(x+(y/18%2)*11,y,12,0,3.14);g.fill();g.strokeStyle=c[2];g.lineWidth=1.5;g.stroke()}}
+ g.fillStyle=c[2];g.fillRect(0,0,w,6);g.fillRect(0,h-6,w,6);
+ for(var i=0;i<3500;i++){g.fillStyle='rgba(0,0,0,'+(Math.random()*.1)+')';g.fillRect(Math.random()*w,Math.random()*h,1,2)}},1,1)}
+var LEATHT={};
+function leatherTex(c){if(LEATHT[c])return LEATHT[c];return LEATHT[c]=tex(128,128,function(g,w,h){g.fillStyle=c;g.fillRect(0,0,w,h);for(var i=0;i<2500;i++){g.fillStyle='rgba('+(Math.random()<.5?'255,220,180':'0,0,0')+','+(Math.random()*.08)+')';g.fillRect(Math.random()*w,Math.random()*h,2,2)}},2,2)}
+function M(col,o){return new T.MeshStandardMaterial(Object.assign({color:col,roughness:.85,metalness:0},o||{}))}
+/* ---------- geometry helpers ---------- */
+function add(g,m,x,y,z){m.position.set(x||0,y||0,z||0);m.castShadow=true;m.receiveShadow=true;g.add(m);return m}
+function ell(g,rx,ry,rz,mat,x,y,z,rot){var m=new T.Mesh(new T.SphereGeometry(1,36,26),mat);m.scale.set(rx,ry,rz);if(rot)m.rotation.set(rot[0]||0,rot[1]||0,rot[2]||0);return add(g,m,x,y,z)}
+function limb(g,a,b,r1,r2,mat){var A=new T.Vector3(a[0],a[1],a[2]),B=new T.Vector3(b[0],b[1],b[2]),d=B.clone().sub(A),L=d.length();var m=new T.Mesh(new T.CylinderGeometry(r2,r1,L,24,1),mat);m.position.copy(A.clone().add(B).multiplyScalar(.5));m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize());m.castShadow=m.receiveShadow=true;g.add(m);return m}
+function bez(p0,p1,p2,p3,t){var u=1-t;return [u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]]}
+function box(g,w,h,d,mat,x,y,z,rot){var m=new T.Mesh(new T.BoxGeometry(w,h,d),mat);if(rot)m.rotation.set(rot[0]||0,rot[1]||0,rot[2]||0);return add(g,m,x,y,z)}
+function cap(g,rx,ry,rz,mat,x,y,z,th,ps,pl){if(!mat)return null;mat.side=THREE.DoubleSide;var m=new THREE.Mesh(new THREE.SphereGeometry(1,44,30,ps||0,pl||Math.PI*2,0,th),mat);m.scale.set(rx,ry,rz);return add(g,m,x,y,z)}
+function tor(g,R,r,mat,x,y,z,rot){var m=new T.Mesh(new T.TorusGeometry(R,r,8,24),mat);if(rot)m.rotation.set(rot[0]||0,rot[1]||0,rot[2]||0);return add(g,m,x,y,z)}
+
+function hsh(a,b,c){var h=Math.sin(a*127.1+b*311.7+c*74.7)*43758.5453;return h-Math.floor(h)}
+function vn(x,y,z){var xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),w=zf*zf*(3-2*zf);
+ function g(a,b,c){return hsh(xi+a,yi+b,zi+c)}
+ var x00=g(0,0,0)+(g(1,0,0)-g(0,0,0))*u,x10=g(0,1,0)+(g(1,1,0)-g(0,1,0))*u,x01=g(0,0,1)+(g(1,0,1)-g(0,0,1))*u,x11=g(0,1,1)+(g(1,1,1)-g(0,1,1))*u;
+ var y0=x00+(x10-x00)*v,y1=x01+(x11-x01)*v;return y0+(y1-y0)*w}
+function ss(a,b,x){var t=(x-a)/(b-a);t=t<0?0:t>1?1:t;return t*t*(3-2*t)}
+function lin(h){var c=new T.Color(h);return [Math.pow(c.r,2.2),Math.pow(c.g,2.2),Math.pow(c.b,2.2)]}
+function mixc(a,b,t){a[0]+=(b[0]-a[0])*t;a[1]+=(b[1]-a[1])*t;a[2]+=(b[2]-a[2])*t}
+
+function paintC(geo,F,sp){
+ var c=sp.coat,P=geo.attributes.position,n=P.count,col=new Float32Array(n*3),ho=F.ho;
+ var base=lin(c.base),hi=lin(c.hi||c.base),lo=lin(c.lo||c.base),belly=lin(c.belly||c.hi||c.base),legc=lin(sp.leg||c.lo||c.base),dark=lin(sp.skin||'#4a3a2e'),muz=lin(sp.muz||'#5a4636'),i;
+ for(i=0;i<n;i++){var x=P.getX(i),y=P.getY(i),z=P.getZ(i),k=base.slice();
+  var d=vn(x*7,y*7,z*7)-.5+(vn(x*21,y*21,z*21)-.5)*.5;mixc(k,d>0?hi:lo,Math.min(1,Math.abs(d)*(c.var==null?.7:c.var)));
+  mixc(k,belly,ss(1.45,1.2,y)*ss(.95,.7,Math.abs(x))*ss(.3,.12,Math.abs(z))*.7);
+  if(y<1.2)mixc(k,legc,ss(1.2,.6,y)*.85);
+  /* chest pad and knee pads */
+  if(x>.25&&x<.65&&y<1.2&&y>1.02&&Math.abs(z)<.2)mixc(k,dark,ss(.2,.1,Math.abs(z))*ss(1.2,1.14,y)*ss(1.02,1.08,y)*.9);
+  if(x>.5&&y>.56&&y<.76&&Math.abs(z)>.08)mixc(k,dark,.45);
+  if(y<.09)mixc(k,dark,ss(.09,.06,y));
+  if(y>1.95)mixc(k,lo,ss(1.95,2.3,y)*.55);
+  var hx=x-ho[0],hy=y-ho[1];
+  if(Math.hypot(hx,hy)<1.8&&x>ho[0]-.4){var hd=F.head(x,y,z);mixc(k,muz,ss(.5,.68,hd[0])*.9);if(hd[1]<-.1&&hd[0]>.1&&hd[0]<1.1)mixc(k,muz,.3)}
+  col[i*3]=k[0];col[i*3+1]=k[1];col[i*3+2]=k[2]}
+ geo.setAttribute('color',new T.BufferAttribute(col,3))}
+function fuzz(geo){var P=geo.attributes.position,N=geo.attributes.normal,n=P.count,i;for(i=0;i<n;i++){var x=P.getX(i),y=P.getY(i),z=P.getZ(i),a=(vn(x*34,y*34,z*34)-.5)*.022+(vn(x*13,y*13,z*13)-.5)*.02;P.setXYZ(i,x+N.getX(i)*a,y+N.getY(i)*a,z+N.getZ(i)*a)}P.needsUpdate=true}
+function build(sp,res,rigOn){
+ var c=sp.coat,b=sp.build||{},tk=sp.tack||{},tex1=[],G=new T.Group(),parts={wings:[]};G.userData={parts:parts,tex:tex1};
+ var coat=new T.MeshPhysicalMaterial({color:'#fff',vertexColors:true,roughness:.92});
+ var hairM=M(sp.hair||c.lo||c.base,{roughness:.95}),eye=M('#0d0907',{roughness:.15}),iris=M(sp.iris||'#3a2410',{roughness:.3}),nost=M('#2a1d17',{roughness:.8});
+ var wood=M(tk.wood||'#5b3a22',{roughness:.6}),metal=M(tk.metal==='gold'?'#e0b43c':'#b9bec6',{metalness:.9,roughness:.3}),rope=M(tk.rope||'#8a2a24',{roughness:.7});
+ var bx=blkTex(tk.pat||'diamond',tk.bl||['#b5441f','#f0d9a0','#7a2a10']);tex1.push(bx);var blanket=M('#fff',{map:bx,roughness:.95});
+ var body=new T.Group();G.add(body);parts.body=body;var bu=b.bulk||1,i,t,p;
+ var F=CSDF.makeField(sp),mesh=HSURF.surfaceNets(F.f,F.bounds[0],F.bounds[1],res||.03);
+ var geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(mesh.pos,3));geo.setIndex(new T.BufferAttribute(new Uint32Array(mesh.idx),1));
+ paintC(geo,F,sp);geo.computeVertexNormals();fuzz(geo);geo.computeVertexNormals();var skin=new T.Mesh(geo,coat);skin.castShadow=skin.receiveShadow=true;body.add(skin);
+ if(rigOn){var PV=[{h:[.42,1.3],k:[.42,.66],f:1,hb:[1.25,1.0],kb:[.74,.6]},{h:[.42,1.3],k:[.42,.66],f:1,hb:[1.25,1.0],kb:[.74,.6]},{h:[-.58,1.32],k:[-.9,.58],f:0,hb:[1.3,1.05],kb:[.66,.52]},{h:[-.58,1.32],k:[-.9,.58],f:0,hb:[1.3,1.05],kb:[.66,.52]}];
+  var PA=geo.attributes.position,B0=PA.array.slice(),LV=[[],[],[],[]],q;
+  for(q=0;q<PA.count;q++){var vx=B0[q*3],vy=B0[q*3+1],vz=B0[q*3+2];if(Math.abs(vz)<.03)continue;var li=(vx>0?0:2)+(vz>0?0:1),pv=PV[li];var wh=ss(pv.hb[0],pv.hb[1],vy);if(wh<=0||Math.abs(vx-pv.h[0])>.45)continue;LV[li].push(q,wh,ss(pv.kb[0],pv.kb[1],vy))}
+  var last='';G.userData.rig={legs:null,update:function(){var L=this.legs;if(!L)return;var key='',A=[],i;for(i=0;i<4;i++){var u=L[i].userData,H=-(u.up.rotation.x||0),K=(PV[i].f?-1:1)*(u.kn.rotation.x||0);A.push([H,K]);key+=H.toFixed(3)+K.toFixed(3)}
+   if(key===last)return;last=key;var arr=PA.array;
+   for(i=0;i<4;i++){var pv=PV[i],H=A[i][0],K=A[i][1],V=LV[i];for(var j=0;j<V.length;j+=3){var o=V[j]*3,x=B0[o],y=B0[o+1],wk=V[j+2],wh=V[j+1],a,cs,sn,dx,dy;
+    if(wk>0){a=K*wk;cs=Math.cos(a);sn=Math.sin(a);dx=x-pv.k[0];dy=y-pv.k[1];x=pv.k[0]+dx*cs-dy*sn;y=pv.k[1]+dx*sn+dy*cs}
+    a=H*wh;cs=Math.cos(a);sn=Math.sin(a);dx=x-pv.h[0];dy=y-pv.h[1];arr[o]=pv.h[0]+dx*cs-dy*sn;arr[o+1]=pv.h[1]+dx*sn+dy*cs}}
+   PA.needsUpdate=true;geo.computeVertexNormals()}};
+  skin.onBeforeRender=function(){G.userData.rig.update()}}
+ /* neck underside hair and hump tufts */
+ if(sp.hairy){for(i=0;i<=9;i++){t=i/9;p=F.neckAt(t);ell(body,.05,.08,.04,hairM,p[0]-.03,p[1]-p[2]*.85,0,[0,0,.3]);}
+  F.humps.forEach(function(h){ell(body,h.rx*.5,.06,h.rz*.5,hairM,h.x,h.y+h.ry*.9,0)})}
+ var head=new T.Group();head.position.set(F.ho[0],F.ho[1],0);head.rotation.z=-F.HR;body.add(head);parts.head=head;parts.headBase=-F.HR;head.scale.set(F.hs,F.hh,1);
+ var zE=F.headSurfZ(.13,.055);
+ [1,-1].forEach(function(s){
+  ell(head,.032,.034,.02,iris,.13,.055,s*(zE-.002));ell(head,.019,.022,.016,eye,.136,.057,s*(zE+.008));ell(head,.009,.009,.005,M('#fff',{emissive:'#fff',emissiveIntensity:.6}),.14,.068,s*(zE+.016));
+  ell(head,.09,.025,.03,hairM,.13,.095,s*(zE-.015),[0,0,.1]);
+  ell(head,.018,.022,.016,nost,.55,-.045,s*.062);
+  var ear=ell(head,.028,.05,.018,coat,-.1,.1,s*.085,[s*.3,0,-.25]);ear.material=hairM;parts['ear'+(s>0?'R':'L')]=ear});
+ /* bridle */
+ var hb=M(tk.bridle||'#2b1a10',{roughness:.5});
+ tor(head,.095,.011,hb,.4,-.05,0,[0,Math.PI/2,0]);tor(head,.12,.01,hb,.02,0,0,[0,Math.PI/2,0]);
+ /* tail */
+ var tail=new T.Group();tail.position.set(-.8,1.75,0);G.add(tail);parts.tail=tail;
+ for(i=0;i<9;i++)ell(tail,.035,.07,.035,coat.clone?hairM:hairM,-.02*i-.02,-.07-i*.1,0);ell(tail,.06,.12,.05,hairM,-.2,-1.0,0);
+ /* saddle */
+ var hp=F.humps,sy,sx,rx;
+ if(hp.length===1){var h=hp[0];
+  var m1=new T.Mesh(new T.SphereGeometry(1,40,28,0,Math.PI*2,0,2.0),blanket);blanket.side=T.DoubleSide;m1.scale.set(h.rx*1.12,h.ry*1.1,h.rz*1.18);m1.position.set(h.x,h.y,0);body.add(m1);
+  sx=h.x;sy=h.y+h.ry*1.0;rx=h.rx*.8}
+ else{var cp=new T.Mesh(new T.SphereGeometry(1,44,30,0,Math.PI*2,0,1.5),blanket);blanket.side=T.DoubleSide;cp.scale.set(.87,.35*bu,.29*bu);cp.position.set(0,1.52,0);body.add(cp);sx=-.08;sy=2.04;rx=.26}
+ var tb=body;G.userData.seatY=sy+.08;
+ ell(tb,rx*1.05,.05,.19,wood,sx,sy,0);ell(tb,.05,.12,.16,wood,sx+rx*.95,sy+.06,0,[0,0,-.25]);ell(tb,.05,.12,.16,wood,sx-rx*.95,sy+.06,0,[0,0,.25]);
+ ell(tb,rx*.9,.03,.15,M(tk.seat||'#7a2a24',{roughness:.7}),sx,sy+.05,0);
+ /* blanket tassels */
+ var tas=M(tk.tassel||'#e0b43c',{roughness:.6});for(i=0;i<9;i++){var tx=-.64+i*.16;[1,-1].forEach(function(s){ell(tb,.02,.05,.02,tas,tx,1.51,s*.27*Math.sqrt(Math.max(0,1-tx*tx/.75))*bu)})}
+ /* rope from nose to saddle */
+ var nw=F.toWorld(.45,-.06),pts=[new T.Vector3(nw[0],nw[1],0),new T.Vector3(nw[0]-.1,nw[1]-.3,.1),new T.Vector3(F.neckAt(.4)[0]+.2,F.neckAt(.4)[1]-.1,.24),new T.Vector3(sx+rx*.9,sy+.04,.15)];
+ var rp=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),24,.011,6,false),rope);rp.castShadow=true;body.add(rp);
+ if(sp.scale)G.scale.set(sp.scale[0],sp.scale[1],sp.scale[2]);
+ G.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+ return G}
+function disposeHorse(g){if(!g)return;g.traverse(function(o){if(o.isMesh){o.geometry.dispose();var m=o.material;if(m&&m.dispose)m.dispose()}});(g.userData.tex||[]).forEach(function(t){t.dispose()})}
+window.CamelLab={build:build,dispose:disposeHorse,M:M,tex:tex,rnd:rnd};
+})();
+
+;
+(function(){
+var C=function(base,hi,lo,o){return Object.assign({base:base,hi:hi,lo:lo},o||{})};
+var KIL=[['diamond',['#b5441f','#f0d9a0','#7a2a10']],['stripe',['#2f5a27','#e8d8b8','#1d3c19']],['check',['#1f3f6e','#e8d8b8','#102448']],['crest',['#6a1f3a','#e0b43c','#e8d8b8']],['diamond',['#2a6a6a','#f0d9a0','#123c3c']],['stripe',['#8a1f1f','#e0b43c','#4a0f0f']],['check',['#4a2a6a','#e8c8a0','#2a1440']],['crest',['#1f4a2a','#e8d8b8','#e0b43c']]];
+var L=[
+['Arabian Dromedary','الجَمَلُ العَرَبِيُّ','The classic one-humped desert camel in warm sand.',C('#c49a62','#d6b07a','#8f6a3c'),1,1,1,1],
+['Sand Mare','النَّاقَةُ','A lean she-camel, pale sand with a long neck.',C('#d2ad78','#e2c394','#9a7448'),1,.95,.95,1.1],
+['Qaswa','القَصْوَاءُ','A tall, proud camel in rich honey.',C('#b8863e','#cf9f55','#7c5624'),1,1.05,1.05,1.05],
+['Adba','العَضْبَاءُ','A swift racing camel, slim and light-footed.',C('#c9a874','#dbbd8e','#8f7040'),1,.85,.85,1.15],
+['Jadaa','الجَدْعَاءُ','A stocky brown camel with a thick neck.',C('#8a6038','#a07848','#5a3c1e'),1,1.15,1.2,.9],
+['Mahri','المَهْرِيُّ','The famous fast riding camel, cream-gold and slender.',C('#dcc08a','#ecd5a6','#a8864e'),1,.8,.8,1.2],
+['Arhabi','الأَرْحَبِيُّ','A strong tan camel with a heavy chest.',C('#b0834c','#c89a60','#745028'),1,1.1,1.15,1],
+['White Camel','الهِجَانُ','A noble pure-white camel with pale lashes.',C('#f0e8da','#fff8ec','#cfc2ae',{belly:'#fff8ec'}),1,1,1,1.05],
+['Bactrian','البُخْتِيُّ','A shaggy two-humped camel for cold mountains.',C('#6e5236','#86683f','#3e2c1a'),2,1.15,1.25,.95],
+['Bactrian Mare','البُخْتِيَّةُ','A two-humped she-camel in soft brown wool.',C('#8a6a44','#a08258','#523a20'),2,1,1.1,.95],
+['Docile Camel','الذَّلُولُ','A calm, easy-gaited camel for beginners.',C('#c2985c','#d4ab70','#8a6434'),1,1,1,1],
+['Riding Camel','القَعُودُ','A young camel ready for the saddle, lean and quick.',C('#bf9358','#d2a86c','#85602e'),1,.9,.9,1],
+['Young Bull','البَكْرُ','A young male camel with a small hump.',C('#b58a52','#c89e68','#7c5830'),1,.85,.95,.9],
+['Young Female','البَكْرَةُ','A young she-camel with a small hump.',C('#cba66f','#dcba84','#946c3c'),1,.8,.85,.9],
+['Calf','الحُوَارُ','A baby camel, small and fluffy.',C('#d8b988','#e8cba0','#a88650'),1,.7,.9,.62],
+['Noble Camel','النَّجِيبُ','A tall, noble camel with a graceful stride.',C('#c0905a','#d4a672','#80582c'),1,.95,.9,1.18],
+['Noble Mare','النَّجِيبَةُ','A graceful she-camel in light fawn.',C('#d0a878','#e2c092','#926c40'),1,.9,.9,1.1],
+['Mount','الرَّاحِلَةُ','A dependable travelling camel, built for long roads.',C('#b4864c','#c89c62','#76522a'),1,1.05,1.1,1],
+['Beast of Burden','المَطِيَّةُ','A strong, broad camel that carries heavy loads.',C('#9a7040','#b28552','#664420'),1,1.2,1.3,.95],
+['Saddle Camel','الرَّكُوبُ','A smooth-riding camel in even tan.',C('#bc9460','#cfa874','#82602e'),1,1,1,1],
+['Milk Camel','الحَلُوبُ','A plump, gentle she-camel in warm beige.',C('#cdb088','#dcc29c','#967a50'),1,1,1.2,.95],
+['Chosen Camel','الصَّفِيُّ','A prized camel with a glossy golden coat.',C('#d4a24a','#e6ba66','#98681e'),1,1,1,1.1],
+['Pale Camel','الأَدْمَاءُ','A pale, cream-white camel with a dark muzzle.',C('#e6d4b0','#f4e6c8','#b8a47c'),1,1,1,1.05],
+['Reddish Camel','الصَّهْبَاءُ','A reddish-blond camel with a pale mane.',C('#c27a4a','#d8905c','#8a4c28'),1,1,1.05,1],
+['Ash Camel','الوَرْقَاءُ','An ash-grey camel with a silvery sheen.',C('#a8a49c','#bcb8ae','#74706a'),1,1,1,1],
+['Red Camel','الحَمْرَاءُ','A deep red-brown camel.',C('#9a5434','#b06a44','#62341c'),1,1.05,1.1,1],
+['Dark Camel','السَّوْدَاءُ','A very dark brown camel, almost black.',C('#3e2c22','#523a2c','#241812'),1,1.05,1.1,1],
+['Ivory Camel','العَيْسَاءُ','A bright ivory camel with a faint pink tinge.',C('#f0e2cc','#fff2dc','#c8b496'),1,1,1,1.05],
+['Strong Camel','الجَسْرَةُ','A large, strong, long-striding camel.',C('#ab7c46','#c09258','#6e4a24'),1,1.2,1.25,1.15],
+['Ship of the Desert','سَفِينَةُ الصَّحْرَاءِ','A grand golden camel in a richly woven saddle.',C('#d0a050','#e4b868','#946a28'),1,1.1,1.15,1.12]
+];
+window.ARB_CAMELS=L.map(function(r,i){var k=KIL[i%KIL.length],w=['#5b3a22','#3b2416','#7a4a2a','#4a2a1c'][i%4];
+ return {n:r[0],ar:r[1],d:r[2],coat:r[3],leg:r[3].hi,hair:r[3].lo,muz:'#5a4636',iris:'#3a2410',hairy:r[4]===2||i%3===0,
+  build:{humps:r[4],hump:r[5]*(r[4]===2?.95:1),bulk:r[6]>1.25?1.25:r[6],neckLen:.92+(i%5)*.06,neckThick:r[6]>1.2?1.2:1,head:1+(i%4)*.04},
+  scale:[r[7],r[7],r[7]*(.95+(i%3)*.04)],
+  tack:{kind:'saddle',pat:k[0],bl:k[1],wood:w,seat:['#7a2a24','#2a4a6a','#4a2a5a','#2a5a3a'][i%4],tassel:['#e0b43c','#c23b3b','#f0f0f0'][i%3],metal:i%4===0?'gold':'steel',rope:['#8a2a24','#2a4a6a','#d9c8a0'][i%3],bridle:'#2b1a10'}}});
+})();
+
+</script>
+<script>
 /* Horse Study mounts: one-skin horses built from a smooth field */
 /* Horse body as one smooth signed-distance field. Pure maths, no THREE. */
 (function(root){
@@ -3416,7 +3654,37 @@ var ITEMS={
     {id:'mh30',ar:'المُذَهَّبُ',en:"Gilded War Charger",price:3110,time:6,xp:3.04,kind:'horse',col:'#2e2a2c',dk:'#161214',mane:'#e0c060',blanket:'#3B2416',hl:29,d:"Dark charger in gold plate with a crimson crest caparison."},
     {id:'mh31',ar:'البُرُونْزِيُّ',en:"Bronze Legionary",price:3200,time:7,xp:3.1,kind:'horse',col:'#7a5a3a',dk:'#4a3420',mane:'#2a1a10',blanket:'#3B2416',hl:30,d:"Stocky warhorse in overlapping bronze scale armour."},
     {id:'mh32',ar:'القَمَرِيُّ',en:"Moon Silver",price:3300,time:7,xp:3.16,kind:'horse',col:'#6a5048',dk:'#3e2a24',mane:'#f1e9d8',blanket:'#3B2416',hl:31,d:"Chocolate silver dapple with a pale mane and a midnight-blue blanket."},
-    {id:'mh33',ar:'الفَرَسُ الأَدْهَمُ',en:"Dark Steed",price:3390,time:7,xp:3.22,kind:'horse',col:'#2b2438',dk:'#171221',mane:'#14101c',blanket:'#3B2416',hl:32,d:"A tall near-black horse with glowing red eyes, a worn leather saddle and a dark bridle."}],
+    {id:'mh33',ar:'الفَرَسُ الأَدْهَمُ',en:"Dark Steed",price:3390,time:7,xp:3.22,kind:'horse',col:'#2b2438',dk:'#171221',mane:'#14101c',blanket:'#3B2416',hl:32,d:"A tall near-black horse with glowing red eyes, a worn leather saddle and a dark bridle."},
+    {id:'mc1',ar:'الجَمَلُ العَرَبِيُّ',en:"Arabian Dromedary",price:320,time:2,xp:1.35,kind:'camel',col:'#c49a62',dk:'#8f6a3c',mane:'#8f6a3c',blanket:'#b5441f',hlc:0,d:"The classic one-humped desert camel in warm sand."},
+    {id:'mc2',ar:'النَّاقَةُ',en:"Sand Mare",price:420,time:2,xp:1.42,kind:'camel',col:'#d2ad78',dk:'#9a7448',mane:'#9a7448',blanket:'#2f5a27',hlc:1,d:"A lean she-camel, pale sand with a long neck."},
+    {id:'mc3',ar:'القَصْوَاءُ',en:"Qaswa",price:520,time:2,xp:1.48,kind:'camel',col:'#b8863e',dk:'#7c5624',mane:'#7c5624',blanket:'#1f3f6e',hlc:2,d:"A tall, proud camel in rich honey."},
+    {id:'mc4',ar:'العَضْبَاءُ',en:"Adba",price:620,time:2,xp:1.55,kind:'camel',col:'#c9a874',dk:'#8f7040',mane:'#8f7040',blanket:'#6a1f3a',hlc:3,d:"A swift racing camel, slim and light-footed."},
+    {id:'mc5',ar:'الجَدْعَاءُ',en:"Jadaa",price:720,time:2,xp:1.61,kind:'camel',col:'#8a6038',dk:'#5a3c1e',mane:'#5a3c1e',blanket:'#2a6a6a',hlc:4,d:"A stocky brown camel with a thick neck."},
+    {id:'mc6',ar:'المَهْرِيُّ',en:"Mahri",price:820,time:3,xp:1.68,kind:'camel',col:'#dcc08a',dk:'#a8864e',mane:'#a8864e',blanket:'#8a1f1f',hlc:5,d:"The famous fast riding camel, cream-gold and slender."},
+    {id:'mc7',ar:'الأَرْحَبِيُّ',en:"Arhabi",price:920,time:3,xp:1.74,kind:'camel',col:'#b0834c',dk:'#745028',mane:'#745028',blanket:'#4a2a6a',hlc:6,d:"A strong tan camel with a heavy chest."},
+    {id:'mc8',ar:'الهِجَانُ',en:"White Camel",price:1020,time:3,xp:1.81,kind:'camel',col:'#f0e8da',dk:'#cfc2ae',mane:'#cfc2ae',blanket:'#1f4a2a',hlc:7,d:"A noble pure-white camel with pale lashes."},
+    {id:'mc9',ar:'البُخْتِيُّ',en:"Bactrian",price:1120,time:3,xp:1.87,kind:'camel',col:'#6e5236',dk:'#3e2c1a',mane:'#3e2c1a',blanket:'#b5441f',hlc:8,d:"A shaggy two-humped camel for cold mountains."},
+    {id:'mc10',ar:'البُخْتِيَّةُ',en:"Bactrian Mare",price:1220,time:3,xp:1.94,kind:'camel',col:'#8a6a44',dk:'#523a20',mane:'#523a20',blanket:'#2f5a27',hlc:9,d:"A two-humped she-camel in soft brown wool."},
+    {id:'mc11',ar:'الذَّلُولُ',en:"Docile Camel",price:1320,time:4,xp:2,kind:'camel',col:'#c2985c',dk:'#8a6434',mane:'#8a6434',blanket:'#1f3f6e',hlc:10,d:"A calm, easy-gaited camel for beginners."},
+    {id:'mc12',ar:'القَعُودُ',en:"Riding Camel",price:1420,time:4,xp:2.07,kind:'camel',col:'#bf9358',dk:'#85602e',mane:'#85602e',blanket:'#6a1f3a',hlc:11,d:"A young camel ready for the saddle, lean and quick."},
+    {id:'mc13',ar:'البَكْرُ',en:"Young Bull",price:1520,time:4,xp:2.13,kind:'camel',col:'#b58a52',dk:'#7c5830',mane:'#7c5830',blanket:'#2a6a6a',hlc:12,d:"A young male camel with a small hump."},
+    {id:'mc14',ar:'البَكْرَةُ',en:"Young Female",price:1620,time:4,xp:2.2,kind:'camel',col:'#cba66f',dk:'#946c3c',mane:'#946c3c',blanket:'#8a1f1f',hlc:13,d:"A young she-camel with a small hump."},
+    {id:'mc15',ar:'الحُوَارُ',en:"Calf",price:1720,time:4,xp:2.26,kind:'camel',col:'#d8b988',dk:'#a88650',mane:'#a88650',blanket:'#4a2a6a',hlc:14,d:"A baby camel, small and fluffy."},
+    {id:'mc16',ar:'النَّجِيبُ',en:"Noble Camel",price:1820,time:5,xp:2.33,kind:'camel',col:'#c0905a',dk:'#80582c',mane:'#80582c',blanket:'#1f4a2a',hlc:15,d:"A tall, noble camel with a graceful stride."},
+    {id:'mc17',ar:'النَّجِيبَةُ',en:"Noble Mare",price:1920,time:5,xp:2.39,kind:'camel',col:'#d0a878',dk:'#926c40',mane:'#926c40',blanket:'#b5441f',hlc:16,d:"A graceful she-camel in light fawn."},
+    {id:'mc18',ar:'الرَّاحِلَةُ',en:"Mount",price:2020,time:5,xp:2.46,kind:'camel',col:'#b4864c',dk:'#76522a',mane:'#76522a',blanket:'#2f5a27',hlc:17,d:"A dependable travelling camel, built for long roads."},
+    {id:'mc19',ar:'المَطِيَّةُ',en:"Beast of Burden",price:2120,time:5,xp:2.52,kind:'camel',col:'#9a7040',dk:'#664420',mane:'#664420',blanket:'#1f3f6e',hlc:18,d:"A strong, broad camel that carries heavy loads."},
+    {id:'mc20',ar:'الرَّكُوبُ',en:"Saddle Camel",price:2220,time:5,xp:2.59,kind:'camel',col:'#bc9460',dk:'#82602e',mane:'#82602e',blanket:'#6a1f3a',hlc:19,d:"A smooth-riding camel in even tan."},
+    {id:'mc21',ar:'الحَلُوبُ',en:"Milk Camel",price:2320,time:6,xp:2.65,kind:'camel',col:'#cdb088',dk:'#967a50',mane:'#967a50',blanket:'#2a6a6a',hlc:20,d:"A plump, gentle she-camel in warm beige."},
+    {id:'mc22',ar:'الصَّفِيُّ',en:"Chosen Camel",price:2420,time:6,xp:2.72,kind:'camel',col:'#d4a24a',dk:'#98681e',mane:'#98681e',blanket:'#8a1f1f',hlc:21,d:"A prized camel with a glossy golden coat."},
+    {id:'mc23',ar:'الأَدْمَاءُ',en:"Pale Camel",price:2520,time:6,xp:2.78,kind:'camel',col:'#e6d4b0',dk:'#b8a47c',mane:'#b8a47c',blanket:'#4a2a6a',hlc:22,d:"A pale, cream-white camel with a dark muzzle."},
+    {id:'mc24',ar:'الصَّهْبَاءُ',en:"Reddish Camel",price:2620,time:6,xp:2.85,kind:'camel',col:'#c27a4a',dk:'#8a4c28',mane:'#8a4c28',blanket:'#1f4a2a',hlc:23,d:"A reddish-blond camel with a pale mane."},
+    {id:'mc25',ar:'الوَرْقَاءُ',en:"Ash Camel",price:2720,time:6,xp:2.91,kind:'camel',col:'#a8a49c',dk:'#74706a',mane:'#74706a',blanket:'#b5441f',hlc:24,d:"An ash-grey camel with a silvery sheen."},
+    {id:'mc26',ar:'الحَمْرَاءُ',en:"Red Camel",price:2820,time:7,xp:2.98,kind:'camel',col:'#9a5434',dk:'#62341c',mane:'#62341c',blanket:'#2f5a27',hlc:25,d:"A deep red-brown camel."},
+    {id:'mc27',ar:'السَّوْدَاءُ',en:"Dark Camel",price:2920,time:7,xp:3.04,kind:'camel',col:'#3e2c22',dk:'#241812',mane:'#241812',blanket:'#1f3f6e',hlc:26,d:"A very dark brown camel, almost black."},
+    {id:'mc28',ar:'العَيْسَاءُ',en:"Ivory Camel",price:3020,time:7,xp:3.11,kind:'camel',col:'#f0e2cc',dk:'#c8b496',mane:'#c8b496',blanket:'#6a1f3a',hlc:27,d:"A bright ivory camel with a faint pink tinge."},
+    {id:'mc29',ar:'الجَسْرَةُ',en:"Strong Camel",price:3120,time:7,xp:3.17,kind:'camel',col:'#ab7c46',dk:'#6e4a24',mane:'#6e4a24',blanket:'#2a6a6a',hlc:28,d:"A large, strong, long-striding camel."},
+    {id:'mc30',ar:'سَفِينَةُ الصَّحْرَاءِ',en:"Ship of the Desert",price:3220,time:7,xp:3.24,kind:'camel',col:'#d0a050',dk:'#946a28',mane:'#946a28',blanket:'#8a1f1f',hlc:29,d:"A grand golden camel in a richly woven saddle."}],
   char:[
     {id:'c0',ar:'الدَّلِيلُ',en:'The Desert Guide',price:0,t:'ghutra',d:'Knows every track across the sands, and the way to every lesson.',wear:'url(#gCloth)'},
     {id:'c1',ar:'الفَارِسَةُ',en:'The Horsewoman',price:150,t:'hijab',girl:1,d:'Rides and fights like the heroine Khawla bint al-Azwar.',wear:'#6C4A8A'},
@@ -3605,9 +3873,13 @@ ITEMS.weapon=ITEMS.weapon.filter(function(x){return ['w120','w124','w126','w128'
 ITEMS.mount=ITEMS.mount.filter(function(x){return /^(m0|)$/.test(x.id)||/^(horse|mare|camel|donkey|ostrich|elephant|chariot)$/.test(x.kind||'')});
 /* the old horses are replaced by the Horse Study horses (hl) */
 ITEMS.mount=ITEMS.mount.filter(function(x){return !/^(horse|mare|pegasus)$/.test(x.kind||'')||x.hl!=null});
+ITEMS.mount=ITEMS.mount.filter(function(x){return x.kind!=='camel'||x.hlc!=null});
 /* forty mounts, eight in each rarity: no unicorn or winged horse (nobody rides those), and a mule to make forty */
 ITEMS.mount=ITEMS.mount.filter(function(x){return !/unicorn|pegasus/i.test(x.en||'')});
 if(!ITEMS.mount.some(function(x){return x.id==='m140'}))ITEMS.mount.push({id:'m140',ar:'البَغْلُ',en:'Mule',price:240,time:2,xp:1.25,kind:'donkey',col:'#6A4A34',dk:'#3E2A1C',mane:'#2A1A10',blanket:'#2F6FB0',d:'Half horse, half donkey: the sure-footed pack animal of the caravan roads.'});
+/* exactly forty mounts (not counting "on foot"), spread evenly over the price range, so each rarity has eight */
+(function(){var L=ITEMS.mount.filter(function(x){return x.id!=='m0'}).sort(function(a,b){return a.price-b.price});if(L.length<=40)return;var keep={};
+  for(var i=0;i<40;i++)keep[L[Math.round(i*(L.length-1)/39)].id]=1;ITEMS.mount=ITEMS.mount.filter(function(x){return x.id==='m0'||keep[x.id]})})();
 Object.keys(ITEMS).forEach(function(k){ITEMS[k].sort(function(a,b){return a.price-b.price});
   /* mounts: "on foot" is not counted, so the forty mounts fall eight to each rarity */
   var L=k==='mount'?ITEMS[k].filter(function(it){return it.id!=='m0'}):ITEMS[k];if(k==='mount')ITEMS[k].forEach(function(it){if(it.id==='m0')it.rar=0});
@@ -3651,7 +3923,7 @@ var ENEMIES=[
 var HUMANS=[
   /* riders: their mount is the fourth piece of gear */
   ['wolf',{k:'h_rider',ar:'الفَارِسُ البَدَوِيُّ',en:'The Bedouin Rider',hp:150,hit:13,fx:'slash',bg:'dunes',gear:['w2','a1','c10','mh1'],kit:['charge','swipe']}],
-  ['tiger',{k:'h_camel',ar:'هَجَّانُ الغُزَاةِ',en:'The Camel Raider',hp:300,hit:20,fx:'slash',bg:'canyon',gear:['w4','a5','c4','m3'],kit:['arrow','charge'],ranged:1}],
+  ['tiger',{k:'h_camel',ar:'هَجَّانُ الغُزَاةِ',en:'The Camel Raider',hp:300,hit:20,fx:'slash',bg:'canyon',gear:['w4','a5','c4','mc1'],kit:['arrow','charge'],ranged:1}],
   ['elephant',{k:'h_cavalier',ar:'الفَارِسُ المَمْلُوكِيُّ',en:'The Mamluk Cavalier',hp:420,hit:26,fx:'slash',bg:'night',gear:['w8','a13','c117','mh2'],kit:['charge','swipe','slam']}],
   ['dragon',{k:'h_lancer',ar:'فَارِسُ الرُّمْحِ',en:'The Desert Lancer',hp:520,hit:31,fx:'slash',bg:'volcano',gear:['w5','a14','c122','mh6'],kit:['charge','swipe']}],
   ['scorpion',{k:'h_thief',ar:'اللِّصُّ',en:'The Thief',hp:85,hit:10,fx:'slash',bg:'dunes',gear:['w1','a1','c116'],kit:['swipe','charge']}],
@@ -3711,7 +3983,7 @@ function shopState(){
   if(!s||!s.own||!s.eq){s=S.prog.shop={own:{w0:1,a0:1,m0:1,c0:1,f0:1},eq:{weapon:'w0',armour:'a0',mount:'m0',char:'c0',field:'f0'},wins:0}}
   s.own.f0=1;
   if(!s.eq.field||!itemById(s.eq.field))s.eq.field='f0';
-  var OLDH={m2:'mh1',m4:'mh3',m13:'mh22',m15:'mh2',m120:'mh1',m122:'mh3',m124:'mh5',m126:'mh6'};for(var oh in OLDH){if(s.own[oh]){s.own[OLDH[oh]]=1;delete s.own[oh]}if(s.eq.mount===oh)s.eq.mount=OLDH[oh]}
+  var OLDH={m3:'mc1',m121:'mc6',m123:'mc27',m125:'mc8',m2:'mh1',m4:'mh3',m13:'mh22',m15:'mh2',m120:'mh1',m122:'mh3',m124:'mh5',m126:'mh6'};for(var oh in OLDH){if(s.own[oh]){s.own[OLDH[oh]]=1;delete s.own[oh]}if(s.eq.mount===oh)s.eq.mount=OLDH[oh]}
   ['weapon','armour','mount','char'].forEach(function(k){if(!itemById(s.eq[k]))s.eq[k]=k[0]+'0'});
   if(!s.beat)s.beat={};
   if(!s.beatK){s.beatK={};for(var i in s.beat)if(s.beat[i]&&OLD_FOES[+i])s.beatK[OLD_FOES[+i]]=1}
@@ -4836,6 +5108,14 @@ function headgear(t,front){if(HG[t])return HG[t](front);if(HG[t])return HG[t](fr
   return '';
 }
 function headSvg(t){return headgear(t,false)+faceSvg(t)+headgear(t,true)}
+var TWOH2=/^(stick|staff|spear|trident|lance|bow|longbow|crossbow|boomerang|chakram|gsword|hammer|thunder|scythe|halberd|glaive)$/,ARMET2=/gIron|gSilver|gGold|gSteel|gDiamond|gChain|gBronze|gRuby|gEmerald|gObsid|gRoyal|gDscale|gLaboos/;
+function shieldSvg(w){if(!w||TWOH2.test(w.k||'stick'))return '';var r=Math.min(4,w.rar||0),g=w.glow||'#C04AFF',c=[['#8A5A2E','#5A5F68','#C9D1DA'],['#A8743A','#8C620E','#E0B04A'],['#8E99A6','#3A424B','#E8EEF5'],['#1F3F8A','#F2C14E','#F2C14E'],['#2A2236',g,g]][r];
+  var h='<circle cx="38" cy="101" r="15.5" fill="'+c[0]+'" stroke="'+c[1]+'" stroke-width="3.2"/>';if(r>=2)h+='<path d="M38 87 V115 M24 101 H52" stroke="'+c[1]+'" stroke-width="2.2"/>';if(r===0)h+='<path d="M30 88 V114 M38 86 V116 M46 88 V114" stroke="rgba(0,0,0,.22)" stroke-width="1"/>';
+  return h+'<circle cx="38" cy="101" r="4.4" fill="'+c[2]+'" stroke="rgba(0,0,0,.3)" stroke-width=".8"/><circle cx="36.8" cy="99.8" r="1.3" fill="#fff" opacity=".7"/>'}
+function helmetSvg(a,ch){if(!a||a.id==='a0'||/^(shadow|ember|frost|jade|void)$/.test(ch&&ch.t||''))return '';var mt=ARMET2.test(a.g||''),f=mt?'url(#'+a.g+')':a.col,e=a.edge||'#3A2A1A';
+  var h='<path d="M64.4 50.4 Q63.8 31.2 80 30.2 Q96.2 31.2 95.6 50.4 Q88 46.4 80 46.4 Q72 46.4 64.4 50.4Z" fill="'+f+'" stroke="'+e+'" stroke-width="1.3"/><path d="M64.6 50 Q80 43.6 95.4 50" stroke="'+e+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  if(mt)h+='<rect x="78.7" y="46.2" width="2.6" height="12" rx="1" fill="'+e+'"/><path d="M77.4 31 L80 24.6 L82.6 31Z" fill="'+e+'"/>';
+  if(a.glow)h+='<circle cx="80" cy="23.6" r="2.4" fill="'+a.glow+'"/>';return h}
 function riderInner(eq,mounted){
   var a=eq.armour,w=eq.weapon,ch=eq.char,h='',fill='url(#'+(a.g||'gCloth')+')',robe=a.id==='a0';
   if(!mounted){
@@ -4845,6 +5125,7 @@ function riderInner(eq,mounted){
     h+='<path d="M70 110 Q72 120 88 121 L96 122 L98 148 L88 149 L86 131 Q70 133 64 122Z" fill="#3A3F4A"/><path d="M86 146 H100.5 Q104 148 103.6 153 H85Z" fill="#4A2E18"/>';
   }
   h+='<path d="M58 74 Q46 88 44 103" stroke="'+a.col+'" stroke-width="10.5" stroke-linecap="round" fill="none"/><path d="M58 74 Q46 88 44 103" stroke="rgba(0,0,0,.12)" stroke-width="10.5" stroke-linecap="round" fill="none"/><circle cx="43.6" cy="105" r="5.2" fill="url(#gSkin)"/>';
+  h+=shieldSvg(w);
   var tor=robe?'M58 70 Q80 61 102 70 L109 '+(mounted?120:146)+' L51 '+(mounted?120:146)+'Z':'M58 70 Q80 61 102 70 L106 118 L54 118Z';
   h+='<path d="'+tor+'" fill="'+fill+'" stroke="'+a.edge+'" stroke-width="1.8" stroke-linejoin="round"/>';
   if(robe)h+='<path d="M80 67 V'+(mounted?118:144)+'" stroke="'+a.edge+'" stroke-width="1.3" opacity=".6"/><path d="M68 84 Q66 112 64 '+(mounted?118:144)+' M92 84 Q94 112 96 '+(mounted?118:144)+'" stroke="#D3CCBD" stroke-width="1.3" fill="none"/>';
@@ -4860,6 +5141,7 @@ function riderInner(eq,mounted){
   }
   h+='<rect x="74" y="61" width="12" height="11" fill="'+SKIN2+'"/>';
   h+=headSvg(ch.t);
+  h+=helmetSvg(a,ch);
   h+='<path d="M102 74 Q112 80 118 88" stroke="'+a.col+'" stroke-width="10.5" stroke-linecap="round" fill="none"/>';
   if(w){var W=WPN[w.k]||WPN.stick,mir=/^(dagger|sword|gsword|steel|gold|ice|fire|void|poison)$/.test(WPN[w.k]?w.k:'stick');h+='<g transform="translate(119,89) rotate(24)'+(mir?' scale(-1,1)':'')+' translate('+(-W.g[0])+','+(-W.g[1])+')">'+W.a+'</g>'}
   h+='<circle cx="119" cy="89" r="5.2" fill="url(#gSkin)"/>';
@@ -6408,16 +6690,16 @@ var G3=(function(){
   }
   /* ---- small helpers ---- */
   function M(col,o){o=o||{};var k=col+JSON.stringify(o);if(MC[k])return MC[k];
-    var m=new T.MeshStandardMaterial({color:lin(col),roughness:o.r!=null?o.r:.62,metalness:o.m||0,emissive:lin(o.e||'#000000'),emissiveIntensity:o.ei!=null?o.ei:1,transparent:!!o.op,opacity:o.op||1,side:o.ds?T.DoubleSide:T.FrontSide,depthWrite:o.op?false:true});
+    var m=new T[(o.m||0)>=.6&&!o.op&&!o.add?'MeshPhysicalMaterial':'MeshStandardMaterial']({color:lin(col),roughness:o.r!=null?o.r:.62,metalness:o.m||0,emissive:lin(o.e||'#000000'),emissiveIntensity:o.ei!=null?o.ei:1,transparent:!!o.op,opacity:o.op||1,side:o.ds?T.DoubleSide:T.FrontSide,depthWrite:o.op?false:true});
     if(o.add){m.blending=T.AdditiveBlending}if(!o.op&&!o.add&&!o.m&&(o.r==null||o.r>=.6)){m.bumpMap=weave();m.bumpScale=.007}return MC[k]=m}
   var WV=null;function weave(){if(WV)return WV;WV=canvasTex(256,256,function(x,w,h){x.fillStyle='#808080';x.fillRect(0,0,w,h);for(var yy=0;yy<h;yy+=4)for(var xx=0;xx<w;xx+=4){var on=((xx>>2)+(yy>>2))%2;x.fillStyle=on?'rgba(255,255,255,.22)':'rgba(0,0,0,.22)';x.fillRect(xx,yy,4,2);x.fillStyle=on?'rgba(0,0,0,.18)':'rgba(255,255,255,.18)';x.fillRect(xx,yy+2,4,2)}for(var i=0;i<3000;i++){x.fillStyle=Math.random()<.5?'rgba(0,0,0,.12)':'rgba(255,255,255,.12)';x.fillRect(Math.random()*w,Math.random()*h,1,1)}},[5,5]);WV.encoding=T.LinearEncoding;return WV}
   function lin(c){return new T.Color(c).convertSRGBToLinear()}
   function mesh(g,m,x,y,z,p){var o=new T.Mesh(g,m);o.position.set(x||0,y||0,z||0);o.castShadow=true;o.receiveShadow=true;if(p)p.add(o);return o}
-  function sph(r,m,x,y,z,p,sx,sy,sz){var o=mesh(new T.SphereGeometry(r,32,22),m,x,y,z,p);if(sx)o.scale.set(sx,sy,sz);return o}
-  function cyl(rt,rb,h,m,x,y,z,p,seg,open){return mesh(new T.CylinderGeometry(rt,rb,h,seg||24,1,!!open),m,x,y,z,p)}
+  function sph(r,m,x,y,z,p,sx,sy,sz){var o=mesh(new T.SphereGeometry(r,48,32),m,x,y,z,p);if(sx)o.scale.set(sx,sy,sz);return o}
+  function cyl(rt,rb,h,m,x,y,z,p,seg,open){return mesh(new T.CylinderGeometry(rt,rb,h,seg?Math.round(seg*1.6):40,1,!!open),m,x,y,z,p)}
   function box(w,h,d,m,x,y,z,p){return mesh(new T.BoxGeometry(w,h,d),m,x,y,z,p)}
-  function cone(r,h,m,x,y,z,p,seg){return mesh(new T.ConeGeometry(r,h,seg||14),m,x,y,z,p)}
-  function tor(r,t,m,x,y,z,p,arc){return mesh(new T.TorusGeometry(r,t,12,40,arc||Math.PI*2),m,x,y,z,p)}
+  function cone(r,h,m,x,y,z,p,seg){return mesh(new T.ConeGeometry(r,h,seg?Math.round(seg*1.8):28),m,x,y,z,p)}
+  function tor(r,t,m,x,y,z,p,arc){return mesh(new T.TorusGeometry(r,t,18,64,arc||Math.PI*2),m,x,y,z,p)}
   function grp(p,x,y,z){var g=new T.Group();g.position.set(x||0,y||0,z||0);if(p)p.add(g);return g}
   /* a capsule hanging down from its pivot */
   function limb(p,r,len,m,x,y,z){var g=grp(p,x,y,z);cyl(r,r*.88,len,m,0,-len/2,0,g);sph(r,m,0,0,0,g);sph(r*.88,m,0,-len,0,g);return g}
@@ -6451,7 +6733,7 @@ var G3=(function(){
   /* ---- weapons, built along +Y from the grip ---- */
   var METAL={steel:['#D5DCE4',.92,.22],dam:['#A3AEBB',.85,.34],gold:['#F2C14E',1,.28],dark:['#4A515C',.85,.38],bright:['#FFFFFF',.95,.1],poison:['#9BD77F',.6,.3,'#3AFF2A'],blunt:['#9AA0A6',.5,.62],ice:['#B8EEFF',.5,.15,'#38C8FF'],fire:['#FFB05A',.5,.25,'#FF5A10'],void:['#5A2A8A',.6,.3,'#A040FF']};
   function bladeShape(len,w,cv,tip,fork){
-    var N=16,L=[],R=[];
+    var N=32,L=[],R=[];
     for(var i=0;i<=N;i++){var t=i/N,cx=cv*t*t,b=w/2*(1-.18*t),h=tip==='round'?(t>.9?b*Math.sqrt(Math.max(0,1-Math.pow((t-.9)/.1,2))):b):tip==='clip'?(t<.62?b:b*(1-(t-.62)/.38)):(t<.74?b:b*(1-(t-.74)/.26));
       L.push([cx-h*(cv?1.18:1),t*len]);R.push([cx+h*(cv?.82:1),t*len])}
     var s=new T.Shape();s.moveTo(L[0][0],L[0][1]);
@@ -6461,7 +6743,7 @@ var G3=(function(){
   }
   function blade(p,o){
     var mt=METAL[o.metal||'steel']||METAL.steel,len=(o.len||32)*.03,w=(o.w||5)*1.3*.011,cv=(o.cv||0)*.012;
-    var g=new T.ExtrudeGeometry(bladeShape(len,w,cv,o.tip,o.fork),{depth:.012,bevelEnabled:true,bevelThickness:.008,bevelSize:.006,bevelSegments:2,steps:1});g.translate(0,0,-.006);
+    var g=new T.ExtrudeGeometry(bladeShape(len,w,cv,o.tip,o.fork),{depth:.012,bevelEnabled:true,bevelThickness:.008,bevelSize:.006,bevelSegments:4,steps:1});g.translate(0,0,-.006);
     var bm=M(mt[0],{m:mt[1],r:mt[2],e:mt[3]||'#000000',ei:mt[3]?.8:1});var b=mesh(g,bm,0,.04,0,p);
     try{var es=new T.Shape(),NN=16,E1=[],E2=[];for(var ei=0;ei<=NN;ei++){var tt=ei/NN,cx2=cv*tt*tt,bb2=w/2*(1-.18*tt),hh2=tt<.74?bb2:bb2*(1-(tt-.74)/.26),xl=cx2-hh2*(cv?1.18:1);E1.push([xl,tt*len]);E2.push([xl+Math.max(.004,hh2*.45),tt*len])}
       es.moveTo(E1[0][0],E1[0][1]);for(var e1=1;e1<=NN;e1++)es.lineTo(E1[e1][0],E1[e1][1]);for(var e2=NN;e2>=0;e2--)es.lineTo(E2[e2][0],E2[e2][1]);
@@ -6534,7 +6816,7 @@ var G3=(function(){
     if(cape){var cg=new T.PlaneGeometry(.58,1.05,6,12),cp=grp(chest,0,.56,.2),c=mesh(cg,M(hex(cape,'#8E1F2A'),{r:.8,ds:true}),0,-.52,0,cp);P.cape=c;P.capeBase=cg.attributes.position.array.slice()}
     var neck=grp(chest,0,.56,0);cyl(.07,.08,.14,skin,0,.04,0,neck);
     var head=grp(neck,0,.2,0);P.head=head;sph(.15,skin,0,0,0,head,1,1.08,1);
-    face(head,ch);hat(head,ch,robeC);
+    face(head,ch);var helm=a.id!=='a0'&&!HOODS[ch.t];if(!helm||ch.girl)hat(head,ch,robeC);if(helm)helmet3(head,a,metal,arm,edge);
     /* arms: shoulder, elbow and hand pivots; the sleeves follow the armour */
     function fist(h,sx,m,grip){
       /* a hand: a palm, four curled fingers and a thumb */
@@ -6545,6 +6827,7 @@ var G3=(function(){
     }
     function side(sx){var sh=grp(chest,.33*sx,.47,0),up=limb(sh,.072,.3,arm),el=grp(up,0,-.3,0),fo=limb(el,.064,.27,a.full||robe?arm:M(hex(a.col,'#999'),metal?{m:.72,r:.3}:{r:.72})),hand=grp(el,0,-.3,0);fist(hand,sx,a.full?arm:skin,sx===1);return {sh:sh,el:el,hand:hand}}
     P.R=side(1);P.L=side(-1);
+    if(!TWOH.test(w&&w.k||'stick'))P.shield=shield3(P.L.el,w);
     var W=weapon(w);
     /* a staff or a spear is held a third of the way up, not by its end */
     if(/^(stick|staff|spear|trident|lance)$/.test(w&&w.k||'stick')){var wb=new T.Box3().setFromObject(W.g),sh2=Math.max(0,wb.max.y*.3);W.g.children.forEach(function(ch){ch.position.y-=sh2})}
@@ -6558,6 +6841,19 @@ var G3=(function(){
     P.mats=own(root);
     return P;
   }
+  var TWOH=/^(stick|staff|spear|trident|lance|bow|longbow|crossbow|boomerang|chakram|gsword|hammer|thunder|scythe|halberd|glaive)$/;
+  function shpal(w){var r=Math.min(4,w&&w.rar||0),g=w&&w.glow||'#C04AFF';return [['#8A5A2E','#5A5F68','#C9D1DA'],['#A8743A','#8C620E','#E0B04A'],['#8E99A6','#3A424B','#E8EEF5'],['#1F3F8A','#F2C14E','#F2C14E'],['#2A2236',g,g]][r]}
+  function shield3(el,w){var c=shpal(w),r=Math.min(4,w&&w.rar||0),g=grp(el,-.075,-.17,.02);
+    var d=cyl(.2,.2,.028,M(c[0],{r:.6}),0,0,0,g,40);d.rotation.z=Math.PI/2;
+    var rim=tor(.2,.016,M(c[1],r===4?{m:.6,r:.3,e:c[1],ei:.8}:{m:.85,r:.3}),0,0,0,g);rim.rotation.y=Math.PI/2;
+    sph(.05,M(c[2],{m:.9,r:.22}),-.022,0,0,g,.6,1,1);
+    if(r>=2){box(.012,.36,.03,M(c[1],{m:.85,r:.3}),-.014,0,0,g);box(.012,.03,.36,M(c[1],{m:.85,r:.3}),-.014,0,0,g)}
+    return g}
+  function helmet3(h,a,metal,arm,edge){var m=metal?arm:M(hex(a.col,'#7A5A3A'),{r:.7});
+    mesh(new T.SphereGeometry(.178,40,20,0,Math.PI*2,0,Math.PI*.52),m,0,.015,0,h);
+    tor(.176,.014,edge,0,.02,0,h).rotation.x=Math.PI/2;
+    if(metal){box(.026,.11,.014,edge,0,-.035,-.182,h);cone(.024,.08,edge,0,.21,0,h);if(a.full)[-1,1].forEach(function(s){box(.018,.12,.09,m,s*.168,-.06,-.07,h)})}
+    if(a.glow)sph(.028,M(a.glow,{e:a.glow,ei:1.2}),0,.26,0,h)}
   function face(h,ch){
     if(HOODS[ch.t])return;
     var white=M('#FFFFFF',{r:.3}),dk=M('#1E1610',{r:.5});
@@ -6567,7 +6863,7 @@ var G3=(function(){
     else sph(.015,M('#C0565A'),0,-.07,-.142,h,1.6,.6,.6);
   }
 
-  function hcap(h,m,r,d){return mesh(new T.SphereGeometry(r||.168,22,12,0,Math.PI*2,0,Math.PI*(d||.55)),m,0,.012,0,h)}
+  function hcap(h,m,r,d){return mesh(new T.SphereGeometry(r||.168,40,20,0,Math.PI*2,0,Math.PI*(d||.55)),m,0,.012,0,h)}
   function hdrape(h,m,len,open){return mesh(new T.CylinderGeometry(.168,.215,len||.4,26,1,true,Math.PI+(open||.62),Math.PI*2-2*(open||.62)),m,0,-.15,.01,h)}
   var HATN={
     pirate:function(h){var bk=M('#16161C',{r:.7}),gd=M('#F2C14E',{m:1,r:.3});cyl(.21,.21,.03,bk,0,.1,0,h,22);cyl(.14,.17,.14,bk,0,.17,0,h,22);tor(.17,.012,gd,0,.12,0,h).rotation.x=Math.PI/2;sph(.036,bk,-.055,.03,-.152,h,1,1,.5);box(.2,.012,.012,bk,-.03,.07,-.14,h).rotation.z=-.4},
@@ -6744,7 +7040,7 @@ var G3=(function(){
      falls to one side, a long head with a soft muzzle, nostrils, eyes set on the sides and small ears, slim legs with
      muscled forearms, knees or hocks, fetlocks and hooves, and a long flowing tail. A camel has its hump, an S-shaped
      neck, knobbly knees and padded feet; a donkey has long ears and a short upright mane. ---- */
-  function sweep(cv,rf,sx,mat,par,seg){var tg=new T.TubeGeometry(cv,seg||28,1,18,false),p=tg.attributes.position,rs=19,ctr=new T.Vector3();
+  function sweep(cv,rf,sx,mat,par,seg){var tg=new T.TubeGeometry(cv,seg||28,1,28,false),p=tg.attributes.position,rs=29,ctr=new T.Vector3();
     for(var i=0;i<=(seg||28);i++){var u=i/(seg||28);cv.getPointAt(u,ctr);var rr=rf(u);for(var j=0;j<rs;j++){var k=i*rs+j,x=p.getX(k)-ctr.x,y=p.getY(k)-ctr.y,z=p.getZ(k)-ctr.z;p.setXYZ(k,ctr.x+x*rr*sx,ctr.y+y*rr,ctr.z+z*rr)}}
     tg.computeVertexNormals();return mesh(tg,mat,0,0,0,par)}
   function legE(B,o,sx,front,c,hoofM,camel){var r=o.r,L=o.len,lh=o.h+r*.55,lr=r*(camel?.2:.24);
@@ -6801,6 +7097,9 @@ var G3=(function(){
     return {root:R,body:pr.body,head:pr.head,legs:legs,tail:pr.tail?[pr.tail]:null,eyes:[],seat:1.98*S*sy}}
   function mountModel(m,parent){
     if(m.hl!=null){var hq=hlMount(m,parent);if(hq)return hq}
+    if(m.hlc!=null&&window.ARB_CAMELS&&window.CamelLab){var csp=window.ARB_CAMELS[m.hlc];if(csp){var CR=new T.Group(),CW=new T.Group(),CS=.68;CR.add(CW);CW.rotation.y=-Math.PI/2;CW.scale.setScalar(CS);var CG=CamelLab.build(csp,.026,true);CW.add(CG);
+      var clegs=[0,1,2,3].map(function(i){return {rotation:{x:0},userData:{up:{rotation:{x:0}},kn:{rotation:{x:0}},an:{rotation:{x:0}},a0:0,k0:0,f0:0,front:i<2}}});if(CG.userData.rig)CG.userData.rig.legs=clegs;CR.rotation.y=Math.PI;parent.add(CR);
+      var cpr=CG.userData.parts,csy=csp.scale?csp.scale[1]:1;return {root:CR,body:cpr.body,head:cpr.head,legs:clegs,tail:cpr.tail?[cpr.tail]:null,eyes:[],seat:(CG.userData.seatY||2.3)*CS*csy}}}
     var k=m.kind,base=MOUNTQ[k],o;
     if(base){o={};for(var x in base)o[x]=base[x];if(m.col&&/^#/.test(m.col))o.col=m.col;if(m.mane&&/^#/.test(m.mane)&&(k==='horse'||k==='mare'||k==='pegasus')){o.hairMane=m.mane;o.tailCol=m.mane}
       if(k==='pegasus')o.wings='#F7F7FB';o.cat=CATS.test(k);if(m.dk&&/^#/.test(m.dk))o.dark=m.dk;var Q=/^(horse|mare|donkey|camel)$/.test(k)?equine(o,k==='mare'?'horse':k):quad(o);Q.root.rotation.y=Math.PI;parent.add(Q.root);

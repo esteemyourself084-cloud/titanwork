@@ -39,16 +39,16 @@ var G3=(function(){
   }
   /* ---- small helpers ---- */
   function M(col,o){o=o||{};var k=col+JSON.stringify(o);if(MC[k])return MC[k];
-    var m=new T.MeshStandardMaterial({color:lin(col),roughness:o.r!=null?o.r:.62,metalness:o.m||0,emissive:lin(o.e||'#000000'),emissiveIntensity:o.ei!=null?o.ei:1,transparent:!!o.op,opacity:o.op||1,side:o.ds?T.DoubleSide:T.FrontSide,depthWrite:o.op?false:true});
+    var m=new T[(o.m||0)>=.6&&!o.op&&!o.add?'MeshPhysicalMaterial':'MeshStandardMaterial']({color:lin(col),roughness:o.r!=null?o.r:.62,metalness:o.m||0,emissive:lin(o.e||'#000000'),emissiveIntensity:o.ei!=null?o.ei:1,transparent:!!o.op,opacity:o.op||1,side:o.ds?T.DoubleSide:T.FrontSide,depthWrite:o.op?false:true});
     if(o.add){m.blending=T.AdditiveBlending}if(!o.op&&!o.add&&!o.m&&(o.r==null||o.r>=.6)){m.bumpMap=weave();m.bumpScale=.007}return MC[k]=m}
   var WV=null;function weave(){if(WV)return WV;WV=canvasTex(256,256,function(x,w,h){x.fillStyle='#808080';x.fillRect(0,0,w,h);for(var yy=0;yy<h;yy+=4)for(var xx=0;xx<w;xx+=4){var on=((xx>>2)+(yy>>2))%2;x.fillStyle=on?'rgba(255,255,255,.22)':'rgba(0,0,0,.22)';x.fillRect(xx,yy,4,2);x.fillStyle=on?'rgba(0,0,0,.18)':'rgba(255,255,255,.18)';x.fillRect(xx,yy+2,4,2)}for(var i=0;i<3000;i++){x.fillStyle=Math.random()<.5?'rgba(0,0,0,.12)':'rgba(255,255,255,.12)';x.fillRect(Math.random()*w,Math.random()*h,1,1)}},[5,5]);WV.encoding=T.LinearEncoding;return WV}
   function lin(c){return new T.Color(c).convertSRGBToLinear()}
   function mesh(g,m,x,y,z,p){var o=new T.Mesh(g,m);o.position.set(x||0,y||0,z||0);o.castShadow=true;o.receiveShadow=true;if(p)p.add(o);return o}
-  function sph(r,m,x,y,z,p,sx,sy,sz){var o=mesh(new T.SphereGeometry(r,32,22),m,x,y,z,p);if(sx)o.scale.set(sx,sy,sz);return o}
-  function cyl(rt,rb,h,m,x,y,z,p,seg,open){return mesh(new T.CylinderGeometry(rt,rb,h,seg||24,1,!!open),m,x,y,z,p)}
+  function sph(r,m,x,y,z,p,sx,sy,sz){var o=mesh(new T.SphereGeometry(r,48,32),m,x,y,z,p);if(sx)o.scale.set(sx,sy,sz);return o}
+  function cyl(rt,rb,h,m,x,y,z,p,seg,open){return mesh(new T.CylinderGeometry(rt,rb,h,seg?Math.round(seg*1.6):40,1,!!open),m,x,y,z,p)}
   function box(w,h,d,m,x,y,z,p){return mesh(new T.BoxGeometry(w,h,d),m,x,y,z,p)}
-  function cone(r,h,m,x,y,z,p,seg){return mesh(new T.ConeGeometry(r,h,seg||14),m,x,y,z,p)}
-  function tor(r,t,m,x,y,z,p,arc){return mesh(new T.TorusGeometry(r,t,12,40,arc||Math.PI*2),m,x,y,z,p)}
+  function cone(r,h,m,x,y,z,p,seg){return mesh(new T.ConeGeometry(r,h,seg?Math.round(seg*1.8):28),m,x,y,z,p)}
+  function tor(r,t,m,x,y,z,p,arc){return mesh(new T.TorusGeometry(r,t,18,64,arc||Math.PI*2),m,x,y,z,p)}
   function grp(p,x,y,z){var g=new T.Group();g.position.set(x||0,y||0,z||0);if(p)p.add(g);return g}
   /* a capsule hanging down from its pivot */
   function limb(p,r,len,m,x,y,z){var g=grp(p,x,y,z);cyl(r,r*.88,len,m,0,-len/2,0,g);sph(r,m,0,0,0,g);sph(r*.88,m,0,-len,0,g);return g}
@@ -82,7 +82,7 @@ var G3=(function(){
   /* ---- weapons, built along +Y from the grip ---- */
   var METAL={steel:['#D5DCE4',.92,.22],dam:['#A3AEBB',.85,.34],gold:['#F2C14E',1,.28],dark:['#4A515C',.85,.38],bright:['#FFFFFF',.95,.1],poison:['#9BD77F',.6,.3,'#3AFF2A'],blunt:['#9AA0A6',.5,.62],ice:['#B8EEFF',.5,.15,'#38C8FF'],fire:['#FFB05A',.5,.25,'#FF5A10'],void:['#5A2A8A',.6,.3,'#A040FF']};
   function bladeShape(len,w,cv,tip,fork){
-    var N=16,L=[],R=[];
+    var N=32,L=[],R=[];
     for(var i=0;i<=N;i++){var t=i/N,cx=cv*t*t,b=w/2*(1-.18*t),h=tip==='round'?(t>.9?b*Math.sqrt(Math.max(0,1-Math.pow((t-.9)/.1,2))):b):tip==='clip'?(t<.62?b:b*(1-(t-.62)/.38)):(t<.74?b:b*(1-(t-.74)/.26));
       L.push([cx-h*(cv?1.18:1),t*len]);R.push([cx+h*(cv?.82:1),t*len])}
     var s=new T.Shape();s.moveTo(L[0][0],L[0][1]);
@@ -92,7 +92,7 @@ var G3=(function(){
   }
   function blade(p,o){
     var mt=METAL[o.metal||'steel']||METAL.steel,len=(o.len||32)*.03,w=(o.w||5)*1.3*.011,cv=(o.cv||0)*.012;
-    var g=new T.ExtrudeGeometry(bladeShape(len,w,cv,o.tip,o.fork),{depth:.012,bevelEnabled:true,bevelThickness:.008,bevelSize:.006,bevelSegments:2,steps:1});g.translate(0,0,-.006);
+    var g=new T.ExtrudeGeometry(bladeShape(len,w,cv,o.tip,o.fork),{depth:.012,bevelEnabled:true,bevelThickness:.008,bevelSize:.006,bevelSegments:4,steps:1});g.translate(0,0,-.006);
     var bm=M(mt[0],{m:mt[1],r:mt[2],e:mt[3]||'#000000',ei:mt[3]?.8:1});var b=mesh(g,bm,0,.04,0,p);
     try{var es=new T.Shape(),NN=16,E1=[],E2=[];for(var ei=0;ei<=NN;ei++){var tt=ei/NN,cx2=cv*tt*tt,bb2=w/2*(1-.18*tt),hh2=tt<.74?bb2:bb2*(1-(tt-.74)/.26),xl=cx2-hh2*(cv?1.18:1);E1.push([xl,tt*len]);E2.push([xl+Math.max(.004,hh2*.45),tt*len])}
       es.moveTo(E1[0][0],E1[0][1]);for(var e1=1;e1<=NN;e1++)es.lineTo(E1[e1][0],E1[e1][1]);for(var e2=NN;e2>=0;e2--)es.lineTo(E2[e2][0],E2[e2][1]);
@@ -165,7 +165,7 @@ var G3=(function(){
     if(cape){var cg=new T.PlaneGeometry(.58,1.05,6,12),cp=grp(chest,0,.56,.2),c=mesh(cg,M(hex(cape,'#8E1F2A'),{r:.8,ds:true}),0,-.52,0,cp);P.cape=c;P.capeBase=cg.attributes.position.array.slice()}
     var neck=grp(chest,0,.56,0);cyl(.07,.08,.14,skin,0,.04,0,neck);
     var head=grp(neck,0,.2,0);P.head=head;sph(.15,skin,0,0,0,head,1,1.08,1);
-    face(head,ch);hat(head,ch,robeC);
+    face(head,ch);var helm=a.id!=='a0'&&!HOODS[ch.t];if(!helm||ch.girl)hat(head,ch,robeC);if(helm)helmet3(head,a,metal,arm,edge);
     /* arms: shoulder, elbow and hand pivots; the sleeves follow the armour */
     function fist(h,sx,m,grip){
       /* a hand: a palm, four curled fingers and a thumb */
@@ -176,6 +176,7 @@ var G3=(function(){
     }
     function side(sx){var sh=grp(chest,.33*sx,.47,0),up=limb(sh,.072,.3,arm),el=grp(up,0,-.3,0),fo=limb(el,.064,.27,a.full||robe?arm:M(hex(a.col,'#999'),metal?{m:.72,r:.3}:{r:.72})),hand=grp(el,0,-.3,0);fist(hand,sx,a.full?arm:skin,sx===1);return {sh:sh,el:el,hand:hand}}
     P.R=side(1);P.L=side(-1);
+    if(!TWOH.test(w&&w.k||'stick'))P.shield=shield3(P.L.el,w);
     var W=weapon(w);
     /* a staff or a spear is held a third of the way up, not by its end */
     if(/^(stick|staff|spear|trident|lance)$/.test(w&&w.k||'stick')){var wb=new T.Box3().setFromObject(W.g),sh2=Math.max(0,wb.max.y*.3);W.g.children.forEach(function(ch){ch.position.y-=sh2})}
@@ -189,6 +190,19 @@ var G3=(function(){
     P.mats=own(root);
     return P;
   }
+  var TWOH=/^(stick|staff|spear|trident|lance|bow|longbow|crossbow|boomerang|chakram|gsword|hammer|thunder|scythe|halberd|glaive)$/;
+  function shpal(w){var r=Math.min(4,w&&w.rar||0),g=w&&w.glow||'#C04AFF';return [['#8A5A2E','#5A5F68','#C9D1DA'],['#A8743A','#8C620E','#E0B04A'],['#8E99A6','#3A424B','#E8EEF5'],['#1F3F8A','#F2C14E','#F2C14E'],['#2A2236',g,g]][r]}
+  function shield3(el,w){var c=shpal(w),r=Math.min(4,w&&w.rar||0),g=grp(el,-.075,-.17,.02);
+    var d=cyl(.2,.2,.028,M(c[0],{r:.6}),0,0,0,g,40);d.rotation.z=Math.PI/2;
+    var rim=tor(.2,.016,M(c[1],r===4?{m:.6,r:.3,e:c[1],ei:.8}:{m:.85,r:.3}),0,0,0,g);rim.rotation.y=Math.PI/2;
+    sph(.05,M(c[2],{m:.9,r:.22}),-.022,0,0,g,.6,1,1);
+    if(r>=2){box(.012,.36,.03,M(c[1],{m:.85,r:.3}),-.014,0,0,g);box(.012,.03,.36,M(c[1],{m:.85,r:.3}),-.014,0,0,g)}
+    return g}
+  function helmet3(h,a,metal,arm,edge){var m=metal?arm:M(hex(a.col,'#7A5A3A'),{r:.7});
+    mesh(new T.SphereGeometry(.178,40,20,0,Math.PI*2,0,Math.PI*.52),m,0,.015,0,h);
+    tor(.176,.014,edge,0,.02,0,h).rotation.x=Math.PI/2;
+    if(metal){box(.026,.11,.014,edge,0,-.035,-.182,h);cone(.024,.08,edge,0,.21,0,h);if(a.full)[-1,1].forEach(function(s){box(.018,.12,.09,m,s*.168,-.06,-.07,h)})}
+    if(a.glow)sph(.028,M(a.glow,{e:a.glow,ei:1.2}),0,.26,0,h)}
   function face(h,ch){
     if(HOODS[ch.t])return;
     var white=M('#FFFFFF',{r:.3}),dk=M('#1E1610',{r:.5});
@@ -198,7 +212,7 @@ var G3=(function(){
     else sph(.015,M('#C0565A'),0,-.07,-.142,h,1.6,.6,.6);
   }
 
-  function hcap(h,m,r,d){return mesh(new T.SphereGeometry(r||.168,22,12,0,Math.PI*2,0,Math.PI*(d||.55)),m,0,.012,0,h)}
+  function hcap(h,m,r,d){return mesh(new T.SphereGeometry(r||.168,40,20,0,Math.PI*2,0,Math.PI*(d||.55)),m,0,.012,0,h)}
   function hdrape(h,m,len,open){return mesh(new T.CylinderGeometry(.168,.215,len||.4,26,1,true,Math.PI+(open||.62),Math.PI*2-2*(open||.62)),m,0,-.15,.01,h)}
   var HATN={
     pirate:function(h){var bk=M('#16161C',{r:.7}),gd=M('#F2C14E',{m:1,r:.3});cyl(.21,.21,.03,bk,0,.1,0,h,22);cyl(.14,.17,.14,bk,0,.17,0,h,22);tor(.17,.012,gd,0,.12,0,h).rotation.x=Math.PI/2;sph(.036,bk,-.055,.03,-.152,h,1,1,.5);box(.2,.012,.012,bk,-.03,.07,-.14,h).rotation.z=-.4},
@@ -375,7 +389,7 @@ var G3=(function(){
      falls to one side, a long head with a soft muzzle, nostrils, eyes set on the sides and small ears, slim legs with
      muscled forearms, knees or hocks, fetlocks and hooves, and a long flowing tail. A camel has its hump, an S-shaped
      neck, knobbly knees and padded feet; a donkey has long ears and a short upright mane. ---- */
-  function sweep(cv,rf,sx,mat,par,seg){var tg=new T.TubeGeometry(cv,seg||28,1,18,false),p=tg.attributes.position,rs=19,ctr=new T.Vector3();
+  function sweep(cv,rf,sx,mat,par,seg){var tg=new T.TubeGeometry(cv,seg||28,1,28,false),p=tg.attributes.position,rs=29,ctr=new T.Vector3();
     for(var i=0;i<=(seg||28);i++){var u=i/(seg||28);cv.getPointAt(u,ctr);var rr=rf(u);for(var j=0;j<rs;j++){var k=i*rs+j,x=p.getX(k)-ctr.x,y=p.getY(k)-ctr.y,z=p.getZ(k)-ctr.z;p.setXYZ(k,ctr.x+x*rr*sx,ctr.y+y*rr,ctr.z+z*rr)}}
     tg.computeVertexNormals();return mesh(tg,mat,0,0,0,par)}
   function legE(B,o,sx,front,c,hoofM,camel){var r=o.r,L=o.len,lh=o.h+r*.55,lr=r*(camel?.2:.24);
@@ -432,6 +446,9 @@ var G3=(function(){
     return {root:R,body:pr.body,head:pr.head,legs:legs,tail:pr.tail?[pr.tail]:null,eyes:[],seat:1.98*S*sy}}
   function mountModel(m,parent){
     if(m.hl!=null){var hq=hlMount(m,parent);if(hq)return hq}
+    if(m.hlc!=null&&window.ARB_CAMELS&&window.CamelLab){var csp=window.ARB_CAMELS[m.hlc];if(csp){var CR=new T.Group(),CW=new T.Group(),CS=.68;CR.add(CW);CW.rotation.y=-Math.PI/2;CW.scale.setScalar(CS);var CG=CamelLab.build(csp,.026,true);CW.add(CG);
+      var clegs=[0,1,2,3].map(function(i){return {rotation:{x:0},userData:{up:{rotation:{x:0}},kn:{rotation:{x:0}},an:{rotation:{x:0}},a0:0,k0:0,f0:0,front:i<2}}});if(CG.userData.rig)CG.userData.rig.legs=clegs;CR.rotation.y=Math.PI;parent.add(CR);
+      var cpr=CG.userData.parts,csy=csp.scale?csp.scale[1]:1;return {root:CR,body:cpr.body,head:cpr.head,legs:clegs,tail:cpr.tail?[cpr.tail]:null,eyes:[],seat:(CG.userData.seatY||2.3)*CS*csy}}}
     var k=m.kind,base=MOUNTQ[k],o;
     if(base){o={};for(var x in base)o[x]=base[x];if(m.col&&/^#/.test(m.col))o.col=m.col;if(m.mane&&/^#/.test(m.mane)&&(k==='horse'||k==='mare'||k==='pegasus')){o.hairMane=m.mane;o.tailCol=m.mane}
       if(k==='pegasus')o.wings='#F7F7FB';o.cat=CATS.test(k);if(m.dk&&/^#/.test(m.dk))o.dark=m.dk;var Q=/^(horse|mare|donkey|camel)$/.test(k)?equine(o,k==='mare'?'horse':k):quad(o);Q.root.rotation.y=Math.PI;parent.add(Q.root);
