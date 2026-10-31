@@ -1,0 +1,169 @@
+// End-to-end checks for Arabingo. usage: node e2e.js <index.html>
+const { chromium } = require('playwright');
+const fs = require('fs');
+const html = process.argv[2];
+const src = fs.readFileSync(html, 'utf8');
+const SEED = JSON.parse(src.match(/^var SEED=(.*);$/m)[1]);
+const QA = {}, EN = {}, PL = {};
+SEED.forEach(u => {
+  u.qs.forEach(q => { (QA[q.q] = QA[q.q] || []).push(q.a); });
+  if (u.conv) u.conv.qs.forEach(q => { (QA[q.q] = QA[q.q] || []).push(q.a); });
+  u.rules.forEach(r => r.ex.forEach(e => { (EN[e.en] = EN[e.en] || []).push(e.ar); }));
+  u.words.forEach(w => { (EN[w.en] = EN[w.en] || []).push(w.ar); if (w.pl) PL[w.ar] = w.pl; });
+});
+function answerFor(q, opts) {
+  if (QA[q]) { const hit = opts.find(o => QA[q].includes(o)); if (hit) return hit; }
+  let m = q.match(/^(?:Which word means|How do you say) [“"](.*)[”"]\?$/);
+  if (m && EN[m[1]]) { const hit = opts.find(o => EN[m[1]].includes(o)); if (hit) return hit; }
+  m = q.match(/^What is the plural of (.*)\?$/);
+  if (m && PL[m[1]] && opts.includes(PL[m[1]])) return PL[m[1]];
+  return null;
+}
+const results = [], unknownQ = [];
+function check(name, ok, info) { results.push((ok ? 'PASS ' : 'FAIL ') + name + (info ? ' — ' + info : '')); }
+(async () => {
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 1100, height: 900 } });
+  const p = await ctx.newPage();
+  const errs = [];
+  p.on('pageerror', e => errs.push(e.message));
+  await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+  // these checks run the 2D game: the 3D library is not loaded, as on a device without WebGL
+  await p.route(/three\.min\.js/, r => r.abort());
+  await p.goto('file://' + html);
+  await p.waitForTimeout(300);
+  // while the page reloads the read can fail; the polling loops then simply try again
+  const prog = () => p.evaluate(() => JSON.parse(localStorage.getItem('arabingo.progress.v3') || 'null')).catch(() => null);
+
+  // 1. complete a unit with a conversation, answering everything correctly
+  async function doUnit(id, wrongAt) {
+    await p.evaluate(h => { location.hash = h; }, '#unit-' + id);
+    await p.waitForTimeout(250);
+    for (let i = 0; i < 60; i++) {
+      const quiz = await p.$('.qbody, .cvwrap');
+      if (quiz) break;
+      const qc = await p.$('.qcb:not([disabled])');
+      if (qc) { await qc.click(); await p.waitForTimeout(80); }
+      await p.click('[data-act=next]'); await p.waitForTimeout(150);
+    }
+    let n = 0, unknown = 0, matches = 0;
+    for (let guard = 0; guard < 80; guard++) {
+      if (await p.$('.result')) break;
+      if (await p.$('.cvwrap')) {
+        const qs = await p.$$eval('.cvq', cs => cs.map(c => ({ q: c.querySelector('h3').textContent, o: [...c.querySelectorAll('.opt .t')].map(t => t.textContent) })));
+        for (let i = 0; i < qs.length; i++) {
+          const a = answerFor(qs[i].q, qs[i].o); if (!a) { unknown++; unknownQ.push('CONV ' + qs[i].q + ' | ' + qs[i].o.join(' / ')); }
+          const k = a ? qs[i].o.indexOf(a) : 0;
+          await p.click(`[data-act=cvpick][data-q="${i}"][data-i="${k}"]`);
+          await p.waitForTimeout(60);
+        }
+        await p.click('[data-act=cvsubmit]'); await p.waitForTimeout(400);
+        await p.click('[data-act=cvcont]'); await p.waitForTimeout(300);
+        continue;
+      }
+      const q = await p.$eval('.qbody .q', e => e.textContent).catch(() => null);
+      if (!q) { await p.waitForTimeout(200); continue; }
+      if (await p.$('.mbox')) {
+        // drag-to-box question: tap each card, then the box it belongs in (card i belongs in box i)
+        for (let i = 0; i < 4; i++) { await p.click(`#mTray .mchip[data-mc="${i}"]`); await p.waitForTimeout(40); await p.click(`.mbox[data-mb="${i}"] .md`); await p.waitForTimeout(60); }
+        matches++;
+        await p.click('[data-act=qcheck]'); await p.waitForTimeout(120);
+        await p.click('[data-act=cont]'); await p.waitForTimeout(150);
+        n++; if (wrongAt === n - 1) wrongAt = n; continue;
+      }
+      const opts = await p.$$eval('.qbody .opt .t', ts => ts.map(t => t.textContent));
+      let a = answerFor(q, opts); if (!a) { unknown++; unknownQ.push(q + ' | ' + opts.join(' / ')); }
+      let k = a ? opts.indexOf(a) : 0;
+      if (wrongAt === n) k = (k + 1) % opts.length;
+      await p.click(`[data-act=pick][data-i="${k}"]`); await p.waitForTimeout(60);
+      await p.click('[data-act=qcheck]'); await p.waitForTimeout(120);
+      await p.click('[data-act=cont]'); await p.waitForTimeout(150);
+      n++;
+    }
+    const txt = await p.$eval('.result', e => e.textContent).catch(() => '');
+    return { n, unknown, txt, matches };
+  }
+  let r = await doUnit('1-1-1');
+  check('unit 1-1-1 passes with right answers', /Unit complete/.test(r.txt) && /100%/.test(r.txt), `questions=${r.n} unknown=${r.unknown}`);
+  check('unit test includes drag-to-box questions', r.matches >= 1, 'matches=' + r.matches);
+  let pr = await prog();
+  check('progress saved for 1-1-1', pr && pr.done['1-1-1'] && pr.done['1-1-1'].score === 100);
+  check('next-unit button offered', !!(await p.$('.result a[href="#unit-1-1-2"]')));
+
+  r = await doUnit('1-2-7', 2);
+  pr = await prog();
+  check('unit with conversation passes with one mistake', /Unit complete/.test(r.txt) && /90%/.test(r.txt), `questions=${r.n} unknown=${r.unknown} result=${r.txt.slice(0, 60)}`);
+  check('wrong answer saved to mistakes', pr.miss.length === 1, 'miss=' + pr.miss.length);
+
+  // 2. mistakes practice clears the mistake when answered correctly
+  await p.evaluate(() => { location.hash = '#quiz'; }); await p.waitForTimeout(250);
+  await p.click('[data-act=mxstart]'); await p.waitForTimeout(300);
+  const mq = await p.$eval('.qbody .q', e => e.textContent);
+  const mo = await p.$$eval('.qbody .opt .t', ts => ts.map(t => t.textContent));
+  const ma = answerFor(mq, mo);
+  await p.click(`[data-act=pick][data-i="${mo.indexOf(ma)}"]`); await p.click('[data-act=qcheck]'); await p.waitForTimeout(150);
+  pr = await prog();
+  check('mistake practice clears a fixed mistake', pr.miss.length === 0, 'miss=' + pr.miss.length);
+
+  // 3. level test runs 30 questions
+  await p.evaluate(() => { location.hash = '#quiz'; }); await p.waitForTimeout(250);
+  await p.click('.lmk[data-l="1"]',{force:true}); await p.waitForTimeout(200);
+  await p.click('[data-act=leveltest]'); await p.waitForTimeout(300);
+  const lt = await p.$eval('.qkind', e => e.textContent);
+  check('level test has 30 questions', /of 30/.test(lt), lt);
+
+  // 4. reading: answer all questions, earn XP once
+  await p.evaluate(() => { location.hash = '#read-1-2-7'; }); await p.waitForTimeout(300);
+  const xp0 = (await prog()).xp;
+  const rq = await p.$$eval('.cvq', cs => cs.map(c => ({ q: c.querySelector('h3').textContent, o: [...c.querySelectorAll('.opt .t')].map(t => t.textContent) })));
+  for (let i = 0; i < rq.length; i++) {
+    const a = answerFor(rq[i].q, rq[i].o); if (!a) unknownQ.push('READ ' + rq[i].q + ' | ' + rq[i].o.join(' / '));
+    await p.click(`[data-act=rpick][data-q="${i}"][data-i="${a ? rq[i].o.indexOf(a) : 0}"]`); await p.waitForTimeout(40);
+  }
+  await p.click('[data-act=rcheck]'); await p.waitForTimeout(300);
+  pr = await prog();
+  check('reading passage scored and saved', pr.read['1-2-7'] && pr.read['1-2-7'].score === rq.length, JSON.stringify(pr.read['1-2-7']));
+  check('reading gives XP', pr.xp - xp0 === rq.length * 5, `+${pr.xp - xp0}`);
+  const tapped = await p.evaluate(() => { const w = document.querySelector('.rconvo .w'); w.click(); return !!document.querySelector('.wsheet'); });
+  check('tapping a word opens the meaning sheet', tapped);
+
+  // 5. arena: win against the first opponent (the Pickpocket)
+  await p.evaluate(() => { location.hash = '#arena'; }); await p.waitForTimeout(250);
+  await p.click('[data-act=arenastart][data-t="0"]'); await p.waitForTimeout(2200);
+  // a real-time fight: dodge late in each wind-up, attack the rest of the time
+  for (let i = 0; i < 900; i++) {
+    if (await p.$('.aend')) break;
+    const st = await p.evaluate(() => { const f = document.getElementById('foeW'); return f ? [f.dataset.s, +f.dataset.left] : null });
+    if (!st) { await p.waitForTimeout(100); continue; }
+    if (st[0] === 'tele' && st[1] < 230) { await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(450); continue; }
+    if (st[0] !== 'tele') await p.keyboard.press(i % 5 ? 'j' : 'k');
+    await p.waitForTimeout(90);
+  }
+  const won = await p.$eval('.aend', e => e.textContent).catch(() => '');
+  pr = await prog();
+  check('arena fight can be won', /Victory/.test(won), won.slice(0, 50));
+  check('beating an enemy is remembered', pr.shop && pr.shop.beatK && pr.shop.beatK.scorpion === 1);
+
+  // 6. progress saved on the small units (versions 3 and 4) moves onto the original units
+  await p.evaluate(() => { localStorage.setItem('arabingo.progress.v3', JSON.stringify({ v: 4, xp: 5, streak: 0, last: '', done: { '1-1-5': { score: 90 }, '1-1-6': { score: 80 }, '1-1-7': { score: 100 }, '1-1-8': { score: 95 }, '1-1-1': { score: 100 }, 'lt-1-5': { score: 85 } }, miss: [], read: { '1-5-3': { score: 3, total: 4 } } })); location.reload(); });
+  await p.waitForTimeout(1200);
+  pr = await prog();
+  check('small-unit progress moves to the original units', pr && pr.v === 5 && pr.done['1-1-2'] && pr.done['1-1-2'].score === 80 && !pr.done['1-1-1'] && pr.done['lt-1-2'] && pr.read['1-2-1'], pr ? Object.keys(pr.done).join(',') + ' read=' + Object.keys(pr.read) : 'none');
+  await p.evaluate(() => { localStorage.setItem('arabingo.progress.v3', JSON.stringify({ v: 3, xp: 5, streak: 0, last: '', done: { 'lt-2-1': { score: 80 }, 'st-2': { score: 1 } }, miss: [], read: {} })); location.reload(); });
+  for (let i = 0; i < 30; i++) { await p.waitForTimeout(200); pr = await prog(); if (pr && pr.done && !pr.done['st-2']) break; }
+  check('progress from the Stage 2 layout moves to Stage 1', pr && pr.done['lt-1-4'] && !pr.done['st-2'], pr ? Object.keys(pr.done).join(',') : 'none');
+
+  // 6b. progress from the first version of the app keeps its unit ids
+  await p.evaluate(() => { localStorage.removeItem('arabingo.progress.v3'); localStorage.setItem('arabingo.progress.v2', JSON.stringify({ xp: 77, streak: 1, last: '', done: { '1-1-4': { score: 92, stars: 2 }, '1-3-10': { score: 88, stars: 1 }, 'lt-1-2': { score: 90, stars: 2 } } })); location.reload(); });
+  for (let i = 0; i < 30; i++) { await p.waitForTimeout(200); pr = await prog(); if (pr && pr.v === 5) break; }
+  check('first-version progress kept', pr && pr.v === 5 && ['1-1-4', '1-3-10', 'lt-1-2'].every(k => pr.done[k]) && pr.xp === 77, pr ? Object.keys(pr.done).join(',') : 'none');
+
+  // 7. every unit page and the main pages render without errors
+  const ids = SEED.map(u => u.id);
+  for (const id of ids) { await p.evaluate(h => { location.hash = h; }, '#unit-' + id); await p.waitForTimeout(15); }
+  for (const h of ['#home', '#reading', '#words', '#quiz', '#shop', '#arena']) { await p.evaluate(x => { location.hash = x; }, h); await p.waitForTimeout(120); }
+  check('all ' + ids.length + ' unit pages and main pages render', errs.length === 0, errs.slice(0, 3).join(' | '));
+  console.log(results.join('\n'));
+  if (unknownQ.length) console.log('UNANSWERED\n  ' + unknownQ.join('\n  '));
+  await b.close();
+})();
