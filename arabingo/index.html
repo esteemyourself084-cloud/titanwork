@@ -3966,8 +3966,8 @@ var PEOPLE=[['النَّشَّالُ','The Pickpocket'],['المُشَاجِرُ
     e.ar=P[0];e.en=P[1];e.human=1;e.gear=gear;e.kit=ranged?['arrow','swipe']:kit;if(ranged)e.ranged=1;e.dg=.15});
   /* much harder toward the top; the champion most of all */
   ENEMIES.forEach(function(e,i){var f=i/Math.max(1,N-1),k=Math.pow(f,1.4);e.hp=Math.round(e.hp*(1+1.7*k));e.hit=Math.round(e.hit*(1+1.25*k));if(i===N-1){e.hp=Math.round(e.hp*1.6);e.hit=Math.round(e.hit*1.4);e.boss=1}
-    /* every enemy weaker than at first: a quarter of the health and a fifth of the damage */
-    e.hp=Math.max(10,Math.round(e.hp*.25));e.hit=Math.max(1,Math.round(e.hit*.2))});
+    /* harder again: full strength, and a little more */
+    e.hp=Math.round(e.hp*1.15);e.hit=Math.round(e.hit*1.1)});
 })();
 /* "the Wolf", but "The Thief" (a name that already starts with The keeps it) */
 function theN(en,cap){return /^the /i.test(en)?(cap?en:'t'+en.slice(1)):(cap?'The ':'the ')+en}
@@ -6643,7 +6643,7 @@ function viewArena(){arenaStop();arenaLobby();aimWeapon()}
 ACT.arenastart=function(b){
   var t=+b.dataset.t,e=ENEMIES[t];
   if(!foeOpen(t)){toast('Beat the '+ENEMIES[t-1].en+' first.');return}
-  arenaStop();var g=gearNow(),hp=140;
+  arenaStop();var g=gearNow(),hp=120;
   AR_S={tier:t,g:g,p:hp,pm:hp,e:e.hp,em:e.hp,round:0,wP:0,wE:0,sp:0,combo:0,tm:[]};
   arenaView();fRound();AR_S.raf=requestAnimationFrame(fLoop);try{window.scrollTo(0,0)}catch(err){}
 };
@@ -7415,7 +7415,7 @@ var G3=(function(){
   /* ---- the fight: you move freely around the arena; the creature chases, circles and attacks an area ----
      Every actor keeps x, z and a (the direction it faces: forward is (sin a, 0, cos a)). The fight state lives in
      AR_S.P and AR_S.E, so the shared fight code (rounds, K.O., HUD, rewards) works unchanged. */
-  var PW=340,MAIM=null,FG=null,KEY={},PAD={},JOY=null,MOUSE=null,SW=null,TR=[],SWID=0;
+  var PW=270,MAIM=null,FG=null,KEY={},PAD={},JOY=null,MOUSE=null,SW=null,TR=[],SWID=0;
   var REACH={stick:1.9,dagger:1.6,venom:1.6,sw_mishmal:1.6,sw_janbiya:1.6,spear:2.8,trident:2.7,mace:2.1,hammer:2.2,thunder:2.2,axe:2.2,staff:2.4,bow:10,phoenix:10,longbow:10,crossbow:10,boomerang:10,chakram:10,kris:1.6,flail:2.2,claymore:2.5};
   var FOEKIT={scorpion:['swipe','slam'],wolf:['swipe','slam'],hyena:['swipe','slam'],eagle:['swipe','slam'],bull:['swipe','charge'],lion:['swipe','slam'],panther:['swipe','slam'],
     viper:['swipe','slam'],bear:['swipe','slam'],crocodile:['swipe','charge'],tiger:['swipe','slam'],gorilla:['swipe','slam'],rhino:['swipe','charge'],elephant:['swipe','charge'],dragon:['swipe','breath','slam'],spider:['swipe','slam']};
@@ -7465,7 +7465,7 @@ var G3=(function(){
     var H=hero(q);S3.add(H.root);var hb=blob(S3,.7);
     var F=creature(e);S3.add(F.root);var fsize=new T.Box3().setFromObject(F.root),fdep=Math.max(fsize.max.x-fsize.min.x,fsize.max.z-fsize.min.z);
     var FR=Math.max(.7,Math.min(1.7,fdep*.32)),fbl=blob(S3,FR*1.3);
-    var kit=e.kit||FOEKIT[e.k]||['swipe','slam'],spdK=1.3,rider=!!(e.human&&e.gear&&e.gear[3]),reachE=e.human?(REACH[humanGear(e).weapon.k]||2)+.4+(rider?.9:0):FR+1.3,tier=ENEMIES.indexOf(e),spdE=(['panther','tiger','lion','wolf','hyena'].indexOf(e.k)>=0?2.9:rider?3.5:2.2)*spdK*(e.boss?1.15:1)*.82+tier*.04;
+    var kit=e.kit||FOEKIT[e.k]||['swipe','slam'],spdK=1.3,rider=!!(e.human&&e.gear&&e.gear[3]),reachE=e.human?(REACH[humanGear(e).weapon.k]||2)+.4+(rider?.9:0):FR+1.3,tier=ENEMIES.indexOf(e),spdE=(['panther','tiger','lion','wolf','hyena'].indexOf(e.k)>=0?2.9:rider?3.5:2.2)*spdK*(e.boss?1.15:1)+tier*.06;
     var wk=q.weapon&&q.weapon.k||'stick',reachP=REACH[wk]||2.05,ranged=reachP>5;
     /* telegraphs on the ground: a cone, a circle and a lane, each with a fill that grows during the wind-up */
     var tcone=grp(S3),tconeO=decal('#FF3A1A',new T.RingGeometry(.2,1,32,1,-Math.PI/2-.95,1.9)),tconeF=decal('#FF6A2A',new T.CircleGeometry(1,32,-Math.PI/2-.95,1.9));tcone.add(tconeO);tcone.add(tconeF);
@@ -7509,7 +7509,7 @@ var G3=(function(){
     var cam=C.cam,camPos=new T.Vector3(0,3,9),camLook=new T.Vector3(0,1,0),ray=new T.Raycaster(),ndc=new T.Vector2(),ground=new T.Plane(new T.Vector3(0,1,0),0),gp=new T.Vector3();
     function groundAt(cx,cy){var r=C.r.domElement.getBoundingClientRect();ndc.set((cx-r.left)/r.width*2-1,-((cy-r.top)/r.height)*2+1);ray.setFromCamera(ndc,cam);return ray.ray.intersectPlane(ground,gp)?gp.clone():null}
     FG={eb:new T.Vector3(),et:new T.Vector3(),hasEB:0,lb:new T.Vector3(),lt:new T.Vector3(),hasB:0,punch:0,C:C,W:W,H:H,F:F,shake:0,flashE:0,flashP:0,burst:burst,pop:pop,arc:arc,arrows:arrows,groundAt:groundAt,stb:document.getElementById('fstP'),pob:document.getElementById('fpoE'),reachP:reachP,ranged:ranged,reachE:reachE,FR:FR,kit:kit,spdE:spdE,tier:tier,boss:!!e.boss,e:e,q:q};
-    var lastRound=-1;if(A0){A0.g3=1;if(!A0.g3hp){A0.g3hp=1;A0.em=Math.round(A0.em*1.3);A0.e=A0.em}}C.dyn=1;C.ds=1;
+    var lastRound=-1;if(A0){A0.g3=1;if(!A0.g3hp){A0.g3hp=1;A0.em=Math.round(A0.em*1.5);A0.e=A0.em}}C.dyn=1;C.ds=1;
     try{var keep=new Set();refs(H,keep,0);refs(F,keep,0);refs(W,keep,0);mergeKids(H.root,keep);mergeKids(F.root,keep);mergeWorld(S3,[H.root,F.root],keep);
       S3.traverse(function(o){if(o.isInstancedMesh)o.castShadow=false})}catch(err){}
     applyQ(C,W);
@@ -7647,7 +7647,7 @@ var G3=(function(){
     if(guard&&P.blockT&&now-P.blockT<240||swing){E.chainNext=0;E.chain=0;E.poise-=35;E.pT=0;P.stam=Math.min(100,(P.stam||0)+18);A.sp=Math.min(100,A.sp+28);FG.slowmo=420;FG.punch=.7;
       if(swing)P.hitDone=1;if(E.poise<=0){E.next='idle';stagger()}else{E.next='open';eSet('open',{olen:1300})}FG.pop(P.x,2.3,P.z,'Parry!','big');fHud();return}
     var cost=guard?14:22;if((P.stam||0)<cost){spend(100);FG.pop(P.x,2.2,P.z,'Guard broken!','big');hitPlayer('swipe',{nb:1,mul:.6});return}
-    spend(cost);var dmg=Math.max(1,Math.round(1.3*foeHit(FG.e)*60/(60+g.def*3)*(guard?.08:.22)));A.p-=dmg;FG.pop(P.x,2,P.z,guard?'Blocked':'Blocked −'+dmg,'blk');A.sp=Math.min(100,A.sp+6);
+    spend(cost);var dmg=Math.max(1,Math.round(1.5*foeHit(FG.e)*60/(60+g.def*3)*(guard?.08:.22)));A.p-=dmg;FG.pop(P.x,2,P.z,guard?'Blocked':'Blocked −'+dmg,'blk');A.sp=Math.min(100,A.sp+6);
     if(E.ch2&&FG.tier>=1){E.chainNext=1}else{E.rk=.25;eSet('hurt',{hl:300});E.wait=320}
     fHud();if(A.p<=0)fKO(false)}
   function bladeHit(b0,t0,b1,t1,ex,ez,rad,fh){for(var i=0;i<=4;i++){var s=i/4;BA.lerpVectors(b0,b1,s);BB.lerpVectors(t0,t1,s);for(var j=0;j<4;j++){BP.lerpVectors(BA,BB,.35+j*.65/3);var dx=BP.x-ex,dz=BP.z-ez;
@@ -7793,7 +7793,7 @@ var G3=(function(){
     var A=AR_S,E=A.E,P=A.P,e=FG.e,g=A.g,NB=!!(o2&&o2.nb);
     if(P.st==='roll'&&P.t>20&&P.t<330){missed(true);return}
     if(P.st==='down'||P.st==='ko')return;
-    var dmg=(o2&&o2.mul||1)*1.3*foeHit(e)*({swipe:1,slam:1.5,charge:1.4,breath:1.3,burst:.8,arrow:.9})[kind]*60/(60+g.def*3),fa=faceTo(P.x,P.z,E.x,E.z);
+    var dmg=(o2&&o2.mul||1)*1.5*foeHit(e)*({swipe:1,slam:1.5,charge:1.4,breath:1.3,burst:.8,arrow:.9})[kind]*60/(60+g.def*3),fa=faceTo(P.x,P.z,E.x,E.z);
     /* a parry: block just before the blow lands */
     if(!NB&&P.st==='block'&&kind!=='slam'&&kind!=='breath'&&P.blockT&&Date.now()-P.blockT<220&&Math.abs(ang(fa-P.a))<1.4){E.chainNext=0;P.stam=Math.min(100,(P.stam||0)+20);E.poise-=30;E.pT=0;if(E.poise<=0){E.next='idle';stagger()}else{E.next='open';E.olen=1400;eSet('open',{olen:1400})}FG.slowmo=380;A.sp=Math.min(100,A.sp+30);g3ev('block');SFX.play('clash');FG.punch=.7;FG.pop(P.x,2.2,P.z,'Parry!','big');fHud();return}
     if(!NB&&P.st==='block'&&kind!=='slam'&&Math.abs(ang(fa-P.a))<1.3){var bc=({swipe:20,charge:34,arrow:12,burst:22,breath:26})[kind]||20;if((P.stam||0)<bc){spend(100);dmg*=.6;var gx=P.x-E.x,gz=P.z-E.z,gl=Math.sqrt(gx*gx+gz*gz)||1;pSet('hurt',{kx:gx/gl*5,kz:gz/gl*5,hd:850});g3ev('hitP');SFX.play('hitBig');FG.pop(P.x,2.2,P.z,'Guard broken!','big')}else{spend(bc);dmg*=.22;g3ev('block');SFX.play('block');FG.pop(P.x,2,P.z,'Blocked','blk');A.sp=Math.min(100,A.sp+6)}}
